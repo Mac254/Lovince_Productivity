@@ -61,7 +61,7 @@ defineExpose({ count: () => props.blockers.length });
                     {{ blocker.description }}
                 </Text>
                 <p class="mt-1 flex flex-wrap items-center gap-2 text-caption text-fg-muted">
-                    <Badge :tone="blocker.status === 'open' ? 'neutral' : 'highlight'" variant="outline">
+                    <Badge :tone="blocker.status === 'open' ? 'danger' : 'success'" dot>
                         {{ blocker.status === 'open' ? 'Open' : 'Resolved' }}
                     </Badge>
                     <RouterLink

@@ -14,13 +14,15 @@ const icons: Record<TaskStatus, IconName> = {
 };
 const tones: Record<TaskStatus, BadgeTone> = {
     not_started: 'neutral',
-    in_progress: 'accent',
-    blocked: 'highlight',
-    completed: 'neutral',
+    in_progress: 'info',
+    blocked: 'danger',
+    completed: 'success',
     cancelled: 'neutral',
 };
 </script>
 
 <template>
-    <Badge variant="outline" :tone="tones[status]" :icon="icons[status]">{{ taskStatusLabels[status] }}</Badge>
+    <Badge :variant="status === 'cancelled' ? 'outline' : 'subtle'" :tone="tones[status]" :icon="icons[status]">{{
+        taskStatusLabels[status]
+    }}</Badge>
 </template>

@@ -23,7 +23,7 @@ import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { formatDate } from '@/lib/dates';
-import { goalStatusLabels, goalTimeframeLabels } from '@/lib/labels';
+import { goalStatusLabels, goalStatusTones, goalTimeframeLabels } from '@/lib/labels';
 import { useDashboardStore } from '@/stores/dashboard';
 import { useGoalsStore } from '@/stores/goals';
 
@@ -130,7 +130,7 @@ watch(id, load, { immediate: true });
                         <Badge tone="inverse"
                             ><ToneDot :tone="goal.tone" />{{ goalTimeframeLabels[goal.timeframe] }}</Badge
                         >
-                        <Badge variant="outline">{{ goalStatusLabels[goal.status] }}</Badge>
+                        <Badge dot :tone="goalStatusTones[goal.status]">{{ goalStatusLabels[goal.status] }}</Badge>
                     </div>
                     <h1
                         id="page-title"

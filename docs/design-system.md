@@ -106,7 +106,7 @@ composables/   useSurfaceTone
 | `Button` | `variant` primary · secondary · outline · ghost · destructive; `size` sm · md · lg; `iconStart`, `iconEnd` (icon names), `loading`, `disabled`, `to` |
 | `IconButton` | `icon` (icon name), `label` (required), `variant` outline · secondary · primary · ghost, `size`, `pressed`, `current`, `to` |
 | `Card` | `tone` default · highlight · accent; `padding` md · lg; `interactive`; `#actions` slot = notched corner |
-| `Badge` | `tone` neutral · accent · highlight · inverse; `variant` solid · outline; `icon` |
+| `Badge` | `tone` neutral · success · warning · danger · info · accent · highlight · inverse; `variant` subtle · outline; `icon` or `dot`. Status tones are tinted fill + hairline ring + light text; they mean state (done, at risk, blocked, in flight) and always carry a label |
 | `Text` | `role` caption · label · body · lead · title; `tone` default · muted · subtle · accent · highlight · danger · inverse |
 | `Heading` | `level` 1–4; `role` display-lg · display-md · display-sm · heading · title · lead; `uppercase` |
 

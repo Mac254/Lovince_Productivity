@@ -138,7 +138,7 @@ watch(id, load, { immediate: true });
                             taskCategoryLabels[task.category]
                         }}</Badge>
                         <PriorityDots :priority="task.priority" />
-                        <Badge v-if="task.is_overdue" tone="neutral" variant="outline">Overdue</Badge>
+                        <Badge v-if="task.is_overdue" tone="danger" icon="alert-circle">Overdue</Badge>
                     </div>
                     <h1
                         id="page-title"

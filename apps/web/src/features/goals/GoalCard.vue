@@ -4,7 +4,7 @@ import { Badge, Card, DropdownMenu, Icon, ProgressBar, Text, type MenuItem } fro
 import { computed } from 'vue';
 import ToneDot from '@/components/ToneDot.vue';
 import { formatDate } from '@/lib/dates';
-import { goalStatusLabels, goalTimeframeLabels } from '@/lib/labels';
+import { goalStatusLabels, goalStatusTones, goalTimeframeLabels } from '@/lib/labels';
 import { toneBorder } from '@/lib/tones';
 
 const props = defineProps<{ goal: Goal }>();
@@ -33,7 +33,7 @@ const taskSummary = computed(() => {
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
                 <Badge tone="inverse"><ToneDot :tone="goal.tone" />{{ goalTimeframeLabels[goal.timeframe] }}</Badge>
-                <Badge v-if="goal.status !== 'active'" variant="outline">{{ goalStatusLabels[goal.status] }}</Badge>
+                <Badge v-if="goal.status !== 'active'" dot :tone="goalStatusTones[goal.status]">{{ goalStatusLabels[goal.status] }}</Badge>
             </div>
             <DropdownMenu :items="menu" :label="`Actions for “${goal.title}”`" size="sm" />
         </div>

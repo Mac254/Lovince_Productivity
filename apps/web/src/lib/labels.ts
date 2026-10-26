@@ -14,6 +14,7 @@ import {
     type TaskPriority,
     type TaskStatus,
 } from '@focus/types';
+import type { BadgeTone } from '@focus/ui';
 
 export const taskStatusLabels: Record<TaskStatus, string> = {
     not_started: 'Not started',
@@ -28,6 +29,13 @@ export const taskPriorityLabels: Record<TaskPriority, string> = {
     medium: 'Medium',
     high: 'High',
     urgent: 'Urgent',
+};
+
+export const taskPriorityTones: Record<TaskPriority, BadgeTone> = {
+    low: 'neutral',
+    medium: 'info',
+    high: 'warning',
+    urgent: 'danger',
 };
 
 /** 1–4, following the order the API defines priorities in. */
@@ -47,6 +55,13 @@ export const goalStatusLabels: Record<GoalStatus, string> = {
     on_hold: 'On hold',
     completed: 'Completed',
     cancelled: 'Cancelled',
+};
+
+export const goalStatusTones: Record<GoalStatus, BadgeTone> = {
+    active: 'success',
+    on_hold: 'warning',
+    completed: 'info',
+    cancelled: 'neutral',
 };
 
 export const goalTimeframeLabels: Record<GoalTimeframe, string> = {

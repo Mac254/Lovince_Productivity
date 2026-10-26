@@ -18,7 +18,7 @@ import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import StatCard from '@/features/dashboard/StatCard.vue';
 import { dueLabel, formatDate, todayIso } from '@/lib/dates';
-import { taskCategoryLabels, taskPriorityLabels } from '@/lib/labels';
+import { taskCategoryLabels, taskPriorityLabels, taskPriorityTones } from '@/lib/labels';
 
 const route = useRoute();
 const toast = useToast();
@@ -136,7 +136,7 @@ watch(date, load, { immediate: true });
                                 >{{ task.title }}</RouterLink
                             >
                             <span class="flex shrink-0 gap-1">
-                                <Badge>{{ taskPriorityLabels[task.priority] }}</Badge>
+                                <Badge :tone="taskPriorityTones[task.priority]">{{ taskPriorityLabels[task.priority] }}</Badge>
                                 <Badge v-if="task.category !== 'general'" tone="accent">{{
                                     taskCategoryLabels[task.category]
                                 }}</Badge>
@@ -164,7 +164,7 @@ watch(date, load, { immediate: true });
                                 class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
                                 >{{ task.title }}</RouterLink
                             >
-                            <Badge variant="outline">{{ taskPriorityLabels[task.priority] }}</Badge>
+                            <Badge :tone="taskPriorityTones[task.priority]">{{ taskPriorityLabels[task.priority] }}</Badge>
                         </li>
                     </ul>
                     <Text v-else role="label" tone="muted">Nothing carried over.</Text>
