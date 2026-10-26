@@ -21,6 +21,7 @@ DESKTOP_FILE="$HOME/.local/share/applications/focus.desktop"
 AUTOSTART_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/autostart/focus.desktop"
 APP_UNIT="focus-app.service"
 SCHEDULER_UNIT="focus-scheduler.service"
+QUEUE_UNIT="focus-queue.service"
 
 say() { printf '\033[1;32m▸\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
@@ -96,6 +97,25 @@ RestartSec=10
 [Install]
 WantedBy=default.target
 UNIT
+
+    cat >"$UNIT_DIR/$QUEUE_UNIT" <<UNIT
+[Unit]
+Description=Focus queue worker (runs background jobs such as the nightly reports)
+After=$APP_UNIT
+
+[Service]
+WorkingDirectory=$API
+Environment=APP_ENV=production
+Environment=APP_DEBUG=false
+Environment=APP_URL=$URL
+Environment=LOG_LEVEL=info
+ExecStart=$php artisan queue:work --tries=3 --sleep=3 --max-time=3600
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+UNIT
 }
 
 write_launcher() {
@@ -151,7 +171,7 @@ case "${1:-}" in
         say "Starting background services"
         write_units
         systemctl --user daemon-reload
-        systemctl --user enable --now "$APP_UNIT" "$SCHEDULER_UNIT"
+        systemctl --user enable --now "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT"
         wait_until_up
         write_launcher
         if [ "${FOCUS_AUTOSTART:-1}" = "1" ]; then
@@ -164,15 +184,18 @@ case "${1:-}" in
     update)
         require
         build
-        systemctl --user restart "$APP_UNIT" "$SCHEDULER_UNIT"
+        write_units
+        systemctl --user daemon-reload
+        systemctl --user enable "$QUEUE_UNIT" >/dev/null 2>&1
+        systemctl --user restart "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT"
         wait_until_up
         say "Updated and restarted — $URL"
         ;;
     status)
-        systemctl --user --no-pager status "$APP_UNIT" "$SCHEDULER_UNIT" || true
+        systemctl --user --no-pager status "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT" || true
         ;;
     logs)
-        journalctl --user -u "$APP_UNIT" -u "$SCHEDULER_UNIT" -f &
+        journalctl --user -u "$APP_UNIT" -u "$SCHEDULER_UNIT" -u "$QUEUE_UNIT" -f &
         tail -n 50 -F "$API"/storage/logs/laravel-*.log
         ;;
     open)
@@ -189,8 +212,8 @@ case "${1:-}" in
         esac
         ;;
     uninstall)
-        systemctl --user disable --now "$APP_UNIT" "$SCHEDULER_UNIT" 2>/dev/null || true
-        rm -f "$UNIT_DIR/$APP_UNIT" "$UNIT_DIR/$SCHEDULER_UNIT" "$DESKTOP_FILE" "$AUTOSTART_FILE"
+        systemctl --user disable --now "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT" 2>/dev/null || true
+        rm -f "$UNIT_DIR/$APP_UNIT" "$UNIT_DIR/$SCHEDULER_UNIT" "$UNIT_DIR/$QUEUE_UNIT" "$DESKTOP_FILE" "$AUTOSTART_FILE"
         systemctl --user daemon-reload
         say "Removed the services and launcher. Your data in apps/api/database is untouched."
         ;;

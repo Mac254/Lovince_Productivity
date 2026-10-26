@@ -4,7 +4,7 @@
     "type": "module",
     "packageManager": "pnpm@12.15.0",
     "scripts": {
-        "dev": "concurrently -k -n api,web,logs,schedule -c magenta,yellow,cyan,green \"pnpm dev:api\" \"pnpm dev:web\" \"pnpm logs\" \"pnpm schedule\"",
+        "dev": "concurrently -k -n api,web,logs,schedule,queue -c magenta,yellow,cyan,green,blue \"pnpm dev:api\" \"pnpm dev:web\" \"pnpm logs\" \"pnpm schedule\" \"pnpm queue\"",
         "dev:web": "pnpm --filter @focus/web dev",
         "dev:api": "cd apps/api && php artisan focus:doctor && php artisan serve",
         "build": "pnpm --filter @focus/web build",
@@ -19,6 +19,7 @@
         "doctor": "cd apps/api && php artisan focus:doctor",
         "logs": "cd apps/api && php artisan pail --timeout=0",
         "schedule": "cd apps/api && php artisan schedule:work",
+        "queue": "cd apps/api && php artisan queue:listen --tries=3",
         "app:install": "scripts/local-app.sh install",
         "app:update": "scripts/local-app.sh update",
         "app:status": "scripts/local-app.sh status",
