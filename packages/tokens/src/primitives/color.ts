@@ -29,6 +29,7 @@ export const ramps = {
         700: '#008a2b',
         800: '#006b21',
         900: '#004d18',
+        950: '#03230d',
     },
     /* Job tones: identity colours for goals, validated as one categorical palette. */
     tone: {
@@ -46,6 +47,21 @@ export const ramps = {
         500: '#ef4444',
         600: '#dc2626',
         700: '#b91c1c',
+        800: '#991b1b',
+        950: '#2a0a0a',
+    },
+    /* Status ramps: blue (info) and amber (warning), stepped for tinted badges on black. */
+    blue: {
+        300: '#93c5fd',
+        400: '#60a5fa',
+        800: '#1e40af',
+        950: '#0c1a38',
+    },
+    amber: {
+        300: '#fcd34d',
+        400: '#fbbf24',
+        800: '#92400e',
+        950: '#2a1a05',
     },
 } as const;
 

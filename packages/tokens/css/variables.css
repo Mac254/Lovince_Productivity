@@ -24,6 +24,7 @@
     --focus-green-700: #008a2b;
     --focus-green-800: #006b21;
     --focus-green-900: #004d18;
+    --focus-green-950: #03230d;
     --focus-tone-green: #16a34a;
     --focus-tone-blue: #3b82f6;
     --focus-tone-amber: #d97706;
@@ -36,6 +37,16 @@
     --focus-red-500: #ef4444;
     --focus-red-600: #dc2626;
     --focus-red-700: #b91c1c;
+    --focus-red-800: #991b1b;
+    --focus-red-950: #2a0a0a;
+    --focus-blue-300: #93c5fd;
+    --focus-blue-400: #60a5fa;
+    --focus-blue-800: #1e40af;
+    --focus-blue-950: #0c1a38;
+    --focus-amber-300: #fcd34d;
+    --focus-amber-400: #fbbf24;
+    --focus-amber-800: #92400e;
+    --focus-amber-950: #2a1a05;
 }
 
 :root,
@@ -73,6 +84,17 @@
     --danger-hover: var(--focus-red-300);
     --danger-ink: var(--focus-neutral-950);
     --danger-fg: var(--focus-red-300);
+    --success-subtle: var(--focus-green-950);
+    --success-border: var(--focus-green-800);
+    --success-fg: var(--focus-green-300);
+    --warning-subtle: var(--focus-amber-950);
+    --warning-border: var(--focus-amber-800);
+    --warning-fg: var(--focus-amber-300);
+    --danger-subtle: var(--focus-red-950);
+    --danger-border: var(--focus-red-800);
+    --info-subtle: var(--focus-blue-950);
+    --info-border: var(--focus-blue-800);
+    --info-fg: var(--focus-blue-300);
     --focus-ring: var(--focus-green-400);
     --selection: var(--focus-green-800);
     --skeleton: var(--focus-neutral-850);

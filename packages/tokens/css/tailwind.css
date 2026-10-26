@@ -84,6 +84,17 @@
     --color-danger-hover: var(--danger-hover);
     --color-danger-ink: var(--danger-ink);
     --color-danger-fg: var(--danger-fg);
+    --color-success-subtle: var(--success-subtle);
+    --color-success-border: var(--success-border);
+    --color-success-fg: var(--success-fg);
+    --color-warning-subtle: var(--warning-subtle);
+    --color-warning-border: var(--warning-border);
+    --color-warning-fg: var(--warning-fg);
+    --color-danger-subtle: var(--danger-subtle);
+    --color-danger-border: var(--danger-border);
+    --color-info-subtle: var(--info-subtle);
+    --color-info-border: var(--info-border);
+    --color-info-fg: var(--info-fg);
     --color-focus-ring: var(--focus-ring);
     --color-selection: var(--selection);
     --color-skeleton: var(--skeleton);

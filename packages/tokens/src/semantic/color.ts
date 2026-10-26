@@ -55,6 +55,19 @@ export const darkTheme = {
     'danger-ink': 'neutral.950',
     'danger-fg': 'red.300',
 
+    /* Status: tinted badge fill, hairline border and text, one set per state. Never reused for series. */
+    'success-subtle': 'green.950',
+    'success-border': 'green.800',
+    'success-fg': 'green.300',
+    'warning-subtle': 'amber.950',
+    'warning-border': 'amber.800',
+    'warning-fg': 'amber.300',
+    'danger-subtle': 'red.950',
+    'danger-border': 'red.800',
+    'info-subtle': 'blue.950',
+    'info-border': 'blue.800',
+    'info-fg': 'blue.300',
+
     'focus-ring': 'green.400',
     selection: 'green.800',
     skeleton: 'neutral.850',
@@ -122,4 +135,8 @@ export const contrastPairs: { fg: ColorRole; bg: ColorRole; min: number }[] = [
     { fg: 'highlight-ink', bg: 'highlight-hover', min: 4.5 },
     { fg: 'danger-ink', bg: 'danger', min: 4.5 },
     { fg: 'danger-ink', bg: 'danger-hover', min: 4.5 },
+    ...(['success', 'warning', 'danger', 'info'] as const).flatMap((status) => [
+        { fg: `${status}-fg` as const, bg: `${status}-subtle` as const, min: 4.5 },
+        { fg: `${status}-fg` as const, bg: 'surface' as const, min: 4.5 },
+    ]),
 ];
