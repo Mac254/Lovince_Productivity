@@ -45,4 +45,6 @@ export const LIMITS = {
     perPageDefault: 25,
     journal: 20000,
     blocker: 1000,
+    wallpaperKb: 8192,
+    wallpapers: 12,
 } as const;

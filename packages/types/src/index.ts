@@ -6,6 +6,7 @@ export type { Goal } from './models/goal';
 export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
 export type { JournalEntry } from './models/journal';
+export type { Wallpaper } from './models/wallpaper';
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
 export type { BlockerInput, GoalInput, LoginInput, PasswordInput, TaskInput } from './api/inputs';
