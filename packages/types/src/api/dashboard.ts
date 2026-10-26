@@ -2,6 +2,7 @@ import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Quote } from '../models/quote';
 import type { IsoDate, Task } from '../models/task';
+import type { TypeBreakdownRow } from './reports';
 
 export interface DashboardStats {
     due_today: number;
@@ -40,6 +41,8 @@ export interface Dashboard {
     highlighted_tasks: Task[];
     open_blockers: Blocker[];
     recent_activity: Task[];
+    /** Open now and completed this week, per type. */
+    by_type: TypeBreakdownRow[];
     integration: IntegrationSummary;
     weekly_goals: Goal[];
     active_goals: Goal[];

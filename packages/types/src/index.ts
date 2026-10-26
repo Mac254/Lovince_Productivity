@@ -20,5 +20,6 @@ export type {
     ReportGoal,
     ReportSummary,
     ReportTask,
+    TypeBreakdownRow,
 } from './api/reports';
 export type { MetricRange, Metrics } from './api/metrics';

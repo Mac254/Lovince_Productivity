@@ -1,5 +1,18 @@
 import type { GoalTimeframe, TaskCategory, TaskPriority, TaskStatus } from '../generated/contract';
 import type { IsoDate, IsoDateTime } from '../models/task';
+import type { TaskTypeRef } from '../models/taskType';
+import type { GoalTone } from '../generated/contract';
+
+/** Work per type: the user's own types first, then built-in categories for untyped tasks. */
+export interface TypeBreakdownRow {
+    key: string;
+    label: string;
+    type_id: number | null;
+    category: TaskCategory | null;
+    tone: GoalTone | null;
+    completed: number;
+    open: number;
+}
 
 export interface ReportSummary {
     completed: number;
@@ -15,6 +28,9 @@ export interface ReportSummary {
     blockers_raised: number;
     blockers_resolved: number;
     high_priority_completed: number;
+    /** Today's plan (due this day or starred); absent on reports made before plans existed. */
+    planned?: number;
+    planned_completed?: number;
 }
 
 export interface ReportTask {
@@ -23,6 +39,7 @@ export interface ReportTask {
     status: TaskStatus;
     priority: TaskPriority;
     category: TaskCategory;
+    type?: TaskTypeRef | null;
     due_date: IsoDate | null;
     goal: { id: number; title: string } | null;
 }
@@ -52,6 +69,8 @@ export interface DailyReportSummary {
 
 export interface DailyReport extends DailyReportSummary {
     completed_tasks: ReportTask[];
+    /** Completed this day, per type. */
+    by_type: TypeBreakdownRow[];
     carried_over: ReportTask[];
     overdue_tasks: ReportTask[];
     blockers_open: ReportBlocker[];

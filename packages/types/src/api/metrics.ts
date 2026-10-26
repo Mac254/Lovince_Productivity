@@ -1,6 +1,6 @@
 import type { TaskCategory, TaskPriority } from '../generated/contract';
 import type { IsoDate } from '../models/task';
-import type { ReportGoal } from './reports';
+import type { ReportGoal, TypeBreakdownRow } from './reports';
 
 export type MetricRange = 7 | 30 | 90;
 
@@ -23,5 +23,6 @@ export interface Metrics {
     heatmap: { date: IsoDate; count: number }[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];
     by_category: { key: TaskCategory; completed: number; open: number }[];
+    by_type: TypeBreakdownRow[];
     goals: ReportGoal[];
 }
