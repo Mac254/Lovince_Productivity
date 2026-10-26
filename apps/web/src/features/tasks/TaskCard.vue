@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { Task, TaskStatus } from '@focus/types';
-import { Badge, Card, DropdownMenu, Icon, IconButton, Text, type MenuItem } from '@focus/ui';
+import { Card, DropdownMenu, Icon, IconButton, Text, type MenuItem } from '@focus/ui';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import ToneDot from '@/components/ToneDot.vue';
 import { dueLabel } from '@/lib/dates';
-import { taskCategoryLabels } from '@/lib/labels';
 import { toneBorder } from '@/lib/tones';
 import PriorityDots from './PriorityDots.vue';
 import StatusBadge from './StatusBadge.vue';
+import TaskTypeBadge from './TaskTypeBadge.vue';
 
 const props = defineProps<{ task: Task; featured?: boolean }>();
 const emit = defineEmits<{
@@ -48,9 +48,7 @@ const menu = computed<MenuItem[]>(() => [
     >
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
-                <Badge :tone="task.category === 'integration' ? 'accent' : 'neutral'">{{
-                    taskCategoryLabels[task.category]
-                }}</Badge>
+                <TaskTypeBadge :task="task" />
             </div>
             <div class="flex shrink-0 items-center gap-1">
                 <IconButton

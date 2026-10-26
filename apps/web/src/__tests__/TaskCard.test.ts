@@ -15,6 +15,8 @@ const task: Task = {
     due_date: '2020-01-01',
     completed_at: null,
     is_overdue: true,
+    task_type_id: null,
+    type: null,
     goal_id: null,
     goal: null,
     created_at: '2026-01-01T00:00:00Z',
@@ -37,6 +39,12 @@ describe('TaskCard', () => {
         expect(text).toContain('Urgent');
         expect(text).toContain('Integration');
         expect(text).toMatch(/overdue/);
+    });
+
+    it('shows the user’s own task type by name', () => {
+        const typed = { ...task, task_type_id: 3, type: { id: 3, name: 'Study', tone: 'violet' as const } };
+        expect(mountCard({ task: typed }).text()).toContain('Study');
+        expect(mountCard().text()).toContain('Integration');
     });
 
     it('emits star from the highlight toggle', async () => {

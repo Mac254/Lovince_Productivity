@@ -22,11 +22,12 @@ import BlockerFormDialog from '@/features/blockers/BlockerFormDialog.vue';
 import BlockerList from '@/features/blockers/BlockerList.vue';
 import PriorityDots from '@/features/tasks/PriorityDots.vue';
 import StatusBadge from '@/features/tasks/StatusBadge.vue';
+import TaskTypeBadge from '@/features/tasks/TaskTypeBadge.vue';
 import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { dueLabel, formatDate } from '@/lib/dates';
-import { taskCategoryLabels, taskStatusOptions } from '@/lib/labels';
+import { taskStatusOptions } from '@/lib/labels';
 import { useDashboardStore } from '@/stores/dashboard';
 
 const route = useRoute();
@@ -122,9 +123,7 @@ watch(id, load, { immediate: true });
         >
             <template v-if="task" #eyebrow>
                 <StatusBadge :status="task.status" />
-                <Badge :tone="task.category === 'integration' ? 'accent' : 'neutral'">{{
-                    taskCategoryLabels[task.category]
-                }}</Badge>
+                <TaskTypeBadge :task="task" />
                 <PriorityDots :priority="task.priority" />
                 <Badge v-if="task.is_overdue" tone="danger" icon="alert-circle">Overdue</Badge>
             </template>
