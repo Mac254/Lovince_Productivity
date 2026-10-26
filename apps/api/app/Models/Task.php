@@ -1,0 +1,98 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\TaskCategory;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
+use App\Observers\ActivityObserver;
+use Database\Factories\TaskFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+#[ObservedBy(ActivityObserver::class)]
+#[Fillable(['goal_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date'])]
+class Task extends Model
+{
+    /** @use HasFactory<TaskFactory> */
+    use HasFactory;
+
+    protected $attributes = [
+        'status' => 'not_started',
+        'priority' => 'medium',
+        'category' => 'general',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Task $task) {
+            if ($task->status === TaskStatus::Completed) {
+                $task->completed_at ??= now();
+            } else {
+                $task->completed_at = null;
+            }
+        });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'status' => TaskStatus::class,
+            'priority' => TaskPriority::class,
+            'category' => TaskCategory::class,
+            'is_highlighted' => 'boolean',
+            'start_date' => 'date',
+            'due_date' => 'date',
+            'completed_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<Goal, $this>
+     */
+    public function goal(): BelongsTo
+    {
+        return $this->belongsTo(Goal::class);
+    }
+
+    /**
+     * @return HasMany<Blocker, $this>
+     */
+    public function blockers(): HasMany
+    {
+        return $this->hasMany(Blocker::class);
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    public function scopeOpen(Builder $query): void
+    {
+        $query->whereIn('status', TaskStatus::openValues());
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    public function scopeOrderByPriority(Builder $query): void
+    {
+        $cases = collect(TaskPriority::cases())
+            ->map(fn (TaskPriority $priority) => "WHEN '{$priority->value}' THEN {$priority->rank()}")
+            ->implode(' ');
+
+        $query->orderByRaw("CASE priority {$cases} END DESC");
+    }
+}
