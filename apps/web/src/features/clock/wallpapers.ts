@@ -17,6 +17,10 @@ export const wallpapers: Wallpaper[] = [
 
 const KEY = 'focus.clock';
 
+/** Uploaded wallpapers are stored as `custom:<id>` in the preferences. */
+export const customWallpaperKey = (id: number) => `custom:${id}`;
+export const isCustomWallpaper = (value: string) => /^custom:\d+$/.test(value);
+
 export interface ClockPrefs {
     wallpaper: string;
     hour12: boolean;

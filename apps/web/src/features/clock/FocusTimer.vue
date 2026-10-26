@@ -6,6 +6,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { useDashboardStore } from '@/stores/dashboard';
 import { MAX_MINUTES, MIN_MINUTES, timerPresets, useTimerStore } from '@/stores/timer';
+import RollingDigits from './RollingDigits.vue';
 import TimerRing from './TimerRing.vue';
 
 const timer = useTimerStore();
@@ -124,7 +125,7 @@ onBeforeUnmount(() => {
                     'h-(--control-sm) rounded-full px-4 text-label font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed',
                     timer.presetId === preset.id
                         ? 'bg-highlight text-highlight-ink'
-                        : 'text-fg-inverse hover:bg-chrome-hover disabled:opacity-50',
+                        : 'text-chrome-fg hover:bg-chrome-hover disabled:opacity-50',
                 ]"
                 @click="timer.choose(preset)"
             >
@@ -134,7 +135,9 @@ onBeforeUnmount(() => {
 
         <TimerRing :progress="timer.progress" :size="ringSize" :label="`${statusLine}, ${timer.display} remaining`">
             <p class="text-label font-semibold tracking-wide uppercase opacity-80">{{ statusLine }}</p>
-            <p class="timer-digits font-display font-semibold tabular" aria-hidden="true">{{ timer.display }}</p>
+            <p class="timer-digits font-display font-semibold" aria-hidden="true">
+                <RollingDigits :text="timer.display" />
+            </p>
             <p v-if="timer.task" class="mt-1 max-w-56 truncate text-label opacity-90">{{ timer.task.title }}</p>
         </TimerRing>
         <p class="sr-only" aria-live="assertive">{{ timer.status === 'done' ? statusLine : '' }}</p>
@@ -167,7 +170,7 @@ onBeforeUnmount(() => {
             </button>
             <button
                 type="button"
-                class="h-(--control-lg) rounded-full bg-surface-inverse px-6 text-label font-semibold text-fg-inverse transition-colors hover:bg-surface-inverse-hover"
+                class="h-(--control-lg) rounded-full bg-chrome px-6 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover"
                 @click="timer.addMinutes(5)"
             >
                 +5 min
@@ -176,7 +179,7 @@ onBeforeUnmount(() => {
 
         <div
             v-if="timer.status === 'done'"
-            class="flex flex-wrap justify-center gap-2 rounded-lg bg-chrome p-4 text-fg-inverse shadow-floating"
+            class="flex flex-wrap justify-center gap-2 rounded-lg bg-chrome p-4 text-chrome-fg shadow-floating"
         >
             <Button v-if="timer.kind === 'focus'" size="sm" icon-start="sun" @click="startBreak"
                 >Take a 5-min break</Button
@@ -192,12 +195,12 @@ onBeforeUnmount(() => {
             </Button>
         </div>
 
-        <div class="grid w-full gap-3 rounded-lg bg-chrome p-4 text-fg-inverse shadow-floating sm:grid-cols-2">
+        <div class="grid w-full gap-3 rounded-lg bg-chrome p-4 text-chrome-fg shadow-floating sm:grid-cols-2">
             <label class="flex flex-col gap-1 text-label font-semibold">
                 Focusing on
                 <select
                     v-model="taskId"
-                    class="h-(--control-md) rounded-md border border-chrome-border bg-chrome-hover px-3 text-body text-fg-inverse focus-visible:border-highlight focus-visible:outline-none"
+                    class="h-(--control-md) rounded-md border border-chrome-border bg-chrome-hover px-3 text-body text-chrome-fg focus-visible:border-highlight focus-visible:outline-none"
                 >
                     <option value="">No task — just focus</option>
                     <option v-for="item in tasks" :key="item.id" :value="item.id">{{ item.title }}</option>
@@ -214,7 +217,7 @@ onBeforeUnmount(() => {
                         :min="MIN_MINUTES"
                         :max="MAX_MINUTES"
                         :disabled="timer.active"
-                        class="h-(--control-md) w-full rounded-md border border-chrome-border bg-chrome-hover px-3 text-body text-fg-inverse tabular focus-visible:border-highlight focus-visible:outline-none disabled:opacity-50"
+                        class="h-(--control-md) w-full rounded-md border border-chrome-border bg-chrome-hover px-3 text-body text-chrome-fg tabular focus-visible:border-highlight focus-visible:outline-none disabled:opacity-50"
                     />
                     <button
                         type="submit"
@@ -237,12 +240,12 @@ onBeforeUnmount(() => {
                 <button
                     v-if="canNotify && !notificationsAllowed"
                     type="button"
-                    class="font-semibold text-fg-inverse-muted underline underline-offset-4 hover:text-fg-inverse"
+                    class="font-semibold text-chrome-fg-muted underline underline-offset-4 hover:text-chrome-fg"
                     @click="enableNotifications"
                 >
                     Notify me when time’s up
                 </button>
-                <span class="ml-auto text-fg-inverse-muted">Space start/pause · R reset · F full screen</span>
+                <span class="ml-auto text-chrome-fg-muted">Space start/pause · R reset · F full screen</span>
             </div>
         </div>
     </section>
