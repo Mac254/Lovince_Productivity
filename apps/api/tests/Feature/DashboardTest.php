@@ -41,6 +41,7 @@ class DashboardTest extends TestCase
             ->assertJsonPath('data.stats.week_due_total', 3)
             ->assertJsonPath('data.stats.weekly_completion_rate', 33)
             ->assertJsonCount(2, 'data.today_tasks')
+            ->assertJsonPath('data.stats.planned_today', 2)
             ->assertJsonCount(1, 'data.overdue_tasks')
             ->assertJsonCount(1, 'data.weekly_goals');
     }
@@ -86,5 +87,24 @@ class DashboardTest extends TestCase
         $this->actingAs(User::factory()->create())->getJson('/api/v1/quotes/random')
             ->assertOk()
             ->assertExactJson(['data' => null]);
+    }
+
+    public function test_todays_plan_includes_highlighted_open_tasks_without_a_due_date_today(): void
+    {
+        Carbon::setTestNow('2026-10-28 10:00:00');
+
+        $user = User::factory()->create();
+        Task::factory()->for($user)->dueOn('2026-10-28')->create();
+        Task::factory()->for($user)->dueOn('2026-11-01')->create(['is_highlighted' => true, 'status' => 'in_progress']);
+        Task::factory()->for($user)->create(['is_highlighted' => true, 'due_date' => null]);
+        Task::factory()->for($user)->dueOn('2026-11-01')->completed()->create(['is_highlighted' => true]);
+        Task::factory()->for($user)->dueOn('2026-11-01')->create();
+        Task::factory()->create(['is_highlighted' => true]);
+
+        $this->actingAs($user)->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.stats.planned_today', 3)
+            ->assertJsonPath('data.stats.due_today', 1)
+            ->assertJsonCount(3, 'data.planned_tasks');
     }
 }

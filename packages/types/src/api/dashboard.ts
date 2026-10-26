@@ -5,6 +5,8 @@ import type { IsoDate, Task } from '../models/task';
 
 export interface DashboardStats {
     due_today: number;
+    /** Open tasks due today or highlighted: today's plan. */
+    planned_today: number;
     overdue: number;
     in_progress: number;
     open: number;
@@ -31,6 +33,7 @@ export interface Dashboard {
     week: { start: IsoDate; end: IsoDate };
     stats: DashboardStats;
     today_tasks: Task[];
+    planned_tasks: Task[];
     overdue_tasks: Task[];
     completed_today_tasks: Task[];
     upcoming_tasks: Task[];

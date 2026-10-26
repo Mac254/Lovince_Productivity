@@ -39,6 +39,11 @@ class DashboardSummary
             ->whereBetween('due_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
             ->where('status', '!=', TaskStatus::Cancelled);
         $weekTotal = (clone $dueThisWeek)->count();
+
+        // Today's plan: open work due today plus anything starred to work on now.
+        $planned = fn (): Builder => $tasks()->open()->where(
+            fn (Builder $q) => $q->whereDate('due_date', $today)->orWhere('is_highlighted', true)
+        );
         $weekCompleted = (clone $dueThisWeek)->where('status', TaskStatus::Completed)->count();
 
         return [
@@ -49,6 +54,7 @@ class DashboardSummary
             ],
             'stats' => [
                 'due_today' => $tasks()->open()->whereDate('due_date', $today)->count(),
+                'planned_today' => $planned()->count(),
                 'overdue' => $tasks()->open()->whereDate('due_date', '<', $today)->count(),
                 'in_progress' => $tasks()->where('status', TaskStatus::InProgress)->count(),
                 'open' => $tasks()->open()->count(),
@@ -64,6 +70,9 @@ class DashboardSummary
             ],
             'today_tasks' => TaskResource::collection(
                 $tasks()->open()->whereDate('due_date', $today)->orderByPriority()->get()
+            ),
+            'planned_tasks' => TaskResource::collection(
+                $planned()->orderByPriority()->orderBy('due_date')->get()
             ),
             'overdue_tasks' => TaskResource::collection(
                 $tasks()->open()->whereDate('due_date', '<', $today)->orderBy('due_date')->limit(self::LIST_LIMIT)->get()
