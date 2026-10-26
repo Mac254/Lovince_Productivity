@@ -1,0 +1,25 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "types": [
+            "vite/client",
+            "unplugin-icons/types/vue"
+        ],
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.vue",
+        "../../packages/*/src/**/*.ts",
+        "../../packages/*/src/**/*.vue"
+    ],
+    "exclude": [
+        "src/**/__tests__/**",
+        "../../packages/*/src/**/__tests__/**",
+        "../../packages/tokens/scripts/**"
+    ]
+}

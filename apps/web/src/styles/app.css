@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/outfit';
+@import '@focus/ui/styles.css';
+
+@source '../**/*.{vue,ts}';
+@source '../../../../packages/ui/src/**/*.{vue,ts}';
+
+/* ApexCharts tooltips, restyled with tokens (chart content stays in the components). */
+.apexcharts-tooltip.apexcharts-theme-light,
+.apex-tip {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    background: var(--surface) !important;
+    box-shadow: var(--shadow-floating) !important;
+    color: var(--fg);
+    font-family: var(--font-sans);
+}
+
+.apex-tip {
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    font-size: var(--text-label);
+}
+
+.apex-tip span {
+    color: var(--fg-muted);
+}
+
+.apexcharts-tooltip-title {
+    border-bottom-color: var(--border) !important;
+    background: var(--surface-raised) !important;
+    font-weight: 600;
+}
