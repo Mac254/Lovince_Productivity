@@ -12,6 +12,7 @@ use App\Models\Goal;
 use App\Models\JournalEntry;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\TypeBreakdown;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -30,17 +31,22 @@ class DailyReportGenerator
         $dayEnd = $date->copy()->endOfDay();
         $tasks = fn (): Builder => Task::query()->whereBelongsTo($user);
 
-        $completed = $tasks()->with('goal:id,title')
+        $completed = $tasks()->with(['goal:id,title', 'type:id,name,tone'])
             ->whereBetween('completed_at', [$date, $dayEnd])
             ->where('status', TaskStatus::Completed)
             ->orderBy('completed_at')
             ->get();
 
-        $due = $tasks()->with('goal:id,title')->whereDate('due_date', $date)->where('status', '!=', TaskStatus::Cancelled)->get();
+        $due = $tasks()->with(['goal:id,title', 'type:id,name,tone'])->whereDate('due_date', $date)->where('status', '!=', TaskStatus::Cancelled)->get();
         $dueCompleted = $due->where('status', TaskStatus::Completed)->count();
         $carriedOver = $due->filter(fn (Task $task) => in_array($task->status, TaskStatus::open(), true));
 
-        $overdue = $tasks()->with('goal:id,title')->open()->whereDate('due_date', '<', $date)->orderBy('due_date')->get();
+        $overdue = $tasks()->with(['goal:id,title', 'type:id,name,tone'])->open()->whereDate('due_date', '<', $date)->orderBy('due_date')->get();
+
+        // Today's plan, as the Today page shows it: due this day or starred.
+        $inPlan = fn (Task $task) => $task->is_highlighted || $task->due_date?->isSameDay($date);
+        $plannedCompleted = $completed->filter($inPlan)->count();
+        $plannedOpen = $tasks()->open()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true))->count();
 
         $onTimeEligible = $completed->filter(fn (Task $task) => $task->due_date !== null);
         $onTime = $onTimeEligible->filter(fn (Task $task) => $task->completed_at->toDateString() <= $task->due_date->toDateString());
@@ -63,6 +69,8 @@ class DailyReportGenerator
             'open_blockers' => $openBlockers->count(),
             'blockers_raised' => $blockersRaised,
             'blockers_resolved' => $blockersResolved->count(),
+            'planned' => $plannedCompleted + $plannedOpen,
+            'planned_completed' => $plannedCompleted,
             'high_priority_completed' => $completed->filter(fn (Task $task) => in_array($task->priority->value, ['high', 'urgent'], true))->count(),
         ];
 
@@ -70,6 +78,7 @@ class DailyReportGenerator
             'summary' => $summary,
             'narrative' => $this->narrative($summary),
             'completed_tasks' => $this->taskList($completed),
+            'by_type' => TypeBreakdown::rows($user, $completed, collect()),
             'carried_over' => $this->taskList($carriedOver),
             'overdue_tasks' => $this->taskList($overdue->take(self::LIST_LIMIT)),
             'blockers_open' => $this->blockerList($openBlockers->take(self::LIST_LIMIT)),
@@ -120,6 +129,7 @@ class DailyReportGenerator
             'status' => $task->status->value,
             'priority' => $task->priority->value,
             'category' => $task->category->value,
+            'type' => $task->type ? ['id' => $task->type->id, 'name' => $task->type->name, 'tone' => $task->type->tone->value] : null,
             'due_date' => $task->due_date?->toDateString(),
             'goal' => $task->goal ? ['id' => $task->goal->id, 'title' => $task->goal->title] : null,
         ])->values()->all();
@@ -153,6 +163,9 @@ class DailyReportGenerator
             default => "{$s['completed']} tasks were completed",
         }.($s['high_priority_completed'] > 0 ? " ({$s['high_priority_completed']} high priority)" : '').'.';
 
+        if (($s['planned'] ?? 0) > 0) {
+            $parts[] = "{$s['planned_completed']} of {$s['planned']} planned ".($s['planned'] === 1 ? 'task was' : 'tasks were').' done.';
+        }
         if ($s['due'] > 0) {
             $parts[] = "{$s['due_completed']} of {$s['due']} tasks due today were done.";
         }

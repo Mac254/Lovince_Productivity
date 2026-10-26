@@ -11,6 +11,7 @@ use App\Models\Blocker;
 use App\Models\Goal;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\TypeBreakdown;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -76,6 +77,11 @@ class MetricsService
                 'completed' => $completedInRange->where('category', $c)->count(),
                 'open' => $tasks->filter(fn (Task $t) => $t->category === $c && in_array($t->status, TaskStatus::open(), true))->count(),
             ])->all(),
+            'by_type' => TypeBreakdown::rows(
+                $user,
+                $completedInRange,
+                $tasks->filter(fn (Task $t) => in_array($t->status, TaskStatus::open(), true)),
+            ),
             'goals' => Goal::query()->whereBelongsTo($user)->where('status', GoalStatus::Active)->withProgress()->orderBy('target_date')->get()
                 ->map(fn (Goal $g) => [
                     'id' => $g->id,

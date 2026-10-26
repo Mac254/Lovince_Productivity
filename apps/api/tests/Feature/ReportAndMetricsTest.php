@@ -6,6 +6,7 @@ use App\Jobs\GenerateDailyReport;
 use App\Models\Blocker;
 use App\Models\DailyReport;
 use App\Models\Task;
+use App\Models\TaskType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -94,5 +95,36 @@ class ReportAndMetricsTest extends TestCase
             ->assertJsonPath('data.heatmap.'.(count($this->getJson('/api/v1/metrics')->json('data.heatmap')) - 1).'.count', 2);
 
         $this->getJson('/api/v1/metrics?days=12')->assertUnprocessable();
+    }
+
+    public function test_reports_metrics_and_dashboard_break_work_down_by_type_and_plan(): void
+    {
+        Carbon::setTestNow('2026-10-28 18:00:00');
+        $user = User::factory()->create();
+        $study = TaskType::factory()->for($user)->create(['name' => 'Study', 'tone' => 'violet']);
+        TaskType::factory()->for($user)->create(['name' => 'Unused']);
+
+        Task::factory()->for($user)->create(['task_type_id' => $study->id, 'is_highlighted' => true, 'due_date' => '2026-11-01'])
+            ->update(['status' => 'completed']);
+        Task::factory()->for($user)->create(['task_type_id' => $study->id, 'is_highlighted' => true, 'due_date' => null]);
+        Task::factory()->for($user)->dueOn('2026-10-28')->create(['category' => 'development']);
+        Task::factory()->for($user)->dueOn('2026-11-05')->create();
+
+        $report = $this->actingAs($user)->postJson('/api/v1/reports')->assertCreated();
+        $report->assertJsonPath('data.summary.planned', 3)
+            ->assertJsonPath('data.summary.planned_completed', 1)
+            ->assertJsonPath('data.completed_tasks.0.type.name', 'Study')
+            ->assertJsonPath('data.by_type', [
+                ['key' => "type:{$study->id}", 'label' => 'Study', 'type_id' => $study->id, 'category' => null, 'tone' => 'violet', 'completed' => 1, 'open' => 0],
+            ]);
+        $this->assertStringContainsString('1 of 3 planned tasks were done.', $report->json('data.narrative'));
+
+        $byType = collect($this->getJson('/api/v1/metrics?days=7')->assertOk()->json('data.by_type'))->keyBy('key');
+        $this->assertSame(['completed' => 1, 'open' => 1], $byType["type:{$study->id}"] ? array_intersect_key($byType["type:{$study->id}"], ['completed' => 0, 'open' => 0]) : null);
+        $this->assertSame(1, $byType['category:development']['open']);
+        $this->assertSame(1, $byType['category:general']['open']);
+        $this->assertCount(3, $byType, 'Empty types are left out');
+
+        $this->getJson('/api/v1/dashboard')->assertJsonPath('data.by_type.0.label', 'Study')->assertJsonCount(3, 'data.by_type');
     }
 }

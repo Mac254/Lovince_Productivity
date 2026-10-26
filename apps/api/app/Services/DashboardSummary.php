@@ -15,6 +15,7 @@ use App\Models\Goal;
 use App\Models\Quote;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\TypeBreakdown;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -101,6 +102,11 @@ class DashboardSummary
             ),
             'recent_activity' => TaskResource::collection(
                 $tasks()->latest('updated_at')->limit(self::LIST_LIMIT)->get()
+            ),
+            'by_type' => TypeBreakdown::rows(
+                $user,
+                $tasks()->where('completed_at', '>=', $weekStart)->get(),
+                $tasks()->open()->get(),
             ),
             'integration' => $this->integrationSummary($user),
             'weekly_goals' => GoalResource::collection(
