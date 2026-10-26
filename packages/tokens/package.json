@@ -1,0 +1,18 @@
+{
+    "name": "@focus/tokens",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "description": "Focus design tokens \u2014 the single source for colour, type, spacing, radius, elevation and motion. No dependencies.",
+    "exports": {
+        ".": "./src/index.ts",
+        "./variables.css": "./css/variables.css",
+        "./tailwind.css": "./css/tailwind.css"
+    },
+    "scripts": {
+        "build": "node scripts/build.ts"
+    },
+    "engines": {
+        "node": ">=26.12.0"
+    }
+}
