@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example
+
+# Built web app served by Laravel
+apps/api/public/app/

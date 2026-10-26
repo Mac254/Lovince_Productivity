@@ -1,0 +1,19 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "types": [
+            "node",
+            "vite/client",
+            "unplugin-icons/types/vue"
+        ],
+        "paths": {
+            "@/*": [
+                "./apps/web/src/*"
+            ]
+        }
+    },
+    "include": [
+        "apps/web/src/**/*.test.ts",
+        "packages/*/src/**/*.test.ts"
+    ]
+}
