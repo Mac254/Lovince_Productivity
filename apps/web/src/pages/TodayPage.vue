@@ -38,7 +38,7 @@ const day = computed(() => {
     const data = dashboard.data;
     if (!data) return null;
     const done = data.stats.completed_today;
-    const remaining = data.stats.due_today;
+    const remaining = data.stats.planned_today;
     const total = done + remaining;
     return { done, remaining, total, percent: total ? Math.round((done / total) * 100) : 0 };
 });
@@ -61,7 +61,7 @@ const day = computed(() => {
 
         <template v-if="dashboard.data && day">
             <section aria-label="Today in numbers" class="grid gap-4 sm:grid-cols-3">
-                <StatCard label="Remaining" icon="hourglass" :value="day.remaining" hint="Due today, not done" />
+                <StatCard label="Remaining" icon="hourglass" :value="day.remaining" hint="In today’s plan, not done" />
                 <StatCard
                     label="Completed"
                     icon="check-circle"
@@ -84,8 +84,8 @@ const day = computed(() => {
                     <Text role="label" tone="muted" tabular>
                         {{
                             day.total
-                                ? `${day.done} of ${day.total} tasks due today are done`
-                                : 'Nothing is scheduled for today yet'
+                                ? `${day.done} of ${day.total} tasks in today’s plan are done`
+                                : 'Star a task or give it today’s due date to plan your day'
                         }}
                     </Text>
                 </div>
@@ -93,23 +93,28 @@ const day = computed(() => {
             </Card>
 
             <div class="grid gap-6 xl:grid-cols-2">
-                <Card as="section" aria-labelledby="due-heading" class="group">
+                <Card as="section" aria-labelledby="plan-heading" class="group">
                     <CardHeader
-                        title="Due today"
-                        title-id="due-heading"
+                        title="Today’s plan"
+                        title-id="plan-heading"
                         icon="calendar-check"
-                        :subtitle="`${day.remaining} remaining`"
+                        :subtitle="`${day.remaining} remaining · due today and starred`"
                     />
-                    <ul v-if="dashboard.data.today_tasks.length" class="-mx-2 flex flex-col">
+                    <ul v-if="dashboard.data.planned_tasks.length" class="-mx-2 flex flex-col">
                         <TaskRow
-                            v-for="task in dashboard.data.today_tasks"
+                            v-for="task in dashboard.data.planned_tasks"
                             :key="task.id"
                             :task="task"
                             @toggle="actions.toggleComplete"
                             @star="actions.toggleHighlight"
                         />
                     </ul>
-                    <EmptyState v-else icon="sun" title="Clear for today" message="Nothing left that is due today." />
+                    <EmptyState
+                        v-else
+                        icon="sun"
+                        title="Clear for today"
+                        message="Star a task to add it to today’s plan."
+                    />
                 </Card>
                 <Card as="section" aria-labelledby="overdue-heading" class="group">
                     <CardHeader
