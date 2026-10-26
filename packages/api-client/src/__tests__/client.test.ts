@@ -53,6 +53,24 @@ describe('api client', () => {
         expect(AxiosHeaders.from(config!.headers).get('X-XSRF-TOKEN')).toBe('abc=123');
     });
 
+    it('retries a read once after a transient server error', async () => {
+        const { adapter, calls } = scripted({ status: 500 }, { status: 200, data: { data: [] } });
+        const http = createHttpClient({ adapter });
+
+        await expect(http.get('/reports')).resolves.toMatchObject({ status: 200 });
+        expect(calls).toHaveLength(2);
+    });
+
+    it('does not retry writes or repeated server errors', async () => {
+        const write = scripted({ status: 500 }, { status: 200 });
+        await expect(createHttpClient({ adapter: write.adapter }).post('/reports')).rejects.toBeInstanceOf(ApiError);
+        expect(write.calls).toHaveLength(1);
+
+        const read = scripted({ status: 503 }, { status: 503 }, { status: 200 });
+        await expect(createHttpClient({ adapter: read.adapter }).get('/reports')).rejects.toBeInstanceOf(ApiError);
+        expect(read.calls).toHaveLength(2);
+    });
+
     it('returns the user and session state from /auth/me', async () => {
         const session = {
             remembered: true,
@@ -117,7 +135,8 @@ describe('api client', () => {
     });
 
     it('never surfaces raw server messages for server errors', async () => {
-        const { adapter } = scripted({ status: 500, data: { message: 'SQLSTATE[HY000] secret detail' } });
+        const failure = { status: 500, data: { message: 'SQLSTATE[HY000] secret detail' } };
+        const { adapter } = scripted(failure, failure);
         const api = createApi(createHttpClient({ adapter }));
 
         const error = (await api.goals.list().catch((e: unknown) => e)) as ApiError;

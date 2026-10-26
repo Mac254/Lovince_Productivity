@@ -11,12 +11,15 @@ export interface HttpClientOptions {
     onUnauthorized?: () => void;
 }
 
-type RetriableConfig = InternalAxiosRequestConfig & { _csrfRetried?: boolean };
+type RetriableConfig = InternalAxiosRequestConfig & { _csrfRetried?: boolean; _serverRetried?: boolean };
 
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'X-XSRF-TOKEN';
 
 export const CSRF_COOKIE_PATH = '/sanctum/csrf-cookie';
+
+const SERVER_RETRY_DELAY_MS = 400;
+const TRANSIENT_STATUSES = new Set([500, 502, 503, 504]);
 
 function withoutEmptyParams(params: unknown): unknown {
     if (!params || typeof params !== 'object') return params;
@@ -28,6 +31,7 @@ function withoutEmptyParams(params: unknown): unknown {
 /**
  * Same-origin, cookie-session client for the Focus API. It attaches the CSRF token,
  * strips empty query params, retries once after refreshing an expired CSRF token,
+ * retries a read once after a transient server error,
  * and rejects with a normalised `ApiError`.
  */
 export function createHttpClient(options: HttpClientOptions = {}): AxiosInstance {
@@ -56,6 +60,13 @@ export function createHttpClient(options: HttpClientOptions = {}): AxiosInstance
         if (status === 419 && config && !config._csrfRetried) {
             config._csrfRetried = true;
             await refreshCsrfCookie(http);
+            return http.request(config);
+        }
+
+        const isRead = (config?.method ?? 'get').toLowerCase() === 'get';
+        if (status && TRANSIENT_STATUSES.has(status) && config && isRead && !config._serverRetried) {
+            config._serverRetried = true;
+            await new Promise((resolve) => setTimeout(resolve, SERVER_RETRY_DELAY_MS));
             return http.request(config);
         }
 
