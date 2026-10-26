@@ -28,7 +28,7 @@ const initials = computed(() =>
     <span
         aria-hidden="true"
         :class="[
-            'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-highlight bg-surface-inverse font-display font-semibold text-highlight',
+            'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-highlight bg-surface-raised font-display font-semibold text-highlight-fg',
             {
                 sm: 'size-(--control-sm) text-caption',
                 md: 'size-(--control-md) text-label',

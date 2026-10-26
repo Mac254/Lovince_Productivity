@@ -29,21 +29,26 @@ Single source: TypeScript in `packages/tokens/src`. `pnpm tokens` generates `css
 
 ### Colour roles
 
-Brand palette: neon green `#00FF4E`, charcoal `#242424`, black — on a blended canvas (soft grey-green page, white cards, charcoal chrome). Ramps: true-grey `neutral`, `green` (neon at 400), `red` (destructive only), `tone` (job colours).
+Theme: **dark**. Black page, near-black cards with a 1px edge, charcoal raised surfaces, white text, neon green `#00FF4E` for action. Ramps: true-grey `neutral`, `green` (neon at 400), `red` (destructive only), `tone` (job colours, validated for dark surfaces).
 
 | Role | Purpose |
 |---|---|
-| `canvas` · `surface` · `surface-raised` · `surface-overlay` | Page (grey-green) · cards (white) · hover/nested · dialogs |
-| `surface-inverse` (+ `fg-inverse`, `fg-inverse-muted`) | Sidebar, chips, selected states (charcoal) |
+| `canvas` · `surface` · `surface-raised` · `surface-overlay` | Page (black) · cards (#171717) · hover/nested (#242424) · dialogs |
+| `surface-inverse` (+ `fg-inverse`, `fg-inverse-muted`) | Light elements on the dark page: selected chips, secondary buttons, toasts |
+| `chrome` (+ `chrome-hover`, `chrome-border`, `chrome-fg`, `chrome-fg-muted`) | Sidebar, timer and clock panels |
 | `fg` · `fg-muted` · `fg-subtle` | Text hierarchy; subtle is placeholders only |
-| `border` · `border-control` · `border-strong` | Dividers · control boundaries (≥3:1) · hover |
-| `highlight` + `highlight-ink` | Neon green with black text: primary actions, featured cards, active nav |
-| `highlight-fg` · `accent-fg` | Green text on light surfaces (deep green — neon is never text on white) |
-| `accent` · `accent-solid` + `accent-ink` | Green graphics (bars, rings) · black surfaces with neon text (quote card) |
+| `border` · `border-control` · `border-strong` | Card edges and dividers · control boundaries (≥3:1) · hover |
+| `highlight` + `highlight-ink` | Neon with black text: primary actions, featured cards, active nav, counts |
+| `highlight-fg` · `accent-fg` | Neon text on dark surfaces |
+| `accent` · `accent-solid` + `accent-ink` | Green graphics (bars, rings) · charcoal surfaces with neon text (quote card) |
 | `danger` · `danger-fg` | Destructive actions, overdue |
-| `tone-green … tone-cyan` | Goal identity colours, validated as a categorical palette (CVD-safe, ≥3:1) |
-| `chart-1` · `chart-2` · `chart-grid` · `heat-0…4` | Chart measure (green), context (grey), gridlines, sequential heatmap scale |
+| `tone-green … tone-cyan` | Goal identity colours (CVD-safe, ≥3:1 on cards) |
+| `chart-1` · `chart-2` · `chart-grid` · `heat-0…4` | Chart measure (green), context (grey), gridlines, heatmap from dark to bright |
 | `focus-ring` · `selection` · `skeleton` · `scrim` | Utility roles |
+
+### Interaction
+
+Calm and consistent: colour and edge changes at `--duration-instant`, a 1px press on buttons, card hover sharpens the edge (no lift), icons move at most 10% / 2px / 8°, entrances rise 8px once. Layout spans the full window width; grids add a column on very wide screens.
 
 ### Contrast (enforced)
 

@@ -7,7 +7,7 @@
     "scope": "/",
     "display": "standalone",
     "display_override": ["window-controls-overlay", "standalone"],
-    "background_color": "#eef0ec",
+    "background_color": "#000000",
     "theme_color": "#000000",
     "categories": ["productivity"],
     "icons": [

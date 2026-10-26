@@ -7,6 +7,7 @@
 @source '../../../../packages/ui/src/**/*.{vue,ts}';
 
 /* ApexCharts tooltips, restyled with tokens (chart content stays in the components). */
+.apexcharts-tooltip.apexcharts-theme-dark,
 .apexcharts-tooltip.apexcharts-theme-light,
 .apex-tip {
     border: 1px solid var(--border) !important;

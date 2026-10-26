@@ -61,6 +61,8 @@
     --color-chrome: var(--chrome);
     --color-chrome-hover: var(--chrome-hover);
     --color-chrome-border: var(--chrome-border);
+    --color-chrome-fg: var(--chrome-fg);
+    --color-chrome-fg-muted: var(--chrome-fg-muted);
     --color-fg: var(--fg);
     --color-fg-muted: var(--fg-muted);
     --color-fg-subtle: var(--fg-subtle);

@@ -38,7 +38,7 @@ export function useChartTheme() {
             labels: { colors: colors.text },
             markers: { size: 6 },
         },
-        tooltip: { theme: 'light' },
+        tooltip: { theme: 'dark' },
         states: { active: { filter: { type: 'none' } } },
     } satisfies ApexOptions;
 

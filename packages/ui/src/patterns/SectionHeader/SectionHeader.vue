@@ -9,7 +9,7 @@ defineProps<{ title: string; count?: number | null; titleId?: string }>();
             {{ title }}
             <span
                 v-if="count !== undefined && count !== null"
-                class="inline-flex min-w-(--control-sm) justify-center rounded-full bg-surface-inverse px-2 py-1 text-caption font-bold text-highlight tabular"
+                class="inline-flex min-w-(--control-sm) justify-center rounded-full bg-highlight px-2 py-1 text-caption font-bold text-highlight-ink tabular"
             >
                 {{ count }}
             </span>

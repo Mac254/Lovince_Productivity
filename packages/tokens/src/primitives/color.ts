@@ -1,7 +1,7 @@
 /**
  * Primitive colour ramps. Raw values with no meaning — only semantic roles may reference them.
  * Brand anchors: neon green #00ff4e (green 400), charcoal #242424 (neutral 850), black (neutral 950),
- * on a white canvas. Neutrals are true greys to keep the green the only colour in the room.
+ * on black. Neutrals are true greys so the green is the only colour in the room.
  */
 export const ramps = {
     neutral: {
@@ -32,11 +32,11 @@ export const ramps = {
     },
     /* Job tones: identity colours for goals, validated as one categorical palette. */
     tone: {
-        green: '#008a2b',
-        blue: '#2563eb',
+        green: '#16a34a',
+        blue: '#3b82f6',
         amber: '#d97706',
-        violet: '#7c3aed',
-        rose: '#e11d48',
+        violet: '#8b5cf6',
+        rose: '#f43f5e',
         cyan: '#0891b2',
     },
     red: {

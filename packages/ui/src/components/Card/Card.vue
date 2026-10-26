@@ -25,11 +25,11 @@ provideSurfaceTone(props.tone);
             'relative flex min-w-0 flex-col rounded-lg transition-shadow duration-(--duration-fast)',
             padding === 'lg' ? 'p-6 sm:p-8' : 'p-4 sm:p-6',
             {
-                default: 'bg-surface text-fg shadow-card',
+                default: 'bg-surface text-fg ring-1 ring-border',
                 highlight: 'bg-highlight text-highlight-ink',
                 accent: 'bg-accent-solid text-accent-ink',
             }[tone],
-            interactive && tone === 'default' && 'hover:shadow-floating',
+            interactive && tone === 'default' && 'hover:ring-border-strong',
         ]"
     >
         <slot />
