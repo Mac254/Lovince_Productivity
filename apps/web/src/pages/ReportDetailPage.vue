@@ -16,8 +16,10 @@ import {
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import StatCard from '@/features/dashboard/StatCard.vue';
+import TaskTypeBadge from '@/features/tasks/TaskTypeBadge.vue';
+import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { dueLabel, formatDate, todayIso } from '@/lib/dates';
-import { taskCategoryLabels, taskPriorityLabels, taskPriorityTones } from '@/lib/labels';
+import { taskPriorityLabels, taskPriorityTones } from '@/lib/labels';
 
 const route = useRoute();
 const toast = useToast();
@@ -97,7 +99,14 @@ watch(date, load, { immediate: true });
                     suffix="%"
                     :hint="`${report.summary.due_completed} of ${report.summary.due}`"
                 />
-                <StatCard label="Created" icon="add" :value="report.summary.created" hint="New tasks added" />
+                <StatCard
+                    v-if="report.summary.planned !== undefined"
+                    label="Plan done"
+                    icon="checklist"
+                    :value="report.summary.planned_completed ?? 0"
+                    :hint="`of ${report.summary.planned} planned · ${report.summary.created} added`"
+                />
+                <StatCard v-else label="Created" icon="add" :value="report.summary.created" hint="New tasks added" />
                 <StatCard
                     label="Blockers"
                     icon="blocker"
@@ -130,9 +139,7 @@ watch(date, load, { immediate: true });
                                 <Badge :tone="taskPriorityTones[task.priority]">{{
                                     taskPriorityLabels[task.priority]
                                 }}</Badge>
-                                <Badge v-if="task.category !== 'general'" tone="accent">{{
-                                    taskCategoryLabels[task.category]
-                                }}</Badge>
+                                <TaskTypeBadge :task="task" />
                             </span>
                         </li>
                     </ul>
@@ -216,6 +223,17 @@ watch(date, load, { immediate: true });
                         </li>
                     </ul>
                     <Text v-else role="label" tone="muted">None resolved.</Text>
+                </Card>
+
+                <Card as="section" aria-labelledby="types-heading" class="group">
+                    <CardHeader
+                        title="Done by type"
+                        title-id="types-heading"
+                        icon="tag"
+                        :subtitle="`${report.summary.completed} completed`"
+                    />
+                    <TypeBreakdownList v-if="report.by_type?.length" :rows="report.by_type" completed-label="done" />
+                    <Text v-else role="label" tone="muted">Nothing was completed this day.</Text>
                 </Card>
 
                 <Card as="section" aria-labelledby="goals-heading" class="group">

@@ -45,9 +45,9 @@ const priorityRows = computed(() =>
         .map((row) => ({ label: taskPriorityLabels[row.key], completed: row.completed, open: row.open }))
         .reverse(),
 );
-const categoryRows = computed(() =>
-    (data.value?.by_category ?? []).map((row) => ({
-        label: taskCategoryLabels[row.key],
+const typeRows = computed(() =>
+    (data.value?.by_type ?? []).map((row) => ({
+        label: row.category ? taskCategoryLabels[row.category] : row.label,
         completed: row.completed,
         open: row.open,
     })),
@@ -177,10 +177,11 @@ onMounted(run);
                     <CardHeader
                         title="By type"
                         title-id="type-heading"
-                        icon="integration"
-                        subtitle="Development and integration are tracked separately"
+                        icon="tag"
+                        subtitle="Your types, then built-in ones for untyped tasks"
                     />
-                    <BreakdownChart :rows="categoryRows" />
+                    <BreakdownChart v-if="typeRows.length" :rows="typeRows" />
+                    <Text v-else role="label" tone="muted" class="py-4">No tasks in this range.</Text>
                 </Card>
             </div>
 

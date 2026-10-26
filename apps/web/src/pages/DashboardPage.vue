@@ -25,6 +25,7 @@ import GoalFormDialog from '@/features/goals/GoalFormDialog.vue';
 import QuoteCard from '@/features/quotes/QuoteCard.vue';
 import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
+import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityRank } from '@/lib/labels';
 import { useDashboardStore } from '@/stores/dashboard';
@@ -79,7 +80,9 @@ const stats = computed(() => dashboard.data?.stats);
 
 const focusTasks = computed<Task[]>(() => {
     if (!data.value) return [];
-    return [...data.value.overdue_tasks, ...data.value.today_tasks]
+    const seen = new Set<number>();
+    return [...data.value.overdue_tasks, ...data.value.planned_tasks]
+        .filter((task) => !seen.has(task.id) && !!seen.add(task.id))
         .sort(
             (a, b) =>
                 Number(b.is_overdue) - Number(a.is_overdue) ||
@@ -96,7 +99,7 @@ const focusTasks = computed<Task[]>(() => {
 const day = computed(() => {
     if (!stats.value) return null;
     const done = stats.value.completed_today;
-    const total = done + stats.value.due_today;
+    const total = done + stats.value.planned_today;
     return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
 });
 
@@ -158,10 +161,10 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
             <div class="grid gap-6 xl:grid-cols-3">
                 <Card as="section" data-stagger aria-labelledby="today-heading" class="group xl:col-span-2">
                     <CardHeader
-                        title="Today’s tasks"
+                        title="Today’s plan"
                         title-id="today-heading"
                         icon="calendar-check"
-                        :subtitle="`${stats.due_today} due · ${stats.overdue} overdue`"
+                        :subtitle="`${stats.planned_today} planned · ${stats.overdue} overdue`"
                     >
                         <Button variant="ghost" size="sm" icon-start="add" @click="create()">Add</Button>
                     </CardHeader>
@@ -178,11 +181,9 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     <EmptyState
                         v-else
                         icon="checklist"
-                        :title="focus === 'all' ? 'Nothing due today' : 'No tasks match this filter'"
+                        :title="focus === 'all' ? 'Nothing planned for today' : 'No tasks match this filter'"
                         :message="
-                            focus === 'all'
-                                ? 'Plan something for today or pick up an upcoming deadline early.'
-                                : undefined
+                            focus === 'all' ? 'Star a task or give it today’s due date to plan your day.' : undefined
                         "
                     />
                 </Card>
@@ -195,8 +196,8 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                             <Text role="label" tone="muted" tabular>{{ day.done }} of {{ day.total }} done</Text>
                         </div>
                         <ProgressBar :value="day.percent" label="Today’s progress" tone="highlight" />
-                        <Text v-if="data.today_tasks[0]" role="label" tone="muted" truncate
-                            >Next: {{ data.today_tasks[0].title }}</Text
+                        <Text v-if="data.planned_tasks[0]" role="label" tone="muted" truncate
+                            >Next: {{ data.planned_tasks[0].title }}</Text
                         >
                     </Card>
                     <QuoteCard data-stagger :initial="data.quote" />
@@ -264,7 +265,24 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                 />
             </section>
 
-            <div class="grid gap-6 lg:grid-cols-2">
+            <div class="grid gap-6 lg:grid-cols-3">
+                <Card as="section" data-stagger aria-labelledby="types-heading" class="group">
+                    <CardHeader
+                        title="By type"
+                        title-id="types-heading"
+                        icon="tag"
+                        subtitle="Open now · done this week"
+                    >
+                        <Button variant="ghost" size="sm" :to="{ name: 'types' }" icon-end="arrow-right">Types</Button>
+                    </CardHeader>
+                    <TypeBreakdownList
+                        v-if="data.by_type.length"
+                        :rows="data.by_type"
+                        open-label="open"
+                        completed-label="done"
+                    />
+                    <Text v-else role="label" tone="muted" class="py-4">No open or recent work yet.</Text>
+                </Card>
                 <TaskListPanel
                     title="Integration"
                     icon="integration"
