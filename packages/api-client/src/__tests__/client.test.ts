@@ -54,11 +54,22 @@ describe('api client', () => {
     });
 
     it('returns the user and session state from /auth/me', async () => {
-        const session = { remembered: true, expires_at: '2026-11-27T10:00:00+00:00', idle_timeout_minutes: 120, remember_days: 30 };
-        const { adapter, calls } = scripted({ status: 200, data: { data: { id: 1, name: 'A', email: 'a@x.test', avatar_url: null }, meta: { session } } });
+        const session = {
+            remembered: true,
+            expires_at: '2026-11-27T10:00:00+00:00',
+            idle_timeout_minutes: 120,
+            remember_days: 30,
+        };
+        const { adapter, calls } = scripted({
+            status: 200,
+            data: { data: { id: 1, name: 'A', email: 'a@x.test', avatar_url: null }, meta: { session } },
+        });
         const api = createApi(createHttpClient({ adapter }));
 
-        await expect(api.auth.me()).resolves.toEqual({ user: { id: 1, name: 'A', email: 'a@x.test', avatar_url: null }, session });
+        await expect(api.auth.me()).resolves.toEqual({
+            user: { id: 1, name: 'A', email: 'a@x.test', avatar_url: null },
+            session,
+        });
         expect(calls[0]!.url).toBe('/auth/me');
     });
 
