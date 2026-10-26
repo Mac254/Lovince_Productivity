@@ -2,18 +2,18 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\GenerateDailyReport;
 use App\Models\User;
-use App\Services\DailyReportGenerator;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 #[Signature('focus:daily-report {--date= : Day to report on (YYYY-MM-DD), defaults to today}')]
-#[Description('Generate and store the daily report for every user')]
+#[Description('Queue the daily report for every user (the queue worker stores them)')]
 class GenerateDailyReports extends Command
 {
-    public function handle(DailyReportGenerator $generator): int
+    public function handle(): int
     {
         $date = $this->option('date') ? Carbon::createFromFormat('!Y-m-d', $this->option('date')) : today();
 
@@ -24,12 +24,12 @@ class GenerateDailyReports extends Command
         }
 
         $count = 0;
-        User::query()->lazyById()->each(function (User $user) use ($generator, $date, &$count) {
-            $generator->generate($user, $date);
+        User::query()->lazyById()->each(function (User $user) use ($date, &$count) {
+            GenerateDailyReport::dispatch($user, $date->toDateString());
             $count++;
         });
 
-        $this->components->info("Stored {$count} daily ".str('report')->plural($count)." for {$date->toDateString()}.");
+        $this->components->info("Queued {$count} daily ".str('report')->plural($count)." for {$date->toDateString()}.");
 
         return self::SUCCESS;
     }

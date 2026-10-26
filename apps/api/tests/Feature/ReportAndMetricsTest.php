@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\GenerateDailyReport;
 use App\Models\Blocker;
 use App\Models\DailyReport;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class ReportAndMetricsTest extends TestCase
@@ -55,6 +57,18 @@ class ReportAndMetricsTest extends TestCase
         $this->actingAs($a)->getJson('/api/v1/reports')->assertJsonCount(1, 'data');
         DailyReport::query()->whereBelongsTo($a)->delete();
         $this->getJson('/api/v1/reports/'.today()->toDateString())->assertNotFound();
+    }
+
+    public function test_nightly_reports_are_queued_once_per_user_and_day(): void
+    {
+        Queue::fake();
+        [$a, $b] = User::factory()->count(2)->create();
+
+        $this->artisan('focus:daily-report', ['--date' => '2026-10-20'])->assertSuccessful();
+
+        Queue::assertPushed(GenerateDailyReport::class, 2);
+        Queue::assertPushed(fn (GenerateDailyReport $job) => $job->user->is($a) && $job->uniqueId() === "{$a->id}:2026-10-20");
+        $this->assertSame(0, DailyReport::count());
     }
 
     public function test_metrics_describe_the_window(): void
