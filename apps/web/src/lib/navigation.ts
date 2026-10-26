@@ -20,6 +20,7 @@ export const navigation: { label: string; items: NavItem[] }[] = [
         items: [
             { name: 'tasks', label: 'Tasks', icon: 'tasks', motion: 'nudge' },
             { name: 'goals', label: 'Goals', icon: 'target', motion: 'spin' },
+            { name: 'types', label: 'Types', icon: 'tag', motion: 'wiggle' },
             { name: 'blockers', label: 'Blockers', icon: 'blocker', motion: 'wiggle' },
         ],
     },

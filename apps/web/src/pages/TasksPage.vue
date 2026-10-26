@@ -26,11 +26,10 @@ import {
     Skeleton,
     Text,
 } from '@focus/ui';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, watch } from 'vue';
 import { useRoute, useRouter, type LocationQuery } from 'vue-router';
 import TaskCard from '@/features/tasks/TaskCard.vue';
 import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
-import TaskTypesDialog from '@/features/tasks/TaskTypesDialog.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { useAsync } from '@/composables/useAsync';
 import { taskPriorityOptions } from '@/lib/labels';
@@ -45,7 +44,6 @@ const route = useRoute();
 const router = useRouter();
 const goals = useGoalsStore();
 const taskTypes = useTaskTypesStore();
-const typesOpen = ref(false);
 const dashboard = useDashboardStore();
 
 function fromQuery<T extends string>(query: LocationQuery, key: string, allowed: readonly T[]): T | '' {
@@ -207,7 +205,7 @@ onMounted(() => {
             description="Everything you’ve planned, filterable by status, priority, type and goal."
         >
             <template #actions>
-                <Button variant="outline" icon-start="tag" @click="typesOpen = true">Types</Button>
+                <Button variant="outline" icon-start="tag" :to="{ name: 'types' }">Types</Button>
                 <Button
                     variant="secondary"
                     icon-start="add"
@@ -308,6 +306,5 @@ onMounted(() => {
             @update:open="!$event && (deleting = null)"
             @confirm="confirmDelete"
         />
-        <TaskTypesDialog v-model:open="typesOpen" @changed="refresh" />
     </div>
 </template>
