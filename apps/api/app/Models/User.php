@@ -64,6 +64,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<Wallpaper, $this>
+     */
+    public function wallpapers(): HasMany
+    {
+        return $this->hasMany(Wallpaper::class);
+    }
+
+    /**
      * @return HasMany<DailyReport, $this>
      */
     public function dailyReports(): HasMany

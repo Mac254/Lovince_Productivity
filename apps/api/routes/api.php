@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuoteController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\WallpaperController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -38,6 +39,11 @@ Route::prefix('v1')->group(function () {
         Route::get('profile/avatar', [ProfileController::class, 'showAvatar']);
         Route::post('profile/avatar', [ProfileController::class, 'storeAvatar'])->middleware('throttle:10,1');
         Route::delete('profile/avatar', [ProfileController::class, 'destroyAvatar']);
+
+        Route::get('wallpapers', [WallpaperController::class, 'index']);
+        Route::post('wallpapers', [WallpaperController::class, 'store'])->middleware('throttle:20,1');
+        Route::get('wallpapers/{wallpaper}/image', [WallpaperController::class, 'image'])->whereNumber('wallpaper');
+        Route::delete('wallpapers/{wallpaper}', [WallpaperController::class, 'destroy'])->whereNumber('wallpaper');
 
         Route::get('reports', [ReportController::class, 'index']);
         Route::post('reports', [ReportController::class, 'store'])->middleware('throttle:20,1');
