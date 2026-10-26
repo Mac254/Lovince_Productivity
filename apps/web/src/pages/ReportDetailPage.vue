@@ -7,7 +7,6 @@ import {
     Card,
     CardHeader,
     ErrorState,
-    Icon,
     PageHeader,
     ProgressBar,
     Skeleton,
@@ -59,38 +58,30 @@ watch(date, load, { immediate: true });
 
 <template>
     <div class="flex flex-col gap-6">
-        <RouterLink
-            :to="{ name: 'reports' }"
-            class="group inline-flex w-fit items-center gap-2 text-label font-semibold text-fg-muted hover:text-fg"
+        <PageHeader
+            :title="
+                !report
+                    ? 'Report'
+                    : formatDate(report.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+            "
+            title-id="page-title"
+            :description="report?.narrative"
+            :back="{ to: { name: 'reports' }, label: 'Back to all reports' }"
         >
-            <Icon name="arrow-left" motion="nudge-back" />
-            <span>All reports</span>
-        </RouterLink>
+            <template v-if="report" #actions>
+                <Text role="caption" tone="muted"
+                    >Generated {{ formatDate(report.generated_at, { timeStyle: 'short' }) }}</Text
+                >
+                <Button v-if="isToday" variant="outline" icon-start="retry" :loading="regenerating" @click="regenerate"
+                    >Refresh</Button
+                >
+            </template>
+        </PageHeader>
 
         <ErrorState v-if="error" :message="error" @retry="load" />
         <Skeleton v-else-if="loading && !report" class="h-96" />
 
         <template v-else-if="report">
-            <PageHeader
-                :title="formatDate(report.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })"
-                title-id="page-title"
-                :description="report.narrative"
-            >
-                <template #actions>
-                    <Text role="caption" tone="muted"
-                        >Generated {{ formatDate(report.generated_at, { timeStyle: 'short' }) }}</Text
-                    >
-                    <Button
-                        v-if="isToday"
-                        variant="outline"
-                        icon-start="retry"
-                        :loading="regenerating"
-                        @click="regenerate"
-                        >Refresh</Button
-                    >
-                </template>
-            </PageHeader>
-
             <section aria-label="Day in numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     label="Completed"
@@ -136,7 +127,9 @@ watch(date, load, { immediate: true });
                                 >{{ task.title }}</RouterLink
                             >
                             <span class="flex shrink-0 gap-1">
-                                <Badge :tone="taskPriorityTones[task.priority]">{{ taskPriorityLabels[task.priority] }}</Badge>
+                                <Badge :tone="taskPriorityTones[task.priority]">{{
+                                    taskPriorityLabels[task.priority]
+                                }}</Badge>
                                 <Badge v-if="task.category !== 'general'" tone="accent">{{
                                     taskCategoryLabels[task.category]
                                 }}</Badge>
@@ -164,7 +157,9 @@ watch(date, load, { immediate: true });
                                 class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
                                 >{{ task.title }}</RouterLink
                             >
-                            <Badge :tone="taskPriorityTones[task.priority]">{{ taskPriorityLabels[task.priority] }}</Badge>
+                            <Badge :tone="taskPriorityTones[task.priority]">{{
+                                taskPriorityLabels[task.priority]
+                            }}</Badge>
                         </li>
                     </ul>
                     <Text v-else role="label" tone="muted">Nothing carried over.</Text>

@@ -8,7 +8,7 @@ import {
     CardHeader,
     ConfirmDialog,
     ErrorState,
-    Icon,
+    PageHeader,
     ProgressBar,
     Skeleton,
     Text,
@@ -110,13 +110,24 @@ watch(id, load, { immediate: true });
 
 <template>
     <div class="flex flex-col gap-6">
-        <RouterLink
-            :to="{ name: 'goals' }"
-            class="group inline-flex w-fit items-center gap-2 text-label font-semibold text-fg-muted hover:text-fg"
+        <PageHeader
+            :title="goal?.title ?? 'Goal'"
+            title-id="page-title"
+            :back="{ to: { name: 'goals' }, label: 'Back to all goals' }"
         >
-            <Icon name="arrow-left" motion="nudge-back" />
-            <span>All goals</span>
-        </RouterLink>
+            <template v-if="goal" #eyebrow>
+                <Badge tone="inverse"><ToneDot :tone="goal.tone" />{{ goalTimeframeLabels[goal.timeframe] }}</Badge>
+                <Badge dot :tone="goalStatusTones[goal.status]">{{ goalStatusLabels[goal.status] }}</Badge>
+            </template>
+            <template v-if="goal?.description" #description>
+                <span class="block max-w-dialog whitespace-pre-line">{{ goal.description }}</span>
+            </template>
+            <template v-if="goal" #actions>
+                <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
+                <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
+                <Button icon-start="add" @click="taskOpen = true">Add task</Button>
+            </template>
+        </PageHeader>
 
         <ErrorState v-if="error" :message="error" @retry="load" />
         <div v-else-if="loading && !goal" class="grid gap-4 sm:grid-cols-4" aria-busy="true">
@@ -124,31 +135,6 @@ watch(id, load, { immediate: true });
         </div>
 
         <template v-else-if="goal">
-            <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div class="min-w-0">
-                    <div class="mb-2 flex flex-wrap items-center gap-2">
-                        <Badge tone="inverse"
-                            ><ToneDot :tone="goal.tone" />{{ goalTimeframeLabels[goal.timeframe] }}</Badge
-                        >
-                        <Badge dot :tone="goalStatusTones[goal.status]">{{ goalStatusLabels[goal.status] }}</Badge>
-                    </div>
-                    <h1
-                        id="page-title"
-                        class="font-display text-heading font-semibold tracking-tight sm:text-display-sm"
-                    >
-                        {{ goal.title }}
-                    </h1>
-                    <Text v-if="goal.description" tone="muted" class="mt-2 max-w-dialog whitespace-pre-line">{{
-                        goal.description
-                    }}</Text>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
-                    <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
-                    <Button icon-start="add" @click="taskOpen = true">Add task</Button>
-                </div>
-            </header>
-
             <section aria-label="Goal in numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     label="Progress"

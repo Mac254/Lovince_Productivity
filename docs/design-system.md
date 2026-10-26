@@ -109,6 +109,7 @@ composables/   useSurfaceTone
 | `Badge` | `tone` neutral · success · warning · danger · info · accent · highlight · inverse; `variant` subtle · outline; `icon` or `dot`. Status tones are tinted fill + hairline ring + light text; they mean state (done, at risk, blocked, in flight) and always carry a label |
 | `Text` | `role` caption · label · body · lead · title; `tone` default · muted · subtle · accent · highlight · danger · inverse |
 | `Heading` | `level` 1–4; `role` display-lg · display-md · display-sm · heading · title · lead; `uppercase` |
+| `PageHeader` | `title`, `titleId`, `description`; `back` { to, label } adds a Back button at the far right; slots `#eyebrow` (badges above the title), `#title`, `#description`, `#actions`. Every page’s h1 comes from it |
 
 **Surface tone.** `Card` provides its tone; `Text`, `Badge` and the app’s priority meter read it, so content on the Turbo featured card or the violet quote card switches to the paired `*-ink` automatically — no `inverted` props.
 

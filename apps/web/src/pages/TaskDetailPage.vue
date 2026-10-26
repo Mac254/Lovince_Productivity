@@ -8,8 +8,8 @@ import {
     CardHeader,
     ConfirmDialog,
     ErrorState,
-    Icon,
     IconButton,
+    PageHeader,
     Select,
     Skeleton,
     Text,
@@ -115,13 +115,39 @@ watch(id, load, { immediate: true });
 
 <template>
     <div class="flex flex-col gap-6">
-        <RouterLink
-            :to="{ name: 'tasks' }"
-            class="group inline-flex w-fit items-center gap-2 text-label font-semibold text-fg-muted hover:text-fg"
+        <PageHeader
+            :title="task?.title ?? 'Task'"
+            title-id="page-title"
+            :back="{ to: { name: 'tasks' }, label: 'Back to all tasks' }"
         >
-            <Icon name="arrow-left" motion="nudge-back" />
-            <span>All tasks</span>
-        </RouterLink>
+            <template v-if="task" #eyebrow>
+                <StatusBadge :status="task.status" />
+                <Badge :tone="task.category === 'integration' ? 'accent' : 'neutral'">{{
+                    taskCategoryLabels[task.category]
+                }}</Badge>
+                <PriorityDots :priority="task.priority" />
+                <Badge v-if="task.is_overdue" tone="danger" icon="alert-circle">Overdue</Badge>
+            </template>
+            <template v-if="task" #title>
+                <span :class="task.status === 'completed' && 'line-through'">{{ task.title }}</span>
+            </template>
+            <template v-if="task" #actions>
+                <IconButton
+                    :icon="task.is_highlighted ? 'star-filled' : 'star'"
+                    :label="task.is_highlighted ? 'Remove from highlights' : 'Highlight task'"
+                    :pressed="task.is_highlighted"
+                    @click="actions.toggleHighlight(task)"
+                />
+                <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
+                <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
+                <Button
+                    :icon-start="task.status === 'completed' ? 'undo' : 'check'"
+                    @click="actions.toggleComplete(task)"
+                >
+                    {{ task.status === 'completed' ? 'Reopen' : 'Mark complete' }}
+                </Button>
+            </template>
+        </PageHeader>
 
         <ErrorState v-if="error" :message="error" @retry="load" />
         <div v-else-if="loading && !task" class="grid gap-6 lg:grid-cols-3" aria-busy="true">
@@ -130,44 +156,6 @@ watch(id, load, { immediate: true });
         </div>
 
         <template v-else-if="task">
-            <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div class="min-w-0">
-                    <div class="mb-2 flex flex-wrap items-center gap-2">
-                        <StatusBadge :status="task.status" />
-                        <Badge :tone="task.category === 'integration' ? 'accent' : 'neutral'">{{
-                            taskCategoryLabels[task.category]
-                        }}</Badge>
-                        <PriorityDots :priority="task.priority" />
-                        <Badge v-if="task.is_overdue" tone="danger" icon="alert-circle">Overdue</Badge>
-                    </div>
-                    <h1
-                        id="page-title"
-                        :class="[
-                            'font-display text-heading font-semibold tracking-tight sm:text-display-sm',
-                            task.status === 'completed' && 'line-through',
-                        ]"
-                    >
-                        {{ task.title }}
-                    </h1>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <IconButton
-                        :icon="task.is_highlighted ? 'star-filled' : 'star'"
-                        :label="task.is_highlighted ? 'Remove from highlights' : 'Highlight task'"
-                        :pressed="task.is_highlighted"
-                        @click="actions.toggleHighlight(task)"
-                    />
-                    <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
-                    <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
-                    <Button
-                        :icon-start="task.status === 'completed' ? 'undo' : 'check'"
-                        @click="actions.toggleComplete(task)"
-                    >
-                        {{ task.status === 'completed' ? 'Reopen' : 'Mark complete' }}
-                    </Button>
-                </div>
-            </header>
-
             <div class="grid gap-6 lg:grid-cols-3">
                 <div class="flex flex-col gap-6 lg:col-span-2">
                     <Card as="section" aria-labelledby="description-heading" class="group">
