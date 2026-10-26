@@ -55,11 +55,20 @@ onMounted(run);
         </PageHeader>
 
         <ErrorState v-if="error" :message="error" @retry="run" />
-        <div v-else-if="loading && !data" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+        <div
+            v-else-if="loading && !data"
+            class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+            aria-busy="true"
+        >
             <Skeleton v-for="n in 6" :key="n" class="h-44" />
         </div>
         <template v-else-if="data && data.data.length">
-            <ul :class="['grid gap-4 md:grid-cols-2 xl:grid-cols-3 transition-opacity', loading && 'opacity-60']">
+            <ul
+                :class="[
+                    'grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 transition-opacity',
+                    loading && 'opacity-60',
+                ]"
+            >
                 <li v-for="report in data.data" :key="report.date">
                     <RouterLink
                         :to="{ name: 'report-detail', params: { date: report.date } }"

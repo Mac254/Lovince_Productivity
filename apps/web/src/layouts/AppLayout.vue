@@ -65,9 +65,9 @@ watch(
     </a>
 
     <aside
-        class="fixed inset-y-0 left-0 z-(--z-nav) hidden w-(--sidebar-width) flex-col gap-8 overflow-y-auto bg-chrome px-4 py-6 lg:flex"
+        class="fixed inset-y-0 left-0 z-(--z-nav) hidden w-(--sidebar-width) flex-col gap-8 overflow-y-auto border-r border-chrome-border bg-chrome px-4 py-6 lg:flex"
     >
-        <RouterLink :to="{ name: 'dashboard' }" class="group flex items-center gap-3 rounded-md px-2 text-fg-inverse">
+        <RouterLink :to="{ name: 'dashboard' }" class="group flex items-center gap-3 rounded-md px-2 text-chrome-fg">
             <BrandMark />
             <span class="font-display text-title font-semibold tracking-tight">Focus</span>
         </RouterLink>
@@ -75,7 +75,7 @@ watch(
         <div class="mt-auto flex flex-col gap-3">
             <RouterLink
                 :to="{ name: 'focus', query: { mode: 'timer' } }"
-                class="group flex items-center gap-3 rounded-md border border-chrome-border px-3 py-2 text-label font-semibold text-fg-inverse transition-colors hover:bg-chrome-hover"
+                class="group flex items-center gap-3 rounded-md border border-chrome-border px-3 py-2 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover"
             >
                 <Icon name="clock" size="md" motion="spin" />
                 Focus timer
@@ -83,12 +83,12 @@ watch(
             </RouterLink>
             <RouterLink
                 :to="{ name: 'account' }"
-                class="group flex items-center gap-3 rounded-md p-2 text-fg-inverse transition-colors hover:bg-chrome-hover"
+                class="group flex items-center gap-3 rounded-md p-2 text-chrome-fg transition-colors hover:bg-chrome-hover"
             >
                 <Avatar :name="auth.user?.name ?? ''" :src="auth.user?.avatar_url" />
                 <span class="min-w-0">
                     <span class="block truncate text-label font-semibold">{{ auth.user?.name }}</span>
-                    <span class="block truncate text-caption text-fg-inverse-muted">{{ auth.user?.email }}</span>
+                    <span class="block truncate text-caption text-chrome-fg-muted">{{ auth.user?.email }}</span>
                 </span>
             </RouterLink>
         </div>
@@ -96,7 +96,7 @@ watch(
 
     <div class="min-h-dvh lg:pl-(--sidebar-width)">
         <header class="sticky top-0 z-(--z-sticky) border-b border-border bg-canvas">
-            <div class="mx-auto flex h-(--topbar-height) max-w-app items-center gap-3 px-4 sm:px-6 lg:px-8">
+            <div class="flex h-(--topbar-height) w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
                 <IconButton
                     icon="menu"
                     label="Open navigation"
@@ -113,13 +113,13 @@ watch(
                 <RouterLink
                     v-if="timer.active"
                     :to="{ name: 'focus', query: { mode: 'timer' } }"
-                    class="group inline-flex h-(--control-sm) items-center gap-2 rounded-full bg-chrome px-3 text-label font-semibold text-fg-inverse"
+                    class="group inline-flex h-(--control-sm) items-center gap-2 rounded-full bg-chrome px-3 text-label font-semibold text-chrome-fg"
                     :aria-label="`${timer.kind === 'focus' ? 'Focus' : 'Break'} timer: ${timer.display} left${timer.status === 'paused' ? ', paused' : ''}`"
                 >
                     <span
                         :class="[
                             'size-2 rounded-full',
-                            timer.status === 'running' ? 'animate-pulse bg-highlight' : 'bg-fg-inverse-muted',
+                            timer.status === 'running' ? 'animate-pulse bg-highlight' : 'bg-chrome-fg-muted',
                         ]"
                         aria-hidden="true"
                     />
@@ -161,7 +161,7 @@ watch(
             </div>
         </header>
 
-        <main id="main" tabindex="-1" class="mx-auto max-w-app px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
+        <main id="main" tabindex="-1" class="w-full px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
             <RouterView />
         </main>
     </div>

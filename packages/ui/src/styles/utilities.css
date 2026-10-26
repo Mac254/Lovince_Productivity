@@ -3,7 +3,7 @@
 }
 
 /*
- * Icon motion. An icon reacts when its interactive parent (marked `group`) is hovered or
+ * Icon motion: small and quick so it reads as feedback, not decoration. An icon reacts when its interactive parent (marked `group`) is hovered or
  * keyboard-focused. Transform only, token durations; the base layer disables it under reduced motion.
  */
 @layer components {
@@ -17,22 +17,22 @@
 
     .group:hover .motion-pop,
     .group:focus-visible .motion-pop {
-        transform: scale(1.18);
+        transform: scale(1.1);
     }
 
     .group:hover .motion-nudge,
     .group:focus-visible .motion-nudge {
-        transform: translateX(3px);
+        transform: translateX(2px);
     }
 
     .group:hover .motion-nudge-back,
     .group:focus-visible .motion-nudge-back {
-        transform: translateX(-3px);
+        transform: translateX(-2px);
     }
 
     .group:hover .motion-lift,
     .group:focus-visible .motion-lift {
-        transform: translateY(-2px);
+        transform: translateY(-1px);
     }
 
     .group:hover .motion-spin,
@@ -42,7 +42,7 @@
 
     .group:hover .motion-wiggle,
     .group:focus-visible .motion-wiggle {
-        animation: icon-wiggle var(--duration-slower) var(--ease-in-out);
+        animation: icon-wiggle var(--duration-slow) var(--ease-in-out);
     }
 
     /* One-off entrance for icons in freshly rendered stat cards. */
@@ -55,18 +55,15 @@
         100% {
             transform: rotate(0);
         }
-        25% {
-            transform: rotate(-12deg);
-        }
-        75% {
-            transform: rotate(12deg);
+        50% {
+            transform: rotate(-8deg);
         }
     }
 
     @keyframes icon-enter {
         from {
             opacity: 0;
-            transform: scale(0.6) rotate(-20deg);
+            transform: scale(0.9);
         }
         to {
             opacity: 1;

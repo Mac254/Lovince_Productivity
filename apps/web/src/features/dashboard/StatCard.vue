@@ -30,7 +30,7 @@ const display = computed(() => (props.value === null ? '—' : `${animated.value
             <span
                 :class="[
                     'inline-flex size-(--control-md) items-center justify-center rounded-md',
-                    emphasis ? 'bg-highlight-ink text-highlight' : 'bg-surface-inverse text-highlight',
+                    emphasis ? 'bg-highlight-ink text-highlight' : 'bg-surface-raised text-highlight-fg',
                 ]"
             >
                 <Icon :name="icon" size="md" :motion="motion" class="motion-enter" />

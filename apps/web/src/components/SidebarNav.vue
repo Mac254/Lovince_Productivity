@@ -16,7 +16,7 @@ function isActive(name: string): boolean {
 <template>
     <nav aria-label="Primary" class="flex flex-col gap-6">
         <div v-for="section in navigation" :key="section.label" class="flex flex-col gap-1">
-            <p class="px-3 pb-1 text-caption font-semibold tracking-wide text-fg-inverse-muted uppercase">
+            <p class="px-3 pb-1 text-caption font-semibold tracking-wide text-chrome-fg-muted uppercase">
                 {{ section.label }}
             </p>
             <RouterLink
@@ -26,7 +26,7 @@ function isActive(name: string): boolean {
                 :aria-current="isActive(item.name) ? 'page' : undefined"
                 :class="[
                     'group flex items-center gap-3 rounded-md px-3 py-2 text-label font-semibold transition-colors duration-(--duration-instant)',
-                    isActive(item.name) ? 'bg-highlight text-highlight-ink' : 'text-fg-inverse hover:bg-chrome-hover',
+                    isActive(item.name) ? 'bg-highlight text-highlight-ink' : 'text-chrome-fg hover:bg-chrome-hover',
                 ]"
                 @click="emit('navigate')"
             >

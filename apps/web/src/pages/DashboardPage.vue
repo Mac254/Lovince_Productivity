@@ -247,7 +247,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     <h2 id="goals-heading" class="font-display text-title font-semibold">Active goals</h2>
                     <Button variant="ghost" size="sm" :to="{ name: 'goals' }" icon-end="arrow-right">All goals</Button>
                 </div>
-                <div v-if="data.active_goals.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div v-if="data.active_goals.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
                     <GoalCard
                         v-for="goal in data.active_goals"
                         :key="goal.id"
@@ -279,11 +279,11 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                                 </dd>
                                 <Text as="dt" role="caption" tone="muted">Dev done</Text>
                             </div>
-                            <div class="flex flex-col gap-1 rounded-md bg-surface-inverse px-2 py-3 text-fg-inverse">
-                                <dd class="font-display text-heading font-semibold text-highlight tabular">
+                            <div class="flex flex-col gap-1 rounded-md bg-highlight px-2 py-3 text-highlight-ink">
+                                <dd class="font-display text-heading font-semibold tabular">
                                     {{ data.integration.integration_pending.length }}
                                 </dd>
-                                <dt class="text-caption text-fg-inverse-muted">To integrate</dt>
+                                <dt class="text-caption">To integrate</dt>
                             </div>
                             <div class="flex flex-col gap-1 rounded-md bg-surface-raised px-2 py-3">
                                 <dd class="font-display text-heading font-semibold tabular">

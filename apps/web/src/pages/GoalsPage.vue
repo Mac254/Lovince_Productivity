@@ -82,10 +82,14 @@ onMounted(run);
         <ChipGroup v-model="view" label="Filter goals" :options="viewOptions" />
 
         <ErrorState v-if="error" :message="error" @retry="run" />
-        <div v-else-if="loading && !store.loaded" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
+        <div
+            v-else-if="loading && !store.loaded"
+            class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5"
+            aria-hidden="true"
+        >
             <Skeleton v-for="n in 4" :key="n" class="h-60" />
         </div>
-        <div v-else-if="visible.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div v-else-if="visible.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
             <GoalCard v-for="goal in visible" :key="goal.id" :goal="goal" @edit="open" @delete="deleting = $event" />
         </div>
         <EmptyState

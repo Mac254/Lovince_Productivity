@@ -236,7 +236,11 @@ onMounted(() => {
 
         <ErrorState v-if="error" :message="error" @retry="run" />
 
-        <div v-else-if="loading && !data" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
+        <div
+            v-else-if="loading && !data"
+            class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5"
+            aria-hidden="true"
+        >
             <Skeleton v-for="n in 8" :key="n" class="h-56" />
         </div>
 
@@ -244,7 +248,7 @@ onMounted(() => {
             <div
                 v-if="data.data.length"
                 :class="[
-                    'grid gap-4 transition-opacity duration-(--duration-fast) sm:grid-cols-2 xl:grid-cols-4',
+                    'grid gap-4 transition-opacity duration-(--duration-fast) sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5',
                     loading && 'opacity-60',
                 ]"
             >
