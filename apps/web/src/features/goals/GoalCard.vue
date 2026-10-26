@@ -33,7 +33,9 @@ const taskSummary = computed(() => {
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
                 <Badge tone="inverse"><ToneDot :tone="goal.tone" />{{ goalTimeframeLabels[goal.timeframe] }}</Badge>
-                <Badge v-if="goal.status !== 'active'" dot :tone="goalStatusTones[goal.status]">{{ goalStatusLabels[goal.status] }}</Badge>
+                <Badge v-if="goal.status !== 'active'" dot :tone="goalStatusTones[goal.status]">{{
+                    goalStatusLabels[goal.status]
+                }}</Badge>
             </div>
             <DropdownMenu :items="menu" :label="`Actions for “${goal.title}”`" size="sm" />
         </div>
