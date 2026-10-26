@@ -64,6 +64,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<TaskType, $this>
+     */
+    public function taskTypes(): HasMany
+    {
+        return $this->hasMany(TaskType::class);
+    }
+
+    /**
      * @return HasMany<Wallpaper, $this>
      */
     public function wallpapers(): HasMany

@@ -25,7 +25,7 @@ class TaskController extends Controller
 
         $query = Task::query()
             ->whereBelongsTo($request->user())
-            ->with('goal:id,title,tone')
+            ->with(Task::RELATIONS)
             ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->where(
                 fn (Builder $q) => $q
                     ->where('title', 'like', "%{$search}%")
@@ -37,6 +37,7 @@ class TaskController extends Controller
             ->when($filters['priority'] ?? null, fn (Builder $q, string $priority) => $q->where('priority', $priority))
             ->when($filters['category'] ?? null, fn (Builder $q, string $category) => $q->where('category', $category))
             ->when($filters['goal_id'] ?? null, fn (Builder $q, int|string $goalId) => $q->where('goal_id', $goalId))
+            ->when($filters['task_type_id'] ?? null, fn (Builder $q, int|string $typeId) => $q->where('task_type_id', $typeId))
             ->when($request->boolean('highlighted'), fn (Builder $q) => $q->where('is_highlighted', true))
             ->when($filters['due'] ?? null, fn (Builder $q, string $due) => match ($due) {
                 'today' => $q->whereDate('due_date', $today),
@@ -57,21 +58,21 @@ class TaskController extends Controller
     {
         $task = $request->user()->tasks()->create($request->validated());
 
-        return TaskResource::make($task->load('goal:id,title,tone'))->response()->setStatusCode(201);
+        return TaskResource::make($task->load(Task::RELATIONS))->response()->setStatusCode(201);
     }
 
     public function show(Task $task): TaskResource
     {
         Gate::authorize('view', $task);
 
-        return TaskResource::make($task->load('goal:id,title,tone'));
+        return TaskResource::make($task->load(Task::RELATIONS));
     }
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
         $task->update($request->validated());
 
-        return TaskResource::make($task->load('goal:id,title,tone'));
+        return TaskResource::make($task->load(Task::RELATIONS));
     }
 
     public function destroy(Task $task): Response

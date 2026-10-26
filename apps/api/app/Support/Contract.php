@@ -37,6 +37,10 @@ final class Contract
 
     public const AVATAR_MAX_KB = 2048;
 
+    public const TASK_TYPE_NAME_MAX = 40;
+
+    public const TASK_TYPE_LIMIT = 30;
+
     public const WALLPAPER_MAX_KB = 8192;
 
     public const WALLPAPER_LIMIT = 12;
@@ -75,6 +79,7 @@ final class Contract
             'perPageDefault' => self::PER_PAGE_DEFAULT,
             'journal' => self::JOURNAL_MAX,
             'blocker' => self::BLOCKER_MAX,
+            'taskType' => ['name' => self::TASK_TYPE_NAME_MAX, 'max' => self::TASK_TYPE_LIMIT],
             'wallpaperKb' => self::WALLPAPER_MAX_KB,
             'wallpapers' => self::WALLPAPER_LIMIT,
         ];

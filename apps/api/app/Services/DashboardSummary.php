@@ -33,7 +33,7 @@ class DashboardSummary
         $weekStart = $today->copy()->startOfWeek();
         $weekEnd = $today->copy()->endOfWeek();
 
-        $tasks = fn (): Builder => Task::query()->whereBelongsTo($user)->with('goal:id,title,tone');
+        $tasks = fn (): Builder => Task::query()->whereBelongsTo($user)->with(Task::RELATIONS);
 
         $dueThisWeek = $tasks()
             ->whereBetween('due_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
@@ -142,7 +142,7 @@ class DashboardSummary
             'integration_completed' => $base()->where('category', TaskCategory::Integration)->where('status', TaskStatus::Completed)->count(),
             'integration_pending' => TaskResource::collection(
                 $base()
-                    ->with('goal:id,title,tone')
+                    ->with(Task::RELATIONS)
                     ->where('category', TaskCategory::Integration)
                     ->open()
                     ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')

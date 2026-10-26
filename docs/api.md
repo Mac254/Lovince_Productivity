@@ -41,9 +41,13 @@ No bearer tokens are issued; nothing auth-related is stored in `localStorage`.
 | `direction` | `asc`, `desc` |
 | `per_page` | 1–100 (default 25) |
 
-Task body (`POST` requires `title`; `PATCH` accepts any subset): `title`, `description`, `status`, `priority`, `category`, `start_date`, `due_date` (`YYYY-MM-DD`, due ≥ start), `goal_id` (must be your goal or `null`).
+Task body (`POST` requires `title`; `PATCH` accepts any subset): `title`, `description`, `status`, `priority`, `category`, `start_date`, `due_date` (`YYYY-MM-DD`, due ≥ start), `goal_id` (must be your goal or `null`), `task_type_id` (must be your type or `null`). Filter with `?task_type_id=`.
 
-Response fields include `is_overdue`, `completed_at` and `goal { id, title }`.
+Response fields include `is_overdue`, `completed_at`, `goal { id, title, tone }` and `type { id, name, tone }`.
+
+## Task types
+
+Your own kinds of task, shown next to the built-in categories. `GET /task-types` (with `tasks_count`) · `POST /task-types` · `PATCH /task-types/{id}` · `DELETE /task-types/{id}`. Body: `name` (1–40 chars, unique per user, whitespace collapsed), `tone` (a goal tone, default `blue`). Up to 30 types. Deleting a type keeps its tasks and clears their `task_type_id`.
 
 ## Goals
 

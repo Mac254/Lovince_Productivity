@@ -16,11 +16,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy(ActivityObserver::class)]
-#[Fillable(['goal_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use HasFactory;
+
+    /** Relations every task response carries. */
+    public const RELATIONS = ['goal:id,title,tone', 'type:id,name,tone'];
 
     protected $attributes = [
         'status' => 'not_started',
@@ -66,6 +69,14 @@ class Task extends Model
     public function goal(): BelongsTo
     {
         return $this->belongsTo(Goal::class);
+    }
+
+    /**
+     * @return BelongsTo<TaskType, $this>
+     */
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(TaskType::class, 'task_type_id');
     }
 
     /**

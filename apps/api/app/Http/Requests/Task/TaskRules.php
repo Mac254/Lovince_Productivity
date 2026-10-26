@@ -25,6 +25,12 @@ trait TaskRules
             'is_highlighted' => ['sometimes', 'boolean'],
             'start_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'due_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+            'task_type_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                Rule::exists('task_types', 'id')->where('user_id', $this->user()->id),
+            ],
             'goal_id' => [
                 'sometimes',
                 'nullable',

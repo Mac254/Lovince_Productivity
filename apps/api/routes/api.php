@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuoteController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\TaskTypeController;
 use App\Http\Controllers\Api\V1\WallpaperController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
 
         Route::get('dashboard', DashboardController::class);
+        Route::apiResource('task-types', TaskTypeController::class)->except('show');
         Route::apiResource('tasks', TaskController::class);
         Route::apiResource('goals', GoalController::class);
         Route::get('quotes/random', [QuoteController::class, 'random']);

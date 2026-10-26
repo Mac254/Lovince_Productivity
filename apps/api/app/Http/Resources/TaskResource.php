@@ -31,6 +31,12 @@ class TaskResource extends JsonResource
             'due_date' => $this->due_date?->toDateString(),
             'completed_at' => $this->completed_at?->toIso8601String(),
             'is_overdue' => $isOpen && $this->due_date !== null && $this->due_date->isBefore(today()),
+            'task_type_id' => $this->task_type_id,
+            'type' => $this->whenLoaded('type', fn () => $this->type ? [
+                'id' => $this->type->id,
+                'name' => $this->type->name,
+                'tone' => $this->type->tone,
+            ] : null),
             'goal_id' => $this->goal_id,
             'goal' => $this->whenLoaded('goal', fn () => $this->goal ? [
                 'id' => $this->goal->id,
