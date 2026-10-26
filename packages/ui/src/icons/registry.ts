@@ -56,6 +56,7 @@ import IconSpinner from '~icons/solar/refresh-linear';
 import IconStar from '~icons/solar/star-linear';
 import IconStarFilled from '~icons/solar/star-bold';
 import IconSun from '~icons/solar/sun-linear';
+import IconTag from '~icons/solar/tag-linear';
 import IconTarget from '~icons/solar/target-linear';
 import IconTasks from '~icons/solar/list-check-linear';
 import IconTrash from '~icons/solar/trash-bin-minimalistic-linear';
@@ -119,6 +120,7 @@ export const icons = {
     star: IconStar,
     'star-filled': IconStarFilled,
     sun: IconSun,
+    tag: IconTag,
     target: IconTarget,
     tasks: IconTasks,
     trash: IconTrash,

@@ -26,21 +26,26 @@ import {
     Skeleton,
     Text,
 } from '@focus/ui';
-import { computed, onMounted, reactive, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQuery } from 'vue-router';
 import TaskCard from '@/features/tasks/TaskCard.vue';
 import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
+import TaskTypesDialog from '@/features/tasks/TaskTypesDialog.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { useAsync } from '@/composables/useAsync';
-import { taskCategoryOptions, taskPriorityOptions } from '@/lib/labels';
+import { taskPriorityOptions } from '@/lib/labels';
+import { fromKind, kindOptions, type TaskKind } from '@/lib/taskKind';
 import { useDashboardStore } from '@/stores/dashboard';
 import { useGoalsStore } from '@/stores/goals';
+import { useTaskTypesStore } from '@/stores/taskTypes';
 
 type StatusChip = 'all' | 'open' | Exclude<TaskStatus, 'not_started'>;
 
 const route = useRoute();
 const router = useRouter();
 const goals = useGoalsStore();
+const taskTypes = useTaskTypesStore();
+const typesOpen = ref(false);
 const dashboard = useDashboardStore();
 
 function fromQuery<T extends string>(query: LocationQuery, key: string, allowed: readonly T[]): T | '' {
@@ -68,6 +73,7 @@ const filters = reactive({
     category: fromQuery<TaskCategory>(route.query, 'category', TASK_CATEGORIES),
     due: fromQuery<TaskDueFilter>(route.query, 'due', TASK_DUE_FILTERS),
     goal_id: (Number(route.query.goal_id) || '') as number | '',
+    task_type_id: (Number(route.query.task_type_id) || '') as number | '',
     sort: fromQuery<TaskSort>(route.query, 'sort', TASK_SORTS),
     page: Number(route.query.page) || 1,
 });
@@ -94,6 +100,18 @@ const sortOptions = [
     { value: '' as const, label: 'Smart (open first)' },
     ...TASK_SORTS.map((value) => ({ value, label: sortLabels[value] })),
 ];
+const typeOptions = computed(() => [{ value: '' as const, label: 'Any type' }, ...kindOptions(taskTypes.types)]);
+const typeFilter = computed<TaskKind | '' | null>({
+    get: () => {
+        if (filters.task_type_id) return `type:${filters.task_type_id}` as TaskKind;
+        return filters.category ? (`category:${filters.category}` as TaskKind) : '';
+    },
+    set: (kind: TaskKind | '' | null) => {
+        const next = kind ? fromKind(kind) : null;
+        filters.task_type_id = next?.task_type_id ?? '';
+        filters.category = next && !next.task_type_id ? next.category : '';
+    },
+});
 const goalOptions = computed(() => [
     { value: '' as const, label: 'All goals' },
     ...goals.goals.map((goal) => ({ value: goal.id, label: goal.title })),
@@ -106,6 +124,7 @@ const query = computed<TaskFilters>(() => ({
     category: filters.category || undefined,
     due: filters.due || undefined,
     goal_id: filters.goal_id || undefined,
+    task_type_id: filters.task_type_id || undefined,
     sort: filters.sort || undefined,
     direction: filters.sort === 'created_at' || filters.sort === 'updated_at' ? 'desc' : undefined,
     page: filters.page,
@@ -122,6 +141,7 @@ const hasFilters = computed(
             filters.category ||
             filters.due ||
             filters.goal_id ||
+            filters.task_type_id ||
             filters.status !== 'open'
         ),
 );
@@ -134,6 +154,7 @@ function clearFilters(): void {
         category: '',
         due: '',
         goal_id: '',
+        task_type_id: '',
         sort: '',
         page: 1,
     });
@@ -164,6 +185,7 @@ watch(
 const refresh = async () => {
     goals.reset();
     void goals.load().catch(() => undefined);
+    void taskTypes.load(true).catch(() => undefined);
     void dashboard.load();
     await run();
 };
@@ -173,6 +195,7 @@ const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, 
 onMounted(() => {
     void run();
     goals.load().catch(() => undefined);
+    taskTypes.load().catch(() => undefined);
 });
 </script>
 
@@ -184,6 +207,7 @@ onMounted(() => {
             description="Everything you’ve planned, filterable by status, priority, type and goal."
         >
             <template #actions>
+                <Button variant="outline" icon-start="tag" @click="typesOpen = true">Types</Button>
                 <Button
                     variant="secondary"
                     icon-start="add"
@@ -212,12 +236,7 @@ onMounted(() => {
                     label="Priority"
                     :options="[{ value: '', label: 'Any priority' }, ...taskPriorityOptions]"
                 />
-                <Select
-                    id="filter-category"
-                    v-model="filters.category"
-                    label="Type"
-                    :options="[{ value: '', label: 'Any type' }, ...taskCategoryOptions]"
-                />
+                <Select id="filter-type" v-model="typeFilter" label="Type" :options="typeOptions" />
                 <Select id="filter-due" v-model="filters.due" label="Due" :options="dueOptions" />
                 <Select id="filter-goal" v-model="filters.goal_id" label="Goal" :options="goalOptions" />
                 <Select id="filter-sort" v-model="filters.sort" label="Sort by" :options="sortOptions" />
@@ -289,5 +308,6 @@ onMounted(() => {
             @update:open="!$event && (deleting = null)"
             @confirm="confirmDelete"
         />
+        <TaskTypesDialog v-model:open="typesOpen" @changed="refresh" />
     </div>
 </template>
