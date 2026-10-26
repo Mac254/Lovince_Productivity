@@ -1,6 +1,7 @@
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Task } from '../models/task';
+import type { TaskType } from '../models/taskType';
 
 export type TaskInput = Partial<
     Pick<
@@ -14,8 +15,11 @@ export type TaskInput = Partial<
         | 'start_date'
         | 'due_date'
         | 'goal_id'
+        | 'task_type_id'
     >
 >;
+
+export type TaskTypeInput = Partial<Pick<TaskType, 'name' | 'tone'>>;
 
 export type GoalInput = Partial<
     Pick<Goal, 'title' | 'description' | 'status' | 'timeframe' | 'tone' | 'start_date' | 'target_date'>

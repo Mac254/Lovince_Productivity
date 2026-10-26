@@ -10,6 +10,7 @@ import { quoteEndpoints } from './endpoints/quotes';
 import { reportEndpoints } from './endpoints/reports';
 import { wallpaperEndpoints } from './endpoints/wallpapers';
 import { taskEndpoints } from './endpoints/tasks';
+import { taskTypeEndpoints } from './endpoints/taskTypes';
 
 export function createApi(http: AxiosInstance) {
     return {
@@ -24,6 +25,7 @@ export function createApi(http: AxiosInstance) {
         metrics: metricEndpoints(http),
         profile: profileEndpoints(http),
         wallpapers: wallpaperEndpoints(http),
+        taskTypes: taskTypeEndpoints(http),
     };
 }
 

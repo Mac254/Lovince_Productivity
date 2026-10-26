@@ -16,6 +16,7 @@ export interface TaskFilters {
     category?: TaskCategory;
     due?: TaskDueFilter;
     goal_id?: number;
+    task_type_id?: number;
     highlighted?: boolean;
     sort?: TaskSort;
     direction?: 'asc' | 'desc';

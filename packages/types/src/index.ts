@@ -7,9 +7,10 @@ export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
 export type { JournalEntry } from './models/journal';
 export type { Wallpaper } from './models/wallpaper';
+export type { TaskType, TaskTypeRef } from './models/taskType';
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
-export type { BlockerInput, GoalInput, LoginInput, PasswordInput, TaskInput } from './api/inputs';
+export type { BlockerInput, GoalInput, LoginInput, PasswordInput, TaskInput, TaskTypeInput } from './api/inputs';
 export type { BlockerFilters, GoalFilters, TaskFilters } from './api/filters';
 export type { Dashboard, DashboardStats, IntegrationSummary } from './api/dashboard';
 export type {
