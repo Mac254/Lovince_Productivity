@@ -1,0 +1,76 @@
+@utility tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Icon motion. An icon reacts when its interactive parent (marked `group`) is hovered or
+ * keyboard-focused. Transform only, token durations; the base layer disables it under reduced motion.
+ */
+@layer components {
+    .motion-pop,
+    .motion-nudge,
+    .motion-nudge-back,
+    .motion-lift,
+    .motion-spin {
+        transition: transform var(--duration-fast) var(--ease-out);
+    }
+
+    .group:hover .motion-pop,
+    .group:focus-visible .motion-pop {
+        transform: scale(1.18);
+    }
+
+    .group:hover .motion-nudge,
+    .group:focus-visible .motion-nudge {
+        transform: translateX(3px);
+    }
+
+    .group:hover .motion-nudge-back,
+    .group:focus-visible .motion-nudge-back {
+        transform: translateX(-3px);
+    }
+
+    .group:hover .motion-lift,
+    .group:focus-visible .motion-lift {
+        transform: translateY(-2px);
+    }
+
+    .group:hover .motion-spin,
+    .group:focus-visible .motion-spin {
+        transform: rotate(90deg);
+    }
+
+    .group:hover .motion-wiggle,
+    .group:focus-visible .motion-wiggle {
+        animation: icon-wiggle var(--duration-slower) var(--ease-in-out);
+    }
+
+    /* One-off entrance for icons in freshly rendered stat cards. */
+    .motion-enter {
+        animation: icon-enter var(--duration-slower) var(--ease-out) both;
+    }
+
+    @keyframes icon-wiggle {
+        0%,
+        100% {
+            transform: rotate(0);
+        }
+        25% {
+            transform: rotate(-12deg);
+        }
+        75% {
+            transform: rotate(12deg);
+        }
+    }
+
+    @keyframes icon-enter {
+        from {
+            opacity: 0;
+            transform: scale(0.6) rotate(-20deg);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+}

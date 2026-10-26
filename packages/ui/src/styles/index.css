@@ -1,0 +1,8 @@
+/*
+ * Focus UI styles. Import after `tailwindcss`:
+ *   @import 'tailwindcss';
+ *   @import '@focus/ui/styles.css';
+ */
+@import '@focus/tokens/tailwind.css';
+@import './base.css';
+@import './utilities.css';
