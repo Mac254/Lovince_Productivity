@@ -21,6 +21,8 @@ export const ramps = {
         950: '#000000',
     },
     green: {
+        50: '#ecfff2',
+        100: '#d4fbe0',
         200: '#b3ffca',
         300: '#66ff94',
         400: '#00ff4e',
@@ -41,6 +43,7 @@ export const ramps = {
         cyan: '#0891b2',
     },
     red: {
+        50: '#fef2f2',
         200: '#fecaca',
         300: '#fca5a5',
         400: '#f87171',
@@ -50,16 +53,22 @@ export const ramps = {
         800: '#991b1b',
         950: '#2a0a0a',
     },
-    /* Status ramps: blue (info) and amber (warning), stepped for tinted badges on black. */
+    /* Status ramps: blue (info) and amber (warning), stepped for tinted badges on black or white. */
     blue: {
+        50: '#eff6ff',
+        200: '#bfdbfe',
         300: '#93c5fd',
         400: '#60a5fa',
+        700: '#1d4ed8',
         800: '#1e40af',
         950: '#0c1a38',
     },
     amber: {
+        50: '#fffbeb',
+        200: '#fde68a',
         300: '#fcd34d',
         400: '#fbbf24',
+        700: '#b45309',
         800: '#92400e',
         950: '#2a1a05',
     },

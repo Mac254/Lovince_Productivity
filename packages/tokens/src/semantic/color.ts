@@ -95,7 +95,86 @@ export const darkTheme = {
 
 export type ColorRole = keyof typeof darkTheme;
 
-export const themes = { dark: darkTheme } as const;
+/**
+ * The light theme: off-white page, white cards, black text. Neon green stays the fill for primary
+ * actions; green used as text or a thin mark darkens to stay readable. Chrome stays black in both.
+ */
+export const lightTheme = {
+    canvas: 'neutral.50',
+    surface: 'neutral.0',
+    'surface-raised': 'neutral.75',
+    'surface-overlay': 'neutral.0',
+    'surface-inverse': 'neutral.900',
+    'surface-inverse-hover': 'neutral.850',
+
+    chrome: 'neutral.950',
+    'chrome-hover': 'neutral.850',
+    'chrome-border': 'neutral.800',
+    'chrome-fg': 'neutral.0',
+    'chrome-fg-muted': 'neutral.400',
+
+    fg: 'neutral.900',
+    'fg-muted': 'neutral.600',
+    'fg-subtle': 'neutral.500',
+    'fg-inverse': 'neutral.50',
+    'fg-inverse-muted': 'neutral.400',
+
+    border: 'neutral.200',
+    'border-control': 'neutral.500',
+    'border-strong': 'neutral.600',
+
+    accent: 'green.700',
+    'accent-solid': 'neutral.850',
+    'accent-solid-hover': 'neutral.800',
+    'accent-ink': 'green.400',
+    'accent-fg': 'green.800',
+
+    highlight: 'green.400',
+    'highlight-hover': 'green.500',
+    'highlight-ink': 'neutral.950',
+    'highlight-fg': 'green.800',
+
+    danger: 'red.600',
+    'danger-hover': 'red.700',
+    'danger-ink': 'neutral.0',
+    'danger-fg': 'red.700',
+
+    'success-subtle': 'green.50',
+    'success-border': 'green.200',
+    'success-fg': 'green.800',
+    'warning-subtle': 'amber.50',
+    'warning-border': 'amber.200',
+    'warning-fg': 'amber.700',
+    'danger-subtle': 'red.50',
+    'danger-border': 'red.200',
+    'info-subtle': 'blue.50',
+    'info-border': 'blue.200',
+    'info-fg': 'blue.700',
+
+    'focus-ring': 'green.700',
+    selection: 'green.200',
+    skeleton: 'neutral.100',
+    scrim: 'raw:rgb(0 0 0 / 0.45)',
+
+    'chart-1': 'green.600',
+    'chart-2': 'neutral.500',
+    'chart-grid': 'neutral.100',
+
+    'heat-0': 'neutral.100',
+    'heat-1': 'green.200',
+    'heat-2': 'green.400',
+    'heat-3': 'green.600',
+    'heat-4': 'green.800',
+
+    'tone-green': 'tone.green',
+    'tone-blue': 'tone.blue',
+    'tone-amber': 'tone.amber',
+    'tone-violet': 'tone.violet',
+    'tone-rose': 'tone.rose',
+    'tone-cyan': 'tone.cyan',
+} as const satisfies Record<ColorRole, ColorValue>;
+
+export const themes = { dark: darkTheme, light: lightTheme } as const;
 export const defaultTheme = 'dark' satisfies keyof typeof themes;
 
 /**

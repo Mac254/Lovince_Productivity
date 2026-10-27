@@ -29,7 +29,7 @@ Single source: TypeScript in `packages/tokens/src`. `pnpm tokens` generates `css
 
 ### Colour roles
 
-Theme: **dark**. Black page, near-black cards with a 1px edge, charcoal raised surfaces, white text, neon green `#00FF4E` for action. Ramps: true-grey `neutral`, `green` (neon at 400), `red` (destructive only), `tone` (job colours, validated for dark surfaces).
+Themes: **dark** (default) and **light**, chosen per device in Settings → Appearance (`stores/preferences.ts` sets `data-theme` on `<html>`; System follows the device). Dark: black page, near-black cards with a 1px edge, charcoal raised surfaces, white text, neon green `#00FF4E` for action. Light: off-white page, white cards, near-black text; neon green stays the fill for primary actions while green text and thin marks darken to stay legible. Chrome (sidebar, clock) is black in both. Every theme defines every role and passes the same contrast pairs. Ramps: true-grey `neutral`, `green` (neon at 400), `red` (destructive only), `blue` and `amber` (status), `tone` (job colours).
 
 | Role | Purpose |
 |---|---|
