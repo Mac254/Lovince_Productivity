@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\GenerateDailyReport;
 use App\Models\Blocker;
 use App\Models\DailyReport;
+use App\Models\Goal;
 use App\Models\Task;
 use App\Models\TaskNote;
 use App\Models\TaskType;
@@ -143,6 +144,7 @@ class ReportAndMetricsTest extends TestCase
         $dates = DailyReport::query()->orderBy('date')->pluck('date')->map(fn ($d) => Carbon::parse($d)->toDateString())->all();
         $this->assertSame(['2026-10-25', '2026-10-26', '2026-10-27', '2026-10-28'], $dates, 'Fills the 25th and 27th, never before sign-up');
 
+        $this->assertStringStartsWith('2026-10-26 20:00', DailyReport::query()->whereDate('date', '2026-10-26')->value('generated_at'), 'Older saved reports are kept');
         $this->artisan('focus:daily-report', ['--missing' => 7])->expectsOutputToContain('No missing reports.');
         $this->artisan('focus:daily-report', ['--missing' => 0])->assertFailed();
     }
@@ -191,5 +193,55 @@ class ReportAndMetricsTest extends TestCase
         TaskNote::query()->whereBelongsTo($user)->get()->each->delete();
         $this->assertSame([], $report()['work_log']);
         $this->assertSame(0, $report()['summary']['completed']);
+    }
+
+    public function test_reports_written_after_their_day_describe_the_day_as_it_ended(): void
+    {
+        Carbon::setTestNow('2026-10-26 09:00:00');
+        $user = User::factory()->create(['created_at' => '2026-10-20 09:00:00']);
+        $goal = Goal::factory()->for($user)->create(['status' => 'active']);
+        $dueThatDay = Task::factory()->for($user)->for($goal)->dueOn('2026-10-27')->create();
+        $overdue = Task::factory()->for($user)->for($goal)->dueOn('2026-10-25')->create();
+        $blocker = Blocker::factory()->for($user)->create();
+
+        Carbon::setTestNow('2026-10-27 23:58:00');
+        $lastMinute = Task::factory()->for($user)->for($goal)->create();
+        $lastMinute->update(['status' => 'completed']);
+
+        Carbon::setTestNow('2026-10-28 10:00:00');
+        $dueThatDay->update(['status' => 'completed']);
+        $overdue->update(['status' => 'completed']);
+        $blocker->update(['status' => 'resolved']);
+        Task::factory()->for($user)->for($goal)->create();
+
+        $this->artisan('focus:daily-report', ['--missing' => 1])->assertSuccessful();
+        $report = $this->actingAs($user)->getJson('/api/v1/reports/2026-10-27')->assertOk();
+
+        $report->assertJsonPath('data.summary.completed', 1)
+            ->assertJsonPath('data.completed_tasks.0.id', $lastMinute->id)
+            ->assertJsonPath('data.summary.due', 1)
+            ->assertJsonPath('data.summary.due_completed', 0)
+            ->assertJsonPath('data.carried_over.0.id', $dueThatDay->id)
+            ->assertJsonPath('data.summary.overdue', 1)
+            ->assertJsonPath('data.summary.open_blockers', 1)
+            ->assertJsonPath('data.summary.blockers_resolved', 0)
+            ->assertJsonPath('data.goals.0.completed', 1)
+            ->assertJsonPath('data.goals.0.total', 3);
+    }
+
+    public function test_yesterdays_report_saved_at_2355_is_finalised_after_midnight(): void
+    {
+        Carbon::setTestNow('2026-10-27 23:55:00');
+        $user = User::factory()->create(['created_at' => '2026-10-20 09:00:00']);
+        $this->actingAs($user)->postJson('/api/v1/reports')->assertCreated()->assertJsonPath('data.summary.completed', 0);
+
+        Carbon::setTestNow('2026-10-27 23:58:00');
+        Task::factory()->for($user)->create()->update(['status' => 'completed']);
+
+        Carbon::setTestNow('2026-10-28 00:05:00');
+        $this->artisan('focus:daily-report', ['--missing' => 7])->assertSuccessful();
+
+        $this->getJson('/api/v1/reports/2026-10-27')->assertJsonPath('data.summary.completed', 1);
+        $this->artisan('focus:daily-report', ['--missing' => 7])->expectsOutputToContain('No missing reports.');
     }
 }

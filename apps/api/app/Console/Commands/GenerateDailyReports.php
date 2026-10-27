@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 
 #[Signature('focus:daily-report
     {--date= : Day to report on (YYYY-MM-DD), defaults to today}
-    {--missing= : Instead, fill gaps: queue reports for any of the last N days (before today) that have none}')]
+    {--missing= : Instead, fill gaps: queue reports for any of the last N days (before today) that have none, and redo the report for yesterday if it was saved before midnight}')]
 #[Description('Queue the daily report for every user (the queue worker stores them)')]
 class GenerateDailyReports extends Command
 {
@@ -42,8 +42,10 @@ class GenerateDailyReports extends Command
     }
 
     /**
-     * The 23:55 run only happens while the app is up, so days it was closed get their report
-     * when it next starts. Counts come from timestamps, so they are exact for past days.
+     * The 23:55 run only happens while the app is up, so days it was closed get their report now,
+     * rebuilt from timestamps as the day stood at midnight. It also can't see the day's last
+     * minutes, so yesterday's report is redone if it was saved before the day ended. Older saved
+     * reports stay as they are: stars aren't dated, and today's would skew an old day's plan.
      */
     private function fillGaps(int $days): int
     {
@@ -55,15 +57,18 @@ class GenerateDailyReports extends Command
 
         $count = 0;
         User::query()->lazyById()->each(function (User $user) use ($days, &$count) {
-            $have = DailyReport::query()->whereBelongsTo($user)
+            $yesterday = today()->subDay()->toDateString();
+            $keep = DailyReport::query()->whereBelongsTo($user)
                 ->whereDate('date', '>=', today()->subDays($days))
-                ->pluck('date')
-                ->map(fn ($date) => Carbon::parse($date)->toDateString())
+                ->get(['date', 'generated_at'])
+                ->reject(fn (DailyReport $report) => $report->date->toDateString() === $yesterday
+                    && ! $report->generated_at?->greaterThan($report->date->copy()->endOfDay()))
+                ->map(fn (DailyReport $report) => $report->date->toDateString())
                 ->all();
 
             foreach (range($days, 1) as $back) {
                 $day = today()->subDays($back);
-                if ($day->endOfDay()->isBefore($user->created_at) || in_array($day->toDateString(), $have, true)) {
+                if ($day->copy()->endOfDay()->isBefore($user->created_at) || in_array($day->toDateString(), $keep, true)) {
                     continue;
                 }
                 GenerateDailyReport::dispatch($user, $day->toDateString());
@@ -71,7 +76,7 @@ class GenerateDailyReports extends Command
             }
         });
 
-        $this->components->info($count ? "Queued {$count} missing daily ".str('report')->plural($count).'.' : 'No missing reports.');
+        $this->components->info($count ? "Queued {$count} missing or unfinished daily ".str('report')->plural($count).'.' : 'No missing reports.');
 
         return self::SUCCESS;
     }

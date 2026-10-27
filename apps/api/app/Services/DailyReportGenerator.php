@@ -26,44 +26,60 @@ class DailyReportGenerator
 {
     private const LIST_LIMIT = 20;
 
+    /**
+     * Every figure describes the day as it stood at its cut-off: the end of the day, or now while
+     * the day is still running. State is rebuilt from timestamps (created, completed, resolved),
+     * so a report written after the day — a backfill, or the run that finalises it after
+     * midnight — matches what was true then, not what is true now.
+     */
     public function generate(User $user, Carbon $date): DailyReport
     {
         $date = $date->copy()->startOfDay();
-        $dayEnd = $date->copy()->endOfDay();
-        $tasks = fn (): Builder => Task::query()->whereBelongsTo($user);
+        $asOf = now()->min($date->copy()->endOfDay());
+        $relations = ['goal:id,title', 'type:id,name,tone'];
+        $tasks = fn (): Builder => Task::query()->whereBelongsTo($user)->where('created_at', '<=', $asOf);
+        $doneBy = fn (Builder $q) => $q->where('status', TaskStatus::Completed)->where('completed_at', '<=', $asOf);
+        // Open at the cut-off: not cancelled, and not yet completed then (finished later still counts).
+        $openThen = fn (): Builder => $tasks()->where('status', '!=', TaskStatus::Cancelled)
+            ->where(fn (Builder $q) => $q->whereNull('completed_at')->orWhere('completed_at', '>', $asOf));
 
-        $completed = $tasks()->with(['goal:id,title', 'type:id,name,tone'])
-            ->whereBetween('completed_at', [$date, $dayEnd])
+        $completed = $tasks()->with($relations)
             ->where('status', TaskStatus::Completed)
+            ->whereBetween('completed_at', [$date, $asOf])
             ->orderBy('completed_at')
             ->get();
 
-        $due = $tasks()->with(['goal:id,title', 'type:id,name,tone'])->whereDate('due_date', $date)->where('status', '!=', TaskStatus::Cancelled)->get();
-        $dueCompleted = $due->where('status', TaskStatus::Completed)->count();
-        $carriedOver = $due->filter(fn (Task $task) => in_array($task->status, TaskStatus::open(), true));
+        $due = $tasks()->with($relations)->whereDate('due_date', $date)->where('status', '!=', TaskStatus::Cancelled)->get();
+        $dueCompleted = $due->filter(fn (Task $task) => $task->status === TaskStatus::Completed && $task->completed_at <= $asOf)->count();
+        $carriedOver = $openThen()->with($relations)->whereDate('due_date', $date)->get();
 
-        $overdue = $tasks()->with(['goal:id,title', 'type:id,name,tone'])->open()->whereDate('due_date', '<', $date)->orderBy('due_date')->get();
+        $overdue = $openThen()->with($relations)->whereDate('due_date', '<', $date)->orderBy('due_date')->get();
 
-        // Today's plan, as the Today page shows it: due this day or starred.
+        // The day's plan, as the Today page shows it: due this day or starred (stars are as they are now).
         $inPlan = fn (Task $task) => $task->is_highlighted || $task->due_date?->isSameDay($date);
         $plannedCompleted = $completed->filter($inPlan)->count();
-        $plannedOpen = fn (): Builder => $tasks()->open()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true));
+        $plannedOpen = fn (): Builder => $openThen()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true));
 
         $workLog = $this->workLogFor($user, $date);
 
         $onTimeEligible = $completed->filter(fn (Task $task) => $task->due_date !== null);
         $onTime = $onTimeEligible->filter(fn (Task $task) => $task->completed_at->toDateString() <= $task->due_date->toDateString());
 
-        $openBlockers = Blocker::query()->whereBelongsTo($user)->open()->with('task:id,title')->latest()->get();
-        $blockersRaised = Blocker::query()->whereBelongsTo($user)->whereBetween('created_at', [$date, $dayEnd])->count();
-        $blockersResolved = Blocker::query()->whereBelongsTo($user)->with('task:id,title')
+        $blockers = fn (): Builder => Blocker::query()->whereBelongsTo($user)->where('created_at', '<=', $asOf);
+        $openBlockers = $blockers()->with('task:id,title')
+            ->where(fn (Builder $q) => $q->where('status', BlockerStatus::Open)
+                ->orWhere(fn (Builder $q) => $q->where('status', BlockerStatus::Resolved)->where('resolved_at', '>', $asOf)))
+            ->latest()
+            ->get();
+        $blockersRaised = $blockers()->where('created_at', '>=', $date)->count();
+        $blockersResolved = $blockers()->with('task:id,title')
             ->where('status', BlockerStatus::Resolved)
-            ->whereBetween('resolved_at', [$date, $dayEnd])
+            ->whereBetween('resolved_at', [$date, $asOf])
             ->get();
 
         $summary = [
             'completed' => $completed->count(),
-            'created' => $tasks()->whereBetween('created_at', [$date, $dayEnd])->count(),
+            'created' => $tasks()->where('created_at', '>=', $date)->count(),
             'due' => $due->count(),
             'due_completed' => $dueCompleted,
             'completion_rate' => $due->count() > 0 ? (int) round($dueCompleted / $due->count() * 100) : null,
@@ -90,7 +106,13 @@ class DailyReportGenerator
             'overdue_tasks' => $this->taskList($overdue->take(self::LIST_LIMIT)),
             'blockers_open' => $this->blockerList($openBlockers->take(self::LIST_LIMIT)),
             'blockers_resolved' => $this->blockerList($blockersResolved),
-            'goals' => Goal::query()->whereBelongsTo($user)->where('status', GoalStatus::Active)->withProgress()->orderBy('target_date')->get()
+            'goals' => Goal::query()->whereBelongsTo($user)->where('status', GoalStatus::Active)->where('created_at', '<=', $asOf)
+                ->withCount([
+                    'tasks as eligible_tasks_count' => fn (Builder $q) => $q->where('created_at', '<=', $asOf)->where('status', '!=', TaskStatus::Cancelled),
+                    'tasks as completed_tasks_count' => fn (Builder $q) => $q->where('created_at', '<=', $asOf)->where($doneBy),
+                ])
+                ->orderBy('target_date')
+                ->get()
                 ->map(fn (Goal $goal) => [
                     'id' => $goal->id,
                     'title' => $goal->title,
@@ -100,8 +122,8 @@ class DailyReportGenerator
                     'total' => (int) $goal->eligible_tasks_count,
                 ])->all(),
             'integration' => [
-                'development_completed' => $tasks()->where('category', TaskCategory::Development)->where('status', TaskStatus::Completed)->count(),
-                'integration_pending' => $tasks()->where('category', TaskCategory::Integration)->open()->count(),
+                'development_completed' => $tasks()->where('category', TaskCategory::Development)->where($doneBy)->count(),
+                'integration_pending' => $openThen()->where('category', TaskCategory::Integration)->count(),
             ],
             'journal' => JournalEntry::query()->whereBelongsTo($user)->whereDate('date', $date)->value('body'),
         ];

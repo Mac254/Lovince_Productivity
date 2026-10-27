@@ -30,6 +30,14 @@ const regenerating = ref(false);
 
 const date = computed(() => String(route.params.date));
 const isToday = computed(() => date.value === todayIso());
+/** A report saved after its day ended covers the whole day; earlier ones stop at the time they were saved. */
+const coverage = computed(() => {
+    const saved = report.value?.generated_at;
+    if (!saved || !report.value) return '';
+    return todayIso(new Date(saved)) > report.value.date
+        ? 'Final · covers the whole day'
+        : `As of ${formatDate(saved, { timeStyle: 'short' })}`;
+});
 
 async function load(): Promise<void> {
     loading.value = true;
@@ -73,9 +81,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
             :back="{ to: { name: 'reports' }, label: 'Back to all reports' }"
         >
             <template v-if="report" #actions>
-                <Text role="caption" tone="muted"
-                    >Generated {{ formatDate(report.generated_at, { timeStyle: 'short' }) }}</Text
-                >
+                <Text role="caption" tone="muted">{{ coverage }}</Text>
                 <Button v-if="isToday" variant="outline" icon-start="retry" :loading="regenerating" @click="regenerate"
                     >Refresh</Button
                 >
