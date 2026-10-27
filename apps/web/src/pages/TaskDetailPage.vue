@@ -175,7 +175,7 @@ watch(id, load, { immediate: true });
                         >
                     </Card>
 
-                    <TaskWorkLog :task-id="task.id" />
+                    <TaskWorkLog :task-id="task.id" :task-title="task.title" />
 
                     <Card as="section" aria-labelledby="blockers-heading" class="group">
                         <CardHeader
