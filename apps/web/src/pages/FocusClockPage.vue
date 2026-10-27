@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { api, errorMessage } from '@focus/api-client';
-import { LIMITS, type Wallpaper } from '@focus/types';
-import { Icon, IconButton, useToast } from '@focus/ui';
+import { LIMITS } from '@focus/types';
+import { IconButton } from '@focus/ui';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import DayRail from '@/features/clock/DayRail.vue';
 import FocusTimer from '@/features/clock/FocusTimer.vue';
 import RollingDigits from '@/features/clock/RollingDigits.vue';
+import TodayStrip from '@/features/clock/TodayStrip.vue';
+import { useWallpapers } from '@/features/clock/useWallpapers';
 import { customWallpaperKey, loadPrefs, savePrefs, wallpapers } from '@/features/clock/wallpapers';
 import { useDashboard } from '@/composables/useDashboard';
+import { isoWeek } from '@/lib/dates';
+import { createTicker } from '@/lib/ticker';
 
 const router = useRouter();
 const route = useRoute();
@@ -23,90 +27,47 @@ const mode = computed<'clock' | 'timer'>({
 });
 
 const prefs = reactive(loadPrefs());
+const { uploads, uploading, activeUpload, wallpaper, load: loadUploads, upload, removeActive } = useWallpapers(prefs);
+const ticker = createTicker();
+
 const now = ref(new Date());
 const controlsVisible = ref(true);
+const settingsOpen = ref(false);
 const fullscreen = ref(false);
 const root = ref<HTMLElement | null>(null);
+const settings = ref<HTMLElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 let tick: number | undefined;
 let idle: number | undefined;
 
-const toast = useToast();
-const uploads = ref<Wallpaper[]>([]);
-const uploading = ref(false);
-const fileInput = ref<HTMLInputElement | null>(null);
-
-const activeUpload = computed(() => uploads.value.find((w) => customWallpaperKey(w.id) === prefs.wallpaper) ?? null);
-const wallpaper = computed(() =>
-    activeUpload.value
-        ? { id: 'photo', label: activeUpload.value.name, ink: 'light' as const }
-        : (wallpapers.find((w) => w.id === prefs.wallpaper) ?? wallpapers[0]!),
-);
 const photoStyle = computed(() =>
     activeUpload.value
         ? { backgroundImage: `linear-gradient(rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.6)), url("${activeUpload.value.url}")` }
         : undefined,
 );
 
-async function loadUploads(): Promise<void> {
-    try {
-        uploads.value = await api.wallpapers.list();
-        // A chosen photo that was removed elsewhere falls back to the default wallpaper.
-        if (prefs.wallpaper.startsWith('custom:') && !activeUpload.value) prefs.wallpaper = wallpapers[0]!.id;
-    } catch {
-        // Built-in wallpapers still work without the list.
-    }
-}
-
-async function upload(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (fileInput.value) fileInput.value.value = '';
-    if (!file) return;
-    if (file.size > LIMITS.wallpaperKb * 1024) {
-        toast.error(`Choose an image under ${Math.round(LIMITS.wallpaperKb / 1024)} MB.`);
-        return;
-    }
-    uploading.value = true;
-    try {
-        const added = await api.wallpapers.upload(file);
-        uploads.value = [added, ...uploads.value];
-        prefs.wallpaper = customWallpaperKey(added.id);
-        toast.success('Wallpaper added');
-    } catch (e) {
-        toast.error(errorMessage(e, 'Could not upload that image.'));
-    } finally {
-        uploading.value = false;
-    }
-}
-
-async function removeActive(): Promise<void> {
-    const current = activeUpload.value;
-    if (!current) return;
-    try {
-        await api.wallpapers.remove(current.id);
-        uploads.value = uploads.value.filter((w) => w.id !== current.id);
-        prefs.wallpaper = wallpapers[0]!.id;
-        toast.success('Wallpaper removed');
-    } catch (e) {
-        toast.error(errorMessage(e, 'Could not remove the wallpaper.'));
-    }
-}
-
+const timeParts = computed(() =>
+    new Intl.DateTimeFormat(undefined, {
+        hour: prefs.hour12 ? 'numeric' : '2-digit',
+        minute: '2-digit',
+        hour12: prefs.hour12,
+    }).formatToParts(now.value),
+);
 const time = computed(() =>
-    new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hour12: prefs.hour12 }).format(now.value),
+    timeParts.value
+        .filter((part) => part.type !== 'dayPeriod')
+        .map((part) => part.value)
+        .join('')
+        .trim(),
 );
-const seconds = computed(() => String(now.value.getSeconds()).padStart(2, '0'));
-const date = computed(() =>
-    new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now.value),
+const period = computed(() => timeParts.value.find((part) => part.type === 'dayPeriod')?.value ?? '');
+const seconds = computed(() => now.value.getSeconds());
+const dateLine = computed(
+    () =>
+        `${new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now.value)} · Week ${isoWeek(now.value)}`,
 );
-const next = computed(() => dashboard.data?.today_tasks[0] ?? dashboard.data?.overdue_tasks[0] ?? null);
-const progress = computed(() => {
-    const stats = dashboard.data?.stats;
-    if (!stats) return null;
-    const total = stats.completed_today + stats.due_today;
-    return total ? `${stats.completed_today} of ${total} done today` : null;
-});
+const showControls = computed(() => controlsVisible.value || settingsOpen.value || mode.value === 'timer');
 
-/** Controls fade away on the clock after a few idle seconds; the timer keeps them visible. */
 function wake(): void {
     controlsVisible.value = true;
     window.clearTimeout(idle);
@@ -124,19 +85,36 @@ async function toggleFullscreen(): Promise<void> {
 
 function onKey(event: KeyboardEvent): void {
     wake();
+    if (event.key === 'Escape') settingsOpen.value = false;
     const target = event.target as HTMLElement | null;
     if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return;
     if (event.key.toLowerCase() === 'f' && !event.ctrlKey && !event.metaKey) void toggleFullscreen();
 }
 
+function onPointerDown(event: PointerEvent): void {
+    if (settingsOpen.value && !settings.value?.contains(event.target as Node)) settingsOpen.value = false;
+}
+
+function onFile(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (fileInput.value) fileInput.value.value = '';
+    if (file) void upload(file);
+}
+
 const syncFullscreen = () => (fullscreen.value = !!document.fullscreenElement);
 
 watch(prefs, savePrefs, { deep: true });
+watch(
+    () => prefs.tick,
+    (on) => (on ? ticker.start() : ticker.stop()),
+);
 
 onMounted(() => {
-    tick = window.setInterval(() => (now.value = new Date()), 500);
+    tick = window.setInterval(() => (now.value = new Date()), 250);
     document.addEventListener('fullscreenchange', syncFullscreen);
     document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointerDown);
+    if (prefs.tick) ticker.start();
     void loadUploads();
     wake();
 });
@@ -144,8 +122,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.clearInterval(tick);
     window.clearTimeout(idle);
+    ticker.stop();
     document.removeEventListener('fullscreenchange', syncFullscreen);
     document.removeEventListener('keydown', onKey);
+    document.removeEventListener('pointerdown', onPointerDown);
     if (document.fullscreenElement) void document.exitFullscreen();
 });
 </script>
@@ -154,10 +134,10 @@ onBeforeUnmount(() => {
     <main
         ref="root"
         :class="[
-            'clock relative flex min-h-dvh flex-col overflow-x-hidden',
-            'bg-chrome',
+            'clock relative flex min-h-dvh flex-col overflow-x-hidden bg-chrome',
             wallpaper.ink === 'light' ? 'text-chrome-fg' : 'text-fg-inverse',
             activeUpload && 'on-photo',
+            !showControls && 'cursor-none',
         ]"
         @pointermove="wake"
         @focusin="wake"
@@ -173,10 +153,10 @@ onBeforeUnmount(() => {
 
         <h1 class="sr-only">{{ mode === 'timer' ? 'Focus timer' : 'Focus clock' }}</h1>
 
-        <div
+        <header
             :class="[
-                'z-(--z-sticky) flex flex-wrap items-center justify-between gap-3 p-4 transition-opacity duration-(--duration-slow) sm:p-6',
-                controlsVisible || mode === 'timer' ? 'opacity-100' : 'pointer-events-none opacity-0',
+                'z-(--z-sticky) flex items-center justify-between gap-3 p-4 transition-opacity duration-(--duration-slow) sm:p-6',
+                showControls ? 'opacity-100' : 'pointer-events-none opacity-0',
             ]"
         >
             <div class="flex items-center gap-3">
@@ -205,85 +185,20 @@ onBeforeUnmount(() => {
                     </button>
                 </div>
             </div>
-            <div
-                class="flex flex-wrap items-center gap-2 rounded-full bg-chrome p-2 shadow-floating"
-                role="group"
-                aria-label="Display settings"
-            >
+
+            <div ref="settings" class="relative flex items-center gap-1 rounded-full bg-chrome p-1 shadow-floating">
                 <button
-                    v-for="item in wallpapers"
-                    :key="item.id"
                     type="button"
-                    :aria-label="`Wallpaper: ${item.label}`"
-                    :aria-pressed="prefs.wallpaper === item.id"
-                    :title="item.label"
+                    :aria-expanded="settingsOpen"
+                    aria-controls="clock-settings"
                     :class="[
-                        'swatch size-(--control-sm) rounded-full border-2 transition-transform duration-(--duration-fast) hover:scale-110',
-                        `wallpaper-${item.id}`,
-                        prefs.wallpaper === item.id ? 'border-highlight' : 'border-chrome-border',
+                        'h-(--control-sm) rounded-full px-4 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover',
+                        settingsOpen && 'bg-chrome-hover',
                     ]"
-                    @click="prefs.wallpaper = item.id"
-                />
-                <button
-                    v-for="item in uploads"
-                    :key="`custom-${item.id}`"
-                    type="button"
-                    :aria-label="`Wallpaper: ${item.name}`"
-                    :aria-pressed="prefs.wallpaper === customWallpaperKey(item.id)"
-                    :title="item.name"
-                    :class="[
-                        'swatch size-(--control-sm) rounded-full border-2 bg-chrome-hover transition-transform duration-(--duration-fast) hover:scale-110',
-                        prefs.wallpaper === customWallpaperKey(item.id) ? 'border-highlight' : 'border-chrome-border',
-                    ]"
-                    :style="{ backgroundImage: `url(&quot;${item.url}&quot;)` }"
-                    @click="prefs.wallpaper = customWallpaperKey(item.id)"
-                />
-                <IconButton
-                    v-if="uploads.length < LIMITS.wallpapers"
-                    icon="upload"
-                    label="Add your own wallpaper"
-                    variant="ghost"
-                    size="sm"
-                    class="text-chrome-fg hover:bg-chrome-hover"
-                    :disabled="uploading"
-                    @click="fileInput?.click()"
-                />
-                <IconButton
-                    v-if="activeUpload"
-                    icon="trash"
-                    :label="`Remove wallpaper ${activeUpload.name}`"
-                    variant="ghost"
-                    size="sm"
-                    class="text-chrome-fg hover:bg-chrome-hover"
-                    @click="removeActive"
-                />
-                <input
-                    ref="fileInput"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    class="sr-only"
-                    aria-label="Choose a wallpaper image"
-                    @change="upload"
-                />
-                <template v-if="mode === 'clock'">
-                    <span class="mx-1 h-6 w-px bg-chrome-border" aria-hidden="true" />
-                    <button
-                        type="button"
-                        :aria-pressed="prefs.hour12"
-                        class="h-(--control-sm) rounded-full px-3 text-label font-semibold text-chrome-fg hover:bg-chrome-hover"
-                        @click="prefs.hour12 = !prefs.hour12"
-                    >
-                        {{ prefs.hour12 ? '12h' : '24h' }}
-                    </button>
-                    <button
-                        type="button"
-                        :aria-pressed="prefs.seconds"
-                        class="h-(--control-sm) rounded-full px-3 text-label font-semibold text-chrome-fg hover:bg-chrome-hover"
-                        @click="prefs.seconds = !prefs.seconds"
-                    >
-                        Seconds
-                    </button>
-                </template>
+                    @click="settingsOpen = !settingsOpen"
+                >
+                    Display
+                </button>
                 <IconButton
                     :icon="fullscreen ? 'exit-fullscreen' : 'fullscreen'"
                     :label="fullscreen ? 'Exit full screen (F)' : 'Full screen (F)'"
@@ -291,55 +206,180 @@ onBeforeUnmount(() => {
                     size="sm"
                     @click="toggleFullscreen"
                 />
+
+                <Transition name="panel">
+                    <div
+                        v-show="settingsOpen"
+                        id="clock-settings"
+                        role="group"
+                        aria-label="Display settings"
+                        class="absolute top-full right-0 mt-2 flex settings-panel flex-col gap-6 rounded-lg border border-chrome-border bg-chrome p-6 text-chrome-fg shadow-overlay"
+                    >
+                        <div class="flex flex-col gap-3">
+                            <p class="text-caption font-semibold tracking-wide text-chrome-fg-muted uppercase">
+                                Wallpaper
+                            </p>
+                            <div class="grid grid-cols-6 gap-2">
+                                <button
+                                    v-for="item in wallpapers"
+                                    :key="item.id"
+                                    type="button"
+                                    :aria-label="`Wallpaper: ${item.label}`"
+                                    :aria-pressed="prefs.wallpaper === item.id"
+                                    :title="item.label"
+                                    :class="[
+                                        'swatch aspect-square rounded-md border-2 transition-transform duration-(--duration-fast) hover:scale-105',
+                                        `wallpaper-${item.id}`,
+                                        prefs.wallpaper === item.id ? 'border-highlight' : 'border-chrome-border',
+                                    ]"
+                                    @click="prefs.wallpaper = item.id"
+                                />
+                                <button
+                                    v-for="item in uploads"
+                                    :key="`custom-${item.id}`"
+                                    type="button"
+                                    :aria-label="`Wallpaper: ${item.name}`"
+                                    :aria-pressed="prefs.wallpaper === customWallpaperKey(item.id)"
+                                    :title="item.name"
+                                    :class="[
+                                        'swatch aspect-square rounded-md border-2 bg-chrome-hover transition-transform duration-(--duration-fast) hover:scale-105',
+                                        prefs.wallpaper === customWallpaperKey(item.id)
+                                            ? 'border-highlight'
+                                            : 'border-chrome-border',
+                                    ]"
+                                    :style="{ backgroundImage: `url(&quot;${item.url}&quot;)` }"
+                                    @click="prefs.wallpaper = customWallpaperKey(item.id)"
+                                />
+                                <IconButton
+                                    v-if="uploads.length < LIMITS.wallpapers"
+                                    icon="upload"
+                                    label="Add your own wallpaper"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="aspect-square size-auto rounded-md border-2 border-dashed border-chrome-border text-chrome-fg hover:bg-chrome-hover"
+                                    :disabled="uploading"
+                                    @click="fileInput?.click()"
+                                />
+                            </div>
+                            <button
+                                v-if="activeUpload"
+                                type="button"
+                                class="self-start text-label font-semibold text-chrome-fg-muted underline-offset-4 hover:text-chrome-fg hover:underline"
+                                @click="removeActive"
+                            >
+                                Remove this photo
+                            </button>
+                            <input
+                                ref="fileInput"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                class="sr-only"
+                                aria-label="Choose a wallpaper image"
+                                @change="onFile"
+                            />
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            <p class="text-caption font-semibold tracking-wide text-chrome-fg-muted uppercase">Time</p>
+                            <div
+                                role="group"
+                                aria-label="Time format"
+                                class="grid grid-cols-2 rounded-full bg-chrome-hover p-1"
+                            >
+                                <button
+                                    v-for="option in [false, true]"
+                                    :key="String(option)"
+                                    type="button"
+                                    :aria-pressed="prefs.hour12 === option"
+                                    :class="[
+                                        'h-(--control-sm) rounded-full text-label font-semibold transition-colors',
+                                        prefs.hour12 === option ? 'bg-highlight text-highlight-ink' : 'text-chrome-fg',
+                                    ]"
+                                    @click="prefs.hour12 = option"
+                                >
+                                    {{ option ? '12-hour' : '24-hour' }}
+                                </button>
+                            </div>
+                            <button
+                                v-for="toggle in [
+                                    { key: 'seconds', label: 'Show seconds' },
+                                    { key: 'tick', label: 'Ticking sound' },
+                                ] as const"
+                                :key="toggle.key"
+                                type="button"
+                                role="switch"
+                                :aria-checked="prefs[toggle.key]"
+                                class="flex items-center justify-between gap-3 text-label font-semibold"
+                                @click="prefs[toggle.key] = !prefs[toggle.key]"
+                            >
+                                {{ toggle.label }}
+                                <span
+                                    :class="[
+                                        'switch relative h-5 w-9 rounded-full transition-colors',
+                                        prefs[toggle.key] ? 'bg-highlight' : 'bg-chrome-border',
+                                    ]"
+                                    aria-hidden="true"
+                                />
+                            </button>
+                        </div>
+
+                        <p class="text-caption text-chrome-fg-muted">
+                            Press <kbd class="font-semibold text-chrome-fg">F</kbd> for full screen
+                        </p>
+                    </div>
+                </Transition>
             </div>
-        </div>
+        </header>
 
         <Transition name="mode" mode="out-in">
             <div v-if="mode === 'timer'" key="timer" class="flex flex-1 justify-center px-4 pb-12">
                 <FocusTimer />
             </div>
 
-            <div v-else key="clock" class="flex flex-1 flex-col items-center justify-center gap-6 px-4 text-center">
-                <p class="text-lead font-semibold opacity-90">{{ date }}</p>
-                <time
-                    :datetime="now.toISOString()"
-                    class="clock-face font-display font-semibold tracking-tight tabular"
-                >
-                    <RollingDigits :text="time" /><span v-if="prefs.seconds" class="clock-seconds"
-                        ><RollingDigits :text="seconds" :label="`${seconds} seconds`"
-                    /></span>
-                </time>
-                <div
-                    v-if="next || progress"
-                    class="flex max-w-dialog flex-col items-center gap-2 rounded-lg bg-chrome px-6 py-4 text-chrome-fg shadow-floating"
-                >
-                    <p v-if="progress" class="flex items-center gap-2 text-label font-semibold text-highlight">
-                        <Icon name="flame" />{{ progress }}
-                    </p>
-                    <p v-if="next" class="text-lead font-medium">
-                        <span class="text-chrome-fg-muted">Next: </span>
-                        <RouterLink
-                            :to="{ name: 'task-detail', params: { id: next.id } }"
-                            class="underline-offset-4 hover:underline"
-                            >{{ next.title }}</RouterLink
-                        >
-                    </p>
-                    <RouterLink
-                        :to="{ query: { mode: 'timer' } }"
-                        class="group mt-1 inline-flex items-center gap-2 text-label font-semibold text-highlight underline-offset-4 hover:underline"
-                    >
-                        <Icon name="clock" motion="spin" />
-                        Start a focus timer
-                    </RouterLink>
+            <div v-else key="clock" class="flex flex-1 flex-col px-4 pb-6 sm:px-12 sm:pb-8">
+                <div class="flex flex-1 flex-col items-center justify-center py-8">
+                    <div class="flex w-full flex-col items-stretch gap-12 sm:w-auto">
+                        <div class="flex flex-col items-center gap-4 text-center">
+                            <p class="text-label font-semibold tracking-wide uppercase opacity-70">{{ dateLine }}</p>
+                            <time :datetime="now.toISOString()" class="clock-face font-display font-semibold tabular">
+                                <RollingDigits :text="time" />
+                                <span v-if="period || prefs.seconds" class="clock-aside">
+                                    <span v-if="period">{{ period }}</span>
+                                    <RollingDigits
+                                        v-if="prefs.seconds"
+                                        :text="String(seconds).padStart(2, '0')"
+                                        :label="`${seconds} seconds`"
+                                        class="opacity-60"
+                                    />
+                                </span>
+                            </time>
+                            <div
+                                v-if="prefs.seconds"
+                                class="sweep h-0.5 w-full overflow-hidden rounded-full"
+                                aria-hidden="true"
+                            >
+                                <div
+                                    :class="['sweep-fill h-full', seconds === 0 && 'is-reset']"
+                                    :style="{ transform: `scaleX(${seconds / 59})` }"
+                                />
+                            </div>
+                        </div>
+
+                        <TodayStrip :data="dashboard.data" :error="dashboard.error" @retry="dashboard.load()" />
+                    </div>
                 </div>
-                <figure v-if="dashboard.data?.quote" class="max-w-dialog opacity-90">
-                    <blockquote class="text-lead font-medium text-balance">
-                        “{{ dashboard.data.quote.text }}”
-                    </blockquote>
-                    <figcaption class="mt-2 text-label opacity-80">
-                        — {{ dashboard.data.quote.author ?? 'Unknown' }}
-                    </figcaption>
-                </figure>
+
+                <footer class="flex flex-col gap-6">
+                    <figure v-if="dashboard.data?.quote" class="max-w-dialog">
+                        <blockquote class="text-body font-medium text-balance opacity-80">
+                            “{{ dashboard.data.quote.text }}”
+                        </blockquote>
+                        <figcaption class="mt-1 text-caption opacity-60">
+                            {{ dashboard.data.quote.author ?? 'Unknown' }}
+                        </figcaption>
+                    </figure>
+                    <DayRail :now="now" :hour12="prefs.hour12" />
+                </footer>
             </div>
         </Transition>
     </main>
@@ -393,10 +433,12 @@ onBeforeUnmount(() => {
 
 .clock-face {
     display: inline-flex;
-    align-items: flex-start;
+    align-items: flex-end;
+    gap: 0.06em;
     animation: clock-in var(--duration-slower) var(--ease-out) both;
-    font-size: clamp(5rem, 18vw, 16rem);
-    line-height: 1;
+    font-size: clamp(5rem, 19vw, 17rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.9;
 }
 
 @keyframes clock-in {
@@ -406,11 +448,64 @@ onBeforeUnmount(() => {
     }
 }
 
-.clock-seconds {
-    margin-left: 0.15em;
-    font-size: 0.3em;
-    vertical-align: super;
-    opacity: 0.7;
+/* AM/PM and seconds sit as a small column on the time's baseline. */
+.clock-aside {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 0.08em;
+    font-size: 0.22em;
+    line-height: 1.1;
+    letter-spacing: var(--tracking-normal);
+}
+
+.sweep {
+    background: color-mix(in oklab, currentColor 14%, transparent);
+}
+
+.sweep-fill {
+    background: var(--highlight);
+    transform-origin: left;
+    transition: transform 1s linear;
+}
+
+/* Snap back at the top of the minute instead of sweeping backwards. */
+.sweep-fill.is-reset {
+    transition: none;
+}
+
+.settings-panel {
+    width: min(20rem, calc(100vw - 2rem));
+}
+
+.switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(1.25rem - 4px);
+    height: calc(1.25rem - 4px);
+    border-radius: var(--radius-full);
+    background: var(--chrome-fg);
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+[aria-checked='true'] .switch::after {
+    background: var(--highlight-ink);
+    transform: translateX(1rem);
+}
+
+.panel-enter-active,
+.panel-leave-active {
+    transition:
+        opacity var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+
+.panel-enter-from,
+.panel-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
 }
 
 /*

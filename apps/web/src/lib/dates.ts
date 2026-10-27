@@ -61,6 +61,19 @@ export function greeting(hour = new Date().getHours()): string {
     return 'Good evening';
 }
 
+/** ISO 8601 week number (weeks start on Monday; week 1 holds the year's first Thursday). */
+export function isoWeek(date: Date): number {
+    const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    day.setDate(day.getDate() + 3 - ((day.getDay() + 6) % 7));
+    const firstThursday = new Date(day.getFullYear(), 0, 4);
+    return (
+        1 +
+        Math.round(
+            ((day.getTime() - firstThursday.getTime()) / 86_400_000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7,
+        )
+    );
+}
+
 /** Sunday of the current week, matching the API's Monday–Sunday weeks. */
 export function endOfWeekIso(now = new Date()): string {
     const date = new Date(now);

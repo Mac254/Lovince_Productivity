@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysUntil, dueLabel, formatMinutes, todayIso } from '@/lib/dates';
+import { daysUntil, dueLabel, formatMinutes, isoWeek, todayIso } from '@/lib/dates';
 
 describe('dates', () => {
     const today = '2026-10-28';
@@ -26,5 +26,11 @@ describe('dates', () => {
         expect(formatMinutes(120)).toBe('2h');
         expect(formatMinutes(45)).toBe('45m');
         expect(formatMinutes(null)).toBe('');
+    });
+
+    it('numbers weeks the ISO way', () => {
+        expect(isoWeek(new Date(2026, 9, 27))).toBe(44);
+        expect(isoWeek(new Date(2027, 0, 1))).toBe(53);
+        expect(isoWeek(new Date(2025, 11, 29))).toBe(1);
     });
 });

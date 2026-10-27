@@ -25,11 +25,12 @@ export interface ClockPrefs {
     wallpaper: string;
     hour12: boolean;
     seconds: boolean;
+    tick: boolean;
 }
 
 /** Per-device preferences; storage can be unavailable, so every access is guarded. */
 export function loadPrefs(): ClockPrefs {
-    const fallback: ClockPrefs = { wallpaper: 'neon', hour12: false, seconds: true };
+    const fallback: ClockPrefs = { wallpaper: 'neon', hour12: false, seconds: true, tick: false };
     try {
         const stored = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<ClockPrefs> | null;
         return {
