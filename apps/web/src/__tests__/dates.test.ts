@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysUntil, dueLabel, todayIso } from '@/lib/dates';
+import { daysUntil, dueLabel, formatMinutes, todayIso } from '@/lib/dates';
 
 describe('dates', () => {
     const today = '2026-10-28';
@@ -19,5 +19,12 @@ describe('dates', () => {
         expect(dueLabel('2026-10-29', today)).toBe('Due tomorrow');
         expect(dueLabel('2026-10-25', today)).toBe('3 days overdue');
         expect(dueLabel('2026-10-31', today)).toBe('Due in 3 days');
+    });
+
+    it('formats logged minutes as hours and minutes', () => {
+        expect(formatMinutes(95)).toBe('1h 35m');
+        expect(formatMinutes(120)).toBe('2h');
+        expect(formatMinutes(45)).toBe('45m');
+        expect(formatMinutes(null)).toBe('');
     });
 });

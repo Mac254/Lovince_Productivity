@@ -67,3 +67,11 @@ export function endOfWeekIso(now = new Date()): string {
     date.setDate(date.getDate() + ((7 - date.getDay()) % 7));
     return todayIso(date);
 }
+
+/** `95` → `1h 35m`; `0`/`null` → `''`. */
+export function formatMinutes(minutes: number | null | undefined): string {
+    if (!minutes) return '';
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    return [hours ? `${hours}h` : '', rest ? `${rest}m` : ''].filter(Boolean).join(' ');
+}

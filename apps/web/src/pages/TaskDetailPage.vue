@@ -23,6 +23,7 @@ import BlockerList from '@/features/blockers/BlockerList.vue';
 import PriorityDots from '@/features/tasks/PriorityDots.vue';
 import StatusBadge from '@/features/tasks/StatusBadge.vue';
 import TaskTypeBadge from '@/features/tasks/TaskTypeBadge.vue';
+import TaskWorkLog from '@/features/tasks/TaskWorkLog.vue';
 import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
@@ -173,6 +174,8 @@ watch(id, load, { immediate: true });
                             </button></Text
                         >
                     </Card>
+
+                    <TaskWorkLog :task-id="task.id" />
 
                     <Card as="section" aria-labelledby="blockers-heading" class="group">
                         <CardHeader
