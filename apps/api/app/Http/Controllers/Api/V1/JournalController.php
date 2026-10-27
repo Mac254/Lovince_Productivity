@@ -21,13 +21,26 @@ class JournalController extends Controller
     {
         $filters = $request->validate([
             'search' => ['sometimes', 'nullable', 'string', 'max:'.Contract::SEARCH_MAX],
+            'from' => ['nullable', 'date_format:Y-m-d', 'required_with:to'],
+            'to' => [
+                'nullable', 'date_format:Y-m-d', 'required_with:from', 'after_or_equal:from',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request) {
+                    $from = $request->query('from');
+                    if (is_string($from) && strtotime($value) - strtotime($from) > 62 * 86400) {
+                        $fail('Ask for at most 63 days at a time.');
+                    }
+                },
+            ],
         ]);
+        $range = isset($filters['from'], $filters['to']);
 
         $entries = JournalEntry::query()
             ->whereBelongsTo($request->user())
             ->when($filters['search'] ?? null, fn ($q, string $search) => $q->where('body', 'like', "%{$search}%"))
+            ->when($range, fn ($q) => $q->whereDate('date', '>=', $filters['from'])->whereDate('date', '<=', $filters['to']))
             ->orderByDesc('date')
-            ->paginate(30);
+            // A calendar range (up to 63 days) comes back in one page.
+            ->paginate($range ? 63 : 30);
 
         return JournalEntryResource::collection($entries);
     }
