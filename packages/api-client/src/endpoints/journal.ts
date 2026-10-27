@@ -4,8 +4,12 @@ import type { RequestOptions } from './types';
 
 export function journalEndpoints(http: AxiosInstance) {
     return {
-        async list(search?: string, options: RequestOptions = {}): Promise<Paginated<JournalEntry>> {
-            const { data } = await http.get<Paginated<JournalEntry>>('/journal', { params: { search }, ...options });
+        /** Newest first. Pass `from` and `to` (at most 63 days apart) to get a calendar range in one page. */
+        async list(
+            filters: { search?: string; from?: IsoDate; to?: IsoDate } = {},
+            options: RequestOptions = {},
+        ): Promise<Paginated<JournalEntry>> {
+            const { data } = await http.get<Paginated<JournalEntry>>('/journal', { params: filters, ...options });
             return data;
         },
         async get(date: IsoDate, options: RequestOptions = {}): Promise<JournalEntry | null> {
