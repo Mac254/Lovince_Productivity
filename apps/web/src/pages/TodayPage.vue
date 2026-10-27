@@ -21,6 +21,7 @@ import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { formatLongDate } from '@/lib/dates';
+import { dayProgress, dayProgressLabel } from '@/lib/progress';
 import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
 
@@ -34,14 +35,7 @@ const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, 
     useTaskEditing(refresh);
 const blockerDialog = ref(false);
 
-const day = computed(() => {
-    const data = dashboard.data;
-    if (!data) return null;
-    const done = data.stats.planned_completed_today;
-    const remaining = data.stats.planned_today;
-    const total = done + remaining;
-    return { done, remaining, total, percent: total ? Math.round((done / total) * 100) : 0 };
-});
+const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) : null));
 </script>
 
 <template>
@@ -84,7 +78,7 @@ const day = computed(() => {
                     <Text role="label" tone="muted" tabular>
                         {{
                             day.total
-                                ? `${day.done} of ${day.total} tasks in today’s plan are done`
+                                ? `${dayProgressLabel(day)} in today’s plan`
                                 : 'Star a task or give it today’s due date to plan your day'
                         }}
                     </Text>

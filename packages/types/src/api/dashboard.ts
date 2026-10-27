@@ -10,6 +10,8 @@ export interface DashboardStats {
     planned_today: number;
     /** Completed today and in today's plan; with `planned_today`, the plan's progress. */
     planned_completed_today: number;
+    /** In today's plan, still open, with work logged today: counts as half done in the plan's progress. */
+    planned_worked_today: number;
     overdue: number;
     in_progress: number;
     open: number;

@@ -47,7 +47,7 @@ class DailyReportGenerator
         // Today's plan, as the Today page shows it: due this day or starred.
         $inPlan = fn (Task $task) => $task->is_highlighted || $task->due_date?->isSameDay($date);
         $plannedCompleted = $completed->filter($inPlan)->count();
-        $plannedOpen = $tasks()->open()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true))->count();
+        $plannedOpen = fn (): Builder => $tasks()->open()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true));
 
         $workLog = TaskNote::query()->whereBelongsTo($user)->with('task:id,title')
             ->whereDate('logged_on', $date)
@@ -75,8 +75,9 @@ class DailyReportGenerator
             'open_blockers' => $openBlockers->count(),
             'blockers_raised' => $blockersRaised,
             'blockers_resolved' => $blockersResolved->count(),
-            'planned' => $plannedCompleted + $plannedOpen,
+            'planned' => $plannedCompleted + $plannedOpen()->count(),
             'planned_completed' => $plannedCompleted,
+            'planned_worked' => $plannedOpen()->whereHas('notes', fn (Builder $q) => $q->whereDate('logged_on', $date))->count(),
             'notes_logged' => $workLog->count(),
             'minutes_logged' => (int) $workLog->sum('minutes'),
             'high_priority_completed' => $completed->filter(fn (Task $task) => in_array($task->priority->value, ['high', 'urgent'], true))->count(),

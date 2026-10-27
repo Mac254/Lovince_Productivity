@@ -20,7 +20,8 @@ export interface Metrics {
         blockers_resolved: number;
     };
     daily: { date: IsoDate; created: number; completed: number }[];
-    heatmap: { date: IsoDate; count: number }[];
+    /** `count` is `completed` tasks plus `logged` work log entries for the day. */
+    heatmap: { date: IsoDate; count: number; completed: number; logged: number }[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];
     by_category: { key: TaskCategory; completed: number; open: number }[];
     by_type: TypeBreakdownRow[];

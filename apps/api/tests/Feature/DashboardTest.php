@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Goal;
 use App\Models\Quote;
 use App\Models\Task;
+use App\Models\TaskNote;
 use App\Models\User;
 use Database\Seeders\QuoteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -107,5 +108,24 @@ class DashboardTest extends TestCase
             ->assertJsonPath('data.stats.planned_completed_today', 1)
             ->assertJsonPath('data.stats.due_today', 1)
             ->assertJsonCount(3, 'data.planned_tasks');
+    }
+
+    public function test_planned_tasks_worked_on_today_are_counted_separately(): void
+    {
+        Carbon::setTestNow('2026-10-28 10:00:00');
+
+        $user = User::factory()->create();
+        $worked = Task::factory()->for($user)->dueOn('2026-10-28')->create();
+        TaskNote::factory()->for($worked)->create(['user_id' => $user->id, 'logged_on' => '2026-10-28']);
+        TaskNote::factory()->for($worked)->create(['user_id' => $user->id, 'logged_on' => '2026-10-28']);
+        $yesterday = Task::factory()->for($user)->create(['is_highlighted' => true]);
+        TaskNote::factory()->for($yesterday)->create(['user_id' => $user->id, 'logged_on' => '2026-10-27']);
+        $unplanned = Task::factory()->for($user)->dueOn('2026-11-05')->create();
+        TaskNote::factory()->for($unplanned)->create(['user_id' => $user->id, 'logged_on' => '2026-10-28']);
+
+        $this->actingAs($user)->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.stats.planned_today', 2)
+            ->assertJsonPath('data.stats.planned_worked_today', 1);
     }
 }

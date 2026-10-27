@@ -7,7 +7,7 @@ import { formatDate, todayIso } from '@/lib/dates';
 import { useChartTheme } from './useChartTheme';
 
 /**
- * Tasks completed per day over the last six months: weeks across, weekdays down (Monday first).
+ * Activity per day over the last six months (tasks completed plus work logged): weeks across, weekdays down (Monday first).
  * One hue, light to dark; days still to come are left empty.
  */
 const props = defineProps<{ days: Metrics['heatmap'] }>();
@@ -44,6 +44,8 @@ const series = computed(() =>
                 x: week[0] ? formatDate(week[0].date, { day: 'numeric', month: 'short' }) : '',
                 y: day && day.date <= today ? day.count : -1,
                 date: day?.date ?? '',
+                completed: day?.completed ?? 0,
+                logged: day?.logged ?? 0,
             };
         }),
     })).reverse(),
@@ -86,7 +88,8 @@ const options = computed<ApexOptions>(() => ({
             const point = series.value[seriesIndex]?.data[dataPointIndex];
             if (!point || point.y < 0) return '';
             const label = formatDate(point.date, { weekday: 'short', day: 'numeric', month: 'short' });
-            return `<div class="apex-tip"><strong>${point.y}</strong> completed<br><span>${label}</span></div>`;
+            const logged = point.logged ? ` · <strong>${point.logged}</strong> logged` : '';
+            return `<div class="apex-tip"><strong>${point.completed}</strong> completed${logged}<br><span>${label}</span></div>`;
         },
     },
 }));

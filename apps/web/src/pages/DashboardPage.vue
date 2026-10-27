@@ -28,6 +28,7 @@ import TaskRow from '@/features/tasks/TaskRow.vue';
 import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityRank } from '@/lib/labels';
+import { dayProgress, dayProgressLabel } from '@/lib/progress';
 import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
 
@@ -96,12 +97,7 @@ const focusTasks = computed<Task[]>(() => {
         });
 });
 
-const day = computed(() => {
-    if (!stats.value) return null;
-    const done = stats.value.planned_completed_today;
-    const total = done + stats.value.planned_today;
-    return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
-});
+const day = computed(() => (stats.value ? dayProgress(stats.value) : null));
 
 const content = ref<HTMLElement | null>(null);
 useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboard.data });
@@ -193,7 +189,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                         <CardHeader title="Today’s progress" title-id="progress-heading" icon="flame" />
                         <div class="flex items-baseline justify-between">
                             <span class="font-display text-display-sm font-semibold tabular">{{ day.percent }}%</span>
-                            <Text role="label" tone="muted" tabular>{{ day.done }} of {{ day.total }} done</Text>
+                            <Text role="label" tone="muted" tabular>{{ dayProgressLabel(day) }}</Text>
                         </div>
                         <ProgressBar :value="day.percent" label="Today’s progress" tone="highlight" />
                         <Text v-if="data.planned_tasks[0]" role="label" tone="muted" truncate

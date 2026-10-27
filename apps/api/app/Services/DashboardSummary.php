@@ -60,6 +60,10 @@ class DashboardSummary
                 'planned_completed_today' => $tasks()->where('completed_at', '>=', $today)
                     ->where(fn (Builder $q) => $q->whereDate('due_date', $today)->orWhere('is_highlighted', true))
                     ->count(),
+                // Still open but worked on today (a work log entry dated today): half a step of progress.
+                'planned_worked_today' => $planned()
+                    ->whereHas('notes', fn (Builder $q) => $q->whereDate('logged_on', $today))
+                    ->count(),
                 'overdue' => $tasks()->open()->whereDate('due_date', '<', $today)->count(),
                 'in_progress' => $tasks()->where('status', TaskStatus::InProgress)->count(),
                 'open' => $tasks()->open()->count(),

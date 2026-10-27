@@ -106,7 +106,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                     label="Plan done"
                     icon="checklist"
                     :value="report.summary.planned_completed ?? 0"
-                    :hint="`of ${report.summary.planned} planned · ${report.summary.created} added`"
+                    :hint="`of ${report.summary.planned} planned${report.summary.planned_worked ? ` · ${report.summary.planned_worked} worked on` : ''} · ${report.summary.created} added`"
                 />
                 <StatCard v-else label="Created" icon="add" :value="report.summary.created" hint="New tasks added" />
                 <StatCard

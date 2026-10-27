@@ -163,7 +163,7 @@ onMounted(run);
                     title="Activity"
                     title-id="heatmap-heading"
                     icon="flame"
-                    subtitle="Tasks completed per day, last six months"
+                    subtitle="Tasks completed and work logged per day, last six months"
                 />
                 <ActivityHeatmap :days="data.heatmap" />
             </Card>

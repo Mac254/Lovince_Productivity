@@ -31,6 +31,8 @@ export interface ReportSummary {
     /** Today's plan (due this day or starred); absent on reports made before plans existed. */
     planned?: number;
     planned_completed?: number;
+    /** Planned, still open, with work logged that day; absent on older reports. */
+    planned_worked?: number;
     /** Work log entries for the day; absent on older reports. */
     notes_logged?: number;
     minutes_logged?: number;

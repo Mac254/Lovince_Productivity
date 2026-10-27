@@ -10,6 +10,7 @@ use App\Enums\TaskStatus;
 use App\Models\Blocker;
 use App\Models\Goal;
 use App\Models\Task;
+use App\Models\TaskNote;
 use App\Models\User;
 use App\Support\TypeBreakdown;
 use Illuminate\Support\Carbon;
@@ -66,7 +67,7 @@ class MetricsService
                 'blockers_resolved' => $resolved->count(),
             ],
             'daily' => $this->daily($start, $days, $createdInRange, $completedInRange),
-            'heatmap' => $this->heatmap($tasks),
+            'heatmap' => $this->heatmap($user, $tasks),
             'by_priority' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => [
                 'key' => $p->value,
                 'completed' => $completedInRange->where('priority', $p)->count(),
@@ -112,24 +113,31 @@ class MetricsService
     }
 
     /**
-     * Completions per day for the last 26 full weeks plus this week, Monday first, independent of the range.
+     * Activity per day for the last 26 full weeks plus this week, Monday first, independent of the range:
+     * tasks completed plus work log entries, so steady work on a long task still shows.
      *
      * @param  Collection<int, Task>  $tasks
-     * @return list<array{date: string, count: int}>
+     * @return list<array{date: string, count: int, completed: int, logged: int}>
      */
-    private function heatmap(Collection $tasks): array
+    private function heatmap(User $user, Collection $tasks): array
     {
         $first = today()->startOfWeek()->subWeeks(26);
-        $counts = $tasks
+        $completed = $tasks
             ->filter(fn (Task $t) => $t->status === TaskStatus::Completed && $t->completed_at?->greaterThanOrEqualTo($first))
             ->countBy(fn (Task $t) => $t->completed_at->toDateString());
+        $logged = TaskNote::query()->whereBelongsTo($user)
+            ->whereDate('logged_on', '>=', $first)
+            ->get(['logged_on'])
+            ->countBy(fn (TaskNote $n) => $n->logged_on->toDateString());
 
         $days = (int) $first->diffInDays(today()) + 1;
 
-        return collect(range(0, $days - 1))->map(function (int $offset) use ($first, $counts) {
+        return collect(range(0, $days - 1))->map(function (int $offset) use ($first, $completed, $logged) {
             $date = $first->copy()->addDays($offset)->toDateString();
+            $done = $completed[$date] ?? 0;
+            $notes = $logged[$date] ?? 0;
 
-            return ['date' => $date, 'count' => $counts[$date] ?? 0];
+            return ['date' => $date, 'count' => $done + $notes, 'completed' => $done, 'logged' => $notes];
         })->all();
     }
 

@@ -6,6 +6,7 @@ use App\Jobs\GenerateDailyReport;
 use App\Models\Blocker;
 use App\Models\DailyReport;
 use App\Models\Task;
+use App\Models\TaskNote;
 use App\Models\TaskType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -144,5 +145,25 @@ class ReportAndMetricsTest extends TestCase
 
         $this->artisan('focus:daily-report', ['--missing' => 7])->expectsOutputToContain('No missing reports.');
         $this->artisan('focus:daily-report', ['--missing' => 0])->assertFailed();
+    }
+
+    public function test_heatmap_and_reports_count_logged_work(): void
+    {
+        Carbon::setTestNow('2026-10-28 18:00:00');
+        $user = User::factory()->create();
+
+        $long = Task::factory()->for($user)->dueOn('2026-10-28')->create();
+        TaskNote::factory()->for($long)->create(['user_id' => $user->id, 'logged_on' => '2026-10-28']);
+        TaskNote::factory()->for($long)->create(['user_id' => $user->id, 'logged_on' => '2026-10-27']);
+        Task::factory()->for($user)->create()->update(['status' => 'completed']);
+        TaskNote::factory()->create(['logged_on' => '2026-10-28']);
+
+        $heatmap = collect($this->actingAs($user)->getJson('/api/v1/metrics')->assertOk()->json('data.heatmap'))->keyBy('date');
+        $this->assertSame(['date' => '2026-10-28', 'count' => 2, 'completed' => 1, 'logged' => 1], $heatmap['2026-10-28']);
+        $this->assertSame(['date' => '2026-10-27', 'count' => 1, 'completed' => 0, 'logged' => 1], $heatmap['2026-10-27']);
+
+        $this->postJson('/api/v1/reports')->assertCreated()
+            ->assertJsonPath('data.summary.planned', 1)
+            ->assertJsonPath('data.summary.planned_worked', 1);
     }
 }

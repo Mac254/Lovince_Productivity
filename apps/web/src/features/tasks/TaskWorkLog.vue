@@ -4,12 +4,14 @@ import type { TaskNote } from '@focus/types';
 import { Button, Card, CardHeader, ConfirmDialog, IconButton, Skeleton, Text, useToast } from '@focus/ui';
 import { computed, ref, watch } from 'vue';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
+import { useDashboardStore } from '@/stores/dashboard';
 import TaskNoteDialog from './TaskNoteDialog.vue';
 
 /** A task's work log: what was done, when, and how long it took. Newest day first. */
 const props = defineProps<{ taskId: number; taskTitle: string }>();
 
 const toast = useToast();
+const dashboard = useDashboardStore();
 const notes = ref<TaskNote[]>([]);
 const loading = ref(true);
 const dialogOpen = ref(false);
@@ -51,6 +53,7 @@ function open(note: TaskNote | null): void {
 
 function onSaved(note: TaskNote): void {
     notes.value = [...notes.value.filter((n) => n.id !== note.id), note].sort(byNewest);
+    void dashboard.invalidate();
 }
 
 async function confirmDelete(): Promise<void> {
@@ -59,6 +62,7 @@ async function confirmDelete(): Promise<void> {
     try {
         await api.taskNotes.remove(deleting.value.id);
         notes.value = notes.value.filter((n) => n.id !== deleting.value?.id);
+        void dashboard.invalidate();
         deleting.value = null;
     } catch (e) {
         toast.error(errorMessage(e, 'Could not delete the entry.'));
