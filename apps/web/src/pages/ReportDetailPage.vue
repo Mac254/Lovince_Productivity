@@ -31,12 +31,14 @@ const regenerating = ref(false);
 const date = computed(() => String(route.params.date));
 const isToday = computed(() => date.value === todayIso());
 /** A report saved after its day ended covers the whole day; earlier ones stop at the time they were saved. */
+const isFinal = computed(() => {
+    const saved = report.value?.generated_at;
+    return !!saved && !!report.value && todayIso(new Date(saved)) > report.value.date;
+});
 const coverage = computed(() => {
     const saved = report.value?.generated_at;
-    if (!saved || !report.value) return '';
-    return todayIso(new Date(saved)) > report.value.date
-        ? 'Final · covers the whole day'
-        : `As of ${formatDate(saved, { timeStyle: 'short' })}`;
+    if (!saved) return '';
+    return isFinal.value ? 'Final · covers the whole day' : `As of ${formatDate(saved, { timeStyle: 'short' })}`;
 });
 
 async function load(): Promise<void> {
@@ -97,22 +99,22 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                     label="Completed"
                     icon="check-circle"
                     :value="report.summary.completed"
-                    :hint="`${report.summary.high_priority_completed} high priority`"
+                    :hint="`${report.summary.high_priority_completed} high priority${report.summary.planned !== undefined ? ` · ${report.summary.created} added` : ''}`"
                     emphasis
                 />
                 <StatCard
-                    label="Due today done"
+                    label="Due this day"
                     icon="calendar-check"
                     :value="report.summary.completion_rate"
                     suffix="%"
-                    :hint="`${report.summary.due_completed} of ${report.summary.due}`"
+                    :hint="`${report.summary.due_completed} of ${report.summary.due} done`"
                 />
                 <StatCard
                     v-if="report.summary.planned !== undefined"
                     label="Plan done"
                     icon="checklist"
                     :value="report.summary.planned_completed ?? 0"
-                    :hint="`of ${report.summary.planned} planned${report.summary.planned_worked ? ` · ${report.summary.planned_worked} worked on` : ''} · ${report.summary.created} added`"
+                    :hint="`of ${report.summary.planned} planned${report.summary.planned_worked ? ` · ${report.summary.planned_worked} worked on` : ''}`"
                 />
                 <StatCard v-else label="Created" icon="add" :value="report.summary.created" hint="New tasks added" />
                 <StatCard
@@ -159,7 +161,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                         title="Carried over"
                         title-id="carried-heading"
                         icon="history"
-                        subtitle="Due this day, still open when the report was made"
+                        :subtitle="isFinal ? 'Due this day, still open when it ended' : 'Due this day, still open'"
                     />
                     <ul v-if="report.carried_over.length" class="flex flex-col divide-y divide-border">
                         <li
@@ -286,7 +288,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                         title="Goals"
                         title-id="goals-heading"
                         icon="target"
-                        subtitle="Progress at the time of the report"
+                        :subtitle="isFinal ? 'Progress at the end of the day' : 'Progress so far'"
                     />
                     <ul v-if="report.goals.length" class="flex flex-col gap-4">
                         <li v-for="goal in report.goals" :key="goal.id" class="flex flex-col gap-2">

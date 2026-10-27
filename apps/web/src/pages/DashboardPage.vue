@@ -11,7 +11,6 @@ import {
     EmptyState,
     ErrorState,
     PageHeader,
-    ProgressBar,
     Skeleton,
     Text,
     useToast,
@@ -20,6 +19,7 @@ import { computed, ref } from 'vue';
 import BlockerList from '@/features/blockers/BlockerList.vue';
 import StatCard from '@/features/dashboard/StatCard.vue';
 import TaskListPanel from '@/features/dashboard/TaskListPanel.vue';
+import PlanProgress from '@/features/dashboard/PlanProgress.vue';
 import GoalCard from '@/features/goals/GoalCard.vue';
 import GoalFormDialog from '@/features/goals/GoalFormDialog.vue';
 import QuoteCard from '@/features/quotes/QuoteCard.vue';
@@ -28,7 +28,7 @@ import TaskRow from '@/features/tasks/TaskRow.vue';
 import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityRank } from '@/lib/labels';
-import { dayProgress, dayProgressLabel } from '@/lib/progress';
+import { dayProgress } from '@/lib/progress';
 import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
 
@@ -187,11 +187,8 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                 <div class="flex flex-col gap-6">
                     <Card as="section" data-stagger aria-labelledby="progress-heading" class="group gap-3">
                         <CardHeader title="Today’s progress" title-id="progress-heading" icon="flame" />
-                        <div class="flex items-baseline justify-between">
-                            <span class="font-display text-display-sm font-semibold tabular">{{ day.percent }}%</span>
-                            <Text role="label" tone="muted" tabular>{{ dayProgressLabel(day) }}</Text>
-                        </div>
-                        <ProgressBar :value="day.percent" label="Today’s progress" tone="highlight" />
+                        <span class="font-display text-display-sm font-semibold tabular">{{ day.percent }}%</span>
+                        <PlanProgress :day="day" />
                         <Text v-if="data.planned_tasks[0]" role="label" tone="muted" truncate
                             >Next: {{ data.planned_tasks[0].title }}</Text
                         >

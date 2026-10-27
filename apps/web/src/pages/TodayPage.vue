@@ -1,19 +1,9 @@
 <script setup lang="ts">
-import {
-    Button,
-    Card,
-    CardHeader,
-    ConfirmDialog,
-    EmptyState,
-    ErrorState,
-    PageHeader,
-    ProgressBar,
-    Skeleton,
-    Text,
-} from '@focus/ui';
+import { Button, Card, CardHeader, ConfirmDialog, EmptyState, ErrorState, PageHeader, Skeleton, Text } from '@focus/ui';
 import { computed, ref } from 'vue';
 import BlockerFormDialog from '@/features/blockers/BlockerFormDialog.vue';
 import BlockerList from '@/features/blockers/BlockerList.vue';
+import PlanProgress from '@/features/dashboard/PlanProgress.vue';
 import StatCard from '@/features/dashboard/StatCard.vue';
 import TaskListPanel from '@/features/dashboard/TaskListPanel.vue';
 import WeeklyGoalsPanel from '@/features/productivity/WeeklyGoalsPanel.vue';
@@ -21,7 +11,7 @@ import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { formatLongDate } from '@/lib/dates';
-import { dayProgress, dayProgressLabel } from '@/lib/progress';
+import { dayProgress } from '@/lib/progress';
 import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
 
@@ -60,7 +50,7 @@ const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) :
                     label="Completed today"
                     icon="check-circle"
                     :value="dashboard.data.stats.completed_today"
-                    :hint="day.total ? `${day.done} of ${day.total} planned · ${day.percent}%` : 'Nothing planned'"
+                    :hint="day.total ? `${day.done} of ${day.total} in today’s plan` : 'Nothing planned'"
                     emphasis
                 />
                 <StatCard
@@ -75,15 +65,14 @@ const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) :
             <Card as="div" class="gap-3">
                 <div class="flex flex-wrap items-baseline justify-between gap-4">
                     <p class="font-display text-lead font-medium">Today’s progress</p>
-                    <Text role="label" tone="muted" tabular>
-                        {{
-                            day.total
-                                ? `${dayProgressLabel(day)} in today’s plan`
-                                : 'Star a task or give it today’s due date to plan your day'
-                        }}
-                    </Text>
+                    <span v-if="day.total" class="font-display text-title font-semibold tabular"
+                        >{{ day.percent }}%</span
+                    >
+                    <Text v-else role="label" tone="muted"
+                        >Star a task or give it today’s due date to plan your day</Text
+                    >
                 </div>
-                <ProgressBar :value="day.percent" label="Today’s progress" tone="highlight" />
+                <PlanProgress v-if="day.total" :day="day" />
             </Card>
 
             <div class="grid gap-6 xl:grid-cols-2">

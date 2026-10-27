@@ -88,8 +88,15 @@ const options = computed<ApexOptions>(() => ({
             const point = series.value[seriesIndex]?.data[dataPointIndex];
             if (!point || point.y < 0) return '';
             const label = formatDate(point.date, { weekday: 'short', day: 'numeric', month: 'short' });
-            const logged = point.logged ? ` · <strong>${point.logged}</strong> logged` : '';
-            return `<div class="apex-tip"><strong>${point.completed}</strong> completed${logged}<br><span>${label}</span></div>`;
+            const parts = [
+                point.completed
+                    ? `<strong>${point.completed}</strong> ${point.completed === 1 ? 'task' : 'tasks'} completed`
+                    : '',
+                point.logged
+                    ? `<strong>${point.logged}</strong> work ${point.logged === 1 ? 'entry' : 'entries'} logged`
+                    : '',
+            ].filter(Boolean);
+            return `<div class="apex-tip">${parts.join('<br>') || 'No activity'}<br><span>${label}</span></div>`;
         },
     },
 }));

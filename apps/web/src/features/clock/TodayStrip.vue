@@ -32,9 +32,11 @@ const nextMeta = computed(() => {
                     aria-valuemin="0"
                     aria-valuemax="100"
                     :aria-valuenow="day.percent"
-                    class="track h-1 overflow-hidden rounded-full"
+                    :aria-valuetext="`${day.percent}%, ${dayProgressLabel(day)}`"
+                    class="track flex h-1 overflow-hidden rounded-full"
                 >
-                    <div class="fill h-full" :style="{ transform: `scaleX(${day.percent / 100})` }" />
+                    <div class="segment done h-full" :style="{ width: `${(day.done / day.total) * 100}%` }" />
+                    <div class="segment worked h-full" :style="{ width: `${(day.worked / 2 / day.total) * 100}%` }" />
                 </div>
                 <p class="text-label tabular opacity-80">{{ dayProgressLabel(day) }}</p>
             </template>
@@ -106,9 +108,15 @@ const nextMeta = computed(() => {
     background: color-mix(in oklab, currentColor 18%, transparent);
 }
 
-.fill {
+.segment {
+    transition: width var(--duration-slower) var(--ease-out);
+}
+
+.done {
     background: var(--highlight);
-    transform-origin: left;
-    transition: transform var(--duration-slower) var(--ease-out);
+}
+
+.worked {
+    background: color-mix(in oklab, var(--highlight) 45%, transparent);
 }
 </style>
