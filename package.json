@@ -25,6 +25,8 @@
         "app:status": "scripts/local-app.sh status",
         "app:logs": "scripts/local-app.sh logs",
         "app:open": "scripts/local-app.sh open",
+        "app:start": "scripts/local-app.sh start",
+        "app:stop": "scripts/local-app.sh stop",
         "app:uninstall": "scripts/local-app.sh uninstall",
         "app:autostart": "scripts/local-app.sh autostart"
     },

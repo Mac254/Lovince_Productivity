@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Run Focus as an always-available app on this computer.
+# Run Focus as an app on this computer. It runs only when you start it: nothing starts at login.
 #
-#   scripts/local-app.sh install    build, then start background services and add a launcher
-#   scripts/local-app.sh update     rebuild after code changes and restart
+#   scripts/local-app.sh install    build, add the services and the "Focus" launcher, then start it
+#   scripts/local-app.sh update     rebuild after code changes (restarts it only if it was running)
+#   scripts/local-app.sh open       start Focus if needed and open its window (what the launcher runs)
+#   scripts/local-app.sh start      start the server, scheduler and queue worker without a window
+#   scripts/local-app.sh stop       stop all of them
 #   scripts/local-app.sh status     show service state
 #   scripts/local-app.sh logs       follow the app's logs
-#   scripts/local-app.sh open       open Focus in its own window (add --wait to wait for the server)
-#   scripts/local-app.sh autostart on|off   open the Focus window automatically when you log in
+#   scripts/local-app.sh autostart on|off   also open Focus when you log in (off by default)
 #   scripts/local-app.sh uninstall  stop and remove the services and launcher (keeps your data)
 #
 # Everything runs as your user (systemd --user): no sudo, listening on 127.0.0.1 only.
@@ -63,6 +65,8 @@ write_units() {
 [Unit]
 Description=Focus productivity app ($URL)
 After=network.target
+# Starting the app starts its helpers; they stop with it (PartOf below).
+Wants=$SCHEDULER_UNIT $QUEUE_UNIT
 
 [Service]
 WorkingDirectory=$API/public
@@ -83,6 +87,7 @@ UNIT
 [Unit]
 Description=Focus scheduler (saves the daily report at 23:55)
 After=$APP_UNIT
+PartOf=$APP_UNIT
 
 [Service]
 WorkingDirectory=$API
@@ -90,6 +95,8 @@ Environment=APP_ENV=production
 Environment=APP_DEBUG=false
 Environment=APP_URL=$URL
 Environment=LOG_LEVEL=info
+# The 23:55 run is missed while Focus is closed: queue any missing reports from the last week.
+ExecStartPre=$php artisan focus:daily-report --missing=7
 ExecStart=$php artisan schedule:work
 Restart=on-failure
 RestartSec=10
@@ -102,6 +109,7 @@ UNIT
 [Unit]
 Description=Focus queue worker (runs background jobs such as the nightly reports)
 After=$APP_UNIT
+PartOf=$APP_UNIT
 
 [Service]
 WorkingDirectory=$API
@@ -118,14 +126,19 @@ WantedBy=default.target
 UNIT
 }
 
-write_launcher() {
-    local exec="xdg-open $URL"
+# An app-style window in a Chromium browser if there is one, else the default browser.
+browser_cmd() {
     for browser in brave-browser google-chrome chromium chromium-browser microsoft-edge; do
         if command -v "$browser" >/dev/null; then
-            exec="$browser --app=$URL --class=Focus"
-            break
+            echo "$browser --app=$URL --class=Focus"
+            return
         fi
     done
+    echo "xdg-open $URL"
+}
+
+write_launcher() {
+    local exec="$ROOT/scripts/local-app.sh open"
     mkdir -p "$(dirname "$DESKTOP_FILE")"
     cat >"$DESKTOP_FILE" <<DESKTOP
 [Desktop Entry]
@@ -148,12 +161,26 @@ write_autostart() {
 Type=Application
 Name=Focus
 Comment=Open Focus when you log in
-Exec=$ROOT/scripts/local-app.sh open --wait
+Exec=$ROOT/scripts/local-app.sh open
 Icon=$API/public/icons/icon-512.png
 Terminal=false
 X-GNOME-Autostart-enabled=true
 X-GNOME-Autostart-Delay=3
 DESKTOP
+}
+
+running() { systemctl --user is-active --quiet "$APP_UNIT"; }
+
+start_app() {
+    running || systemctl --user start "$APP_UNIT"
+    wait_until_up
+}
+
+# Services are started on demand, never at login.
+register_units() {
+    write_units
+    systemctl --user daemon-reload
+    systemctl --user disable "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT" >/dev/null 2>&1 || true
 }
 
 wait_until_up() {
@@ -168,28 +195,39 @@ case "${1:-}" in
     install)
         require
         build
-        say "Starting background services"
-        write_units
-        systemctl --user daemon-reload
-        systemctl --user enable --now "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT"
-        wait_until_up
+        register_units
         write_launcher
-        if [ "${FOCUS_AUTOSTART:-1}" = "1" ]; then
+        if [ "${FOCUS_AUTOSTART:-0}" = "1" ]; then
             write_autostart
-            say "Focus will open automatically when you log in (turn off: pnpm app:autostart off)"
+        else
+            rm -f "$AUTOSTART_FILE"
         fi
+        start_app
         say "Focus is running at $URL"
-        say "Open it from your app menu (\"Focus\"), or in Brave/Chrome use ⋮ → Install Focus."
+        say "From now on, open it from your app menu (\"Focus\") — that starts it. Stop it with: pnpm app:stop"
         ;;
     update)
         require
         build
-        write_units
-        systemctl --user daemon-reload
-        systemctl --user enable "$QUEUE_UNIT" >/dev/null 2>&1
-        systemctl --user restart "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT"
-        wait_until_up
-        say "Updated and restarted — $URL"
+        was_running=0
+        running && was_running=1
+        register_units
+        write_launcher
+        if [ "$was_running" = 1 ]; then
+            systemctl --user restart "$APP_UNIT"
+            wait_until_up
+            say "Updated and restarted — $URL"
+        else
+            say "Updated. Open Focus from your app menu to start it."
+        fi
+        ;;
+    start)
+        start_app
+        say "Focus is running at $URL (stop: pnpm app:stop)"
+        ;;
+    stop)
+        systemctl --user stop "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT"
+        say "Focus is stopped. Open it from your app menu to start it again."
         ;;
     status)
         systemctl --user --no-pager status "$APP_UNIT" "$SCHEDULER_UNIT" "$QUEUE_UNIT" || true
@@ -199,15 +237,13 @@ case "${1:-}" in
         tail -n 50 -F "$API"/storage/logs/laravel-*.log
         ;;
     open)
-        [ "${2:-}" = "--wait" ] && wait_until_up
-        exec_line="$(grep '^Exec=' "$DESKTOP_FILE" 2>/dev/null | cut -d= -f2-)"
-        [ -n "$exec_line" ] || exec_line="xdg-open $URL"
-        nohup $exec_line >/dev/null 2>&1 &
+        start_app
+        nohup $(browser_cmd) >/dev/null 2>&1 &
         ;;
     autostart)
         case "${2:-}" in
-            on) write_autostart && say "Focus will open when you log in." ;;
-            off) rm -f "$AUTOSTART_FILE" && say "Focus won't open at login (the background service still starts)." ;;
+            on) write_autostart && say "Focus will start and open when you log in." ;;
+            off) rm -f "$AUTOSTART_FILE" && say "Focus won't start at login; open it from your app menu." ;;
             *) fail "Use: scripts/local-app.sh autostart on|off" ;;
         esac
         ;;
