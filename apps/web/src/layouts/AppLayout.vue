@@ -34,7 +34,7 @@ async function signOut(): Promise<void> {
 }
 
 const accountMenu = [
-    { label: 'Account', icon: 'user' as const, onSelect: () => router.push({ name: 'account' }) },
+    { label: 'Settings', icon: 'user' as const, onSelect: () => router.push({ name: 'account' }) },
     {
         label: 'Focus timer',
         icon: 'clock' as const,

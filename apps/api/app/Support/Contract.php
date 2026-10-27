@@ -86,6 +86,7 @@ final class Contract
             'blocker' => self::BLOCKER_MAX,
             'taskNote' => ['body' => self::TASK_NOTE_MAX, 'minutes' => self::TASK_NOTE_MINUTES_MAX],
             'taskType' => ['name' => self::TASK_TYPE_NAME_MAX, 'max' => self::TASK_TYPE_LIMIT],
+            'avatarKb' => self::AVATAR_MAX_KB,
             'wallpaperKb' => self::WALLPAPER_MAX_KB,
             'wallpapers' => self::WALLPAPER_LIMIT,
         ];

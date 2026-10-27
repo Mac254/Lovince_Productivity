@@ -106,7 +106,7 @@ export const router = createRouter({
                     path: 'account',
                     name: 'account',
                     component: () => import('@/pages/AccountPage.vue'),
-                    meta: { title: 'Account' },
+                    meta: { title: 'Settings' },
                 },
             ],
         },

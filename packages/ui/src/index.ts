@@ -17,6 +17,7 @@ export { default as Input } from './components/Input/Input.vue';
 export { default as Textarea } from './components/Textarea/Textarea.vue';
 export { default as Select } from './components/Select/Select.vue';
 export { default as Checkbox } from './components/Checkbox/Checkbox.vue';
+export { default as Switch } from './components/Switch/Switch.vue';
 export { default as Badge } from './components/Badge/Badge.vue';
 export type { BadgeTone } from './components/Badge/tones';
 export { default as Card } from './components/Card/Card.vue';

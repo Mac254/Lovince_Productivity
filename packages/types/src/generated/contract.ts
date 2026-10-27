@@ -53,6 +53,7 @@ export const LIMITS = {
         name: 40,
         max: 30,
     },
+    avatarKb: 2048,
     wallpaperKb: 8192,
     wallpapers: 12,
 } as const;

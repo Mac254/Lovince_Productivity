@@ -7,11 +7,13 @@ import { router } from './app/router';
 import { useAuthStore } from './stores/auth';
 import { useDashboardStore } from './stores/dashboard';
 import { useGoalsStore } from './stores/goals';
+import { usePreferencesStore } from './stores/preferences';
 
 const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
+usePreferencesStore(pinia);
 app.use(router);
 
 // Only a session that was valid and has since expired needs a redirect.
