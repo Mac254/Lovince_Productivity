@@ -133,9 +133,7 @@ watch(
                     motion="spin"
                     :to="{ name: 'focus', query: { mode: 'timer' } }"
                 />
-                <Button icon-start="add" size="sm" class="max-sm:hidden" @click="quickTaskOpen = true"
-                    >New task</Button
-                >
+                <Button icon-start="add" size="sm" class="max-sm:hidden" @click="quickTaskOpen = true">New task</Button>
                 <IconButton
                     icon="add"
                     label="New task"
