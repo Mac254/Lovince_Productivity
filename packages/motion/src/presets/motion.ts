@@ -7,6 +7,11 @@ export const motion = {
     stagger: 0.05,
 } as const;
 
+/** True when the device asks for less motion, or the app's own setting (`data-motion="reduce"`) does. */
 export function prefersReducedMotion(): boolean {
-    return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+    if (typeof window === 'undefined') return false;
+    return (
+        document.documentElement.dataset.motion === 'reduce' ||
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+    );
 }

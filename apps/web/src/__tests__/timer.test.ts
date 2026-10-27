@@ -84,4 +84,16 @@ describe('focus timer', () => {
         expect(later.status).toBe('done');
         expect(later.sessions.count).toBe(1);
     });
+
+    it('starts a short break when a focus session ends, if asked to', () => {
+        const timer = useTimerStore();
+        timer.autoBreak = true;
+        timer.setCustom(1);
+        timer.start();
+        vi.advanceTimersByTime(MINUTE + 1000);
+
+        expect(timer.kind).toBe('break');
+        expect(timer.status).toBe('running');
+        expect(timer.display).toBe('04:59');
+    });
 });

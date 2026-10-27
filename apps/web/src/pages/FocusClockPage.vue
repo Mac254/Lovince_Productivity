@@ -12,10 +12,12 @@ import { customWallpaperKey, loadPrefs, savePrefs, wallpapers } from '@/features
 import { useDashboard } from '@/composables/useDashboard';
 import { isoWeek } from '@/lib/dates';
 import { createTicker } from '@/lib/ticker';
+import { usePreferencesStore } from '@/stores/preferences';
 
 const router = useRouter();
 const route = useRoute();
 const dashboard = useDashboard();
+const preferences = usePreferencesStore();
 
 const modes = [
     { id: 'clock', label: 'Clock' },
@@ -370,7 +372,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <footer class="flex flex-col gap-6">
-                    <figure v-if="dashboard.data?.quote" class="max-w-dialog">
+                    <figure v-if="preferences.prefs.showQuotes && dashboard.data?.quote" class="max-w-dialog">
                         <blockquote class="text-body font-medium text-balance opacity-80">
                             “{{ dashboard.data.quote.text }}”
                         </blockquote>

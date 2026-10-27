@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS } from '@focus/types';
-import { Avatar, Button, ChipGroup, Dialog, Input, PageHeader, Switch, Text, useToast } from '@focus/ui';
+import { Avatar, Button, ChipGroup, ConfirmDialog, Dialog, Input, PageHeader, Switch, Text, useToast } from '@focus/ui';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { loadPrefs, savePrefs } from '@/features/clock/wallpapers';
+import { defaultClockPrefs, loadPrefs, savePrefs } from '@/features/clock/wallpapers';
 import SettingRow from '@/features/settings/SettingRow.vue';
 import SettingsSection from '@/features/settings/SettingsSection.vue';
 import { formatDate } from '@/lib/dates';
 import { useAuthStore } from '@/stores/auth';
-import { usePreferencesStore, type ThemeChoice } from '@/stores/preferences';
+import { usePreferencesStore, type StartPage, type ThemeChoice } from '@/stores/preferences';
 import { useTimerStore } from '@/stores/timer';
 
 const auth = useAuthStore();
@@ -20,15 +20,22 @@ const toast = useToast();
 
 const sections = [
     { id: 'profile', label: 'Profile' },
+    { id: 'general', label: 'General' },
     { id: 'appearance', label: 'Appearance' },
     { id: 'clock', label: 'Clock & timer' },
     { id: 'security', label: 'Security' },
+    { id: 'reset', label: 'Reset' },
 ];
 
 const themeOptions: { value: ThemeChoice; label: string }[] = [
     { value: 'dark', label: 'Dark' },
     { value: 'light', label: 'Light' },
     { value: 'system', label: 'System' },
+];
+const startPages: { value: StartPage; label: string }[] = [
+    { value: 'dashboard', label: 'Dashboard' },
+    { value: 'today', label: 'Today' },
+    { value: 'focus', label: 'Focus clock' },
 ];
 const timeFormats = [
     { value: '24', label: '24-hour' },
@@ -41,6 +48,34 @@ const timeFormat = computed({
     set: (value: string) => (clock.hour12 = value === '12'),
 });
 watch(clock, savePrefs, { deep: true });
+
+const notificationsSupported = typeof Notification !== 'undefined';
+const notificationPermission = ref(notificationsSupported ? Notification.permission : 'denied');
+const notificationStatus = computed(() => {
+    if (!notificationsSupported) return 'Not available in this browser';
+    if (notificationPermission.value === 'granted') return 'On';
+    if (notificationPermission.value === 'denied') return 'Blocked in your browser’s site settings';
+    return 'Off';
+});
+
+async function allowNotifications(): Promise<void> {
+    try {
+        notificationPermission.value = await Notification.requestPermission();
+        if (notificationPermission.value === 'granted') toast.success('Notifications on');
+    } catch {
+        toast.error('This browser can’t show notifications.');
+    }
+}
+
+const resetOpen = ref(false);
+function resetPreferences(): void {
+    preferences.reset();
+    Object.assign(clock, defaultClockPrefs);
+    timer.sound = true;
+    timer.autoBreak = false;
+    resetOpen.value = false;
+    toast.success('Preferences reset on this device');
+}
 
 const session = computed(() => {
     const current = auth.session;
@@ -220,16 +255,48 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     </SettingRow>
                 </SettingsSection>
 
+                <SettingsSection id="general" title="General" icon="dashboard" description="Saved on this device.">
+                    <SettingRow label="Open Focus on" description="Where you land when you open Focus or sign in.">
+                        <ChipGroup v-model="preferences.prefs.startPage" label="Open Focus on" :options="startPages" />
+                    </SettingRow>
+                </SettingsSection>
+
                 <SettingsSection id="appearance" title="Appearance" icon="palette" description="Saved on this device.">
                     <SettingRow
                         label="Theme"
                         :description="
-                            preferences.theme === 'system'
+                            preferences.prefs.theme === 'system'
                                 ? `Following your device: ${preferences.resolved === 'light' ? 'light' : 'dark'}.`
                                 : 'System follows your device’s light or dark setting.'
                         "
                     >
-                        <ChipGroup v-model="preferences.theme" label="Theme" :options="themeOptions" />
+                        <ChipGroup v-model="preferences.prefs.theme" label="Theme" :options="themeOptions" />
+                    </SettingRow>
+                    <SettingRow
+                        v-slot="{ labelId, descriptionId }"
+                        label="Reduce motion"
+                        :description="
+                            preferences.systemReducedMotion
+                                ? 'Your device already asks for less motion, so animations are off.'
+                                : 'Turns off animations, rolling digits and count-ups.'
+                        "
+                    >
+                        <Switch
+                            v-model="preferences.prefs.reduceMotion"
+                            :labelledby="labelId"
+                            :describedby="descriptionId"
+                        />
+                    </SettingRow>
+                    <SettingRow
+                        v-slot="{ labelId, descriptionId }"
+                        label="Daily quote"
+                        description="On the dashboard and the focus clock."
+                    >
+                        <Switch
+                            v-model="preferences.prefs.showQuotes"
+                            :labelledby="labelId"
+                            :describedby="descriptionId"
+                        />
                     </SettingRow>
                 </SettingsSection>
 
@@ -253,6 +320,24 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                         description="Plays when a focus session or break ends."
                     >
                         <Switch v-model="timer.sound" :labelledby="labelId" :describedby="descriptionId" />
+                    </SettingRow>
+                    <SettingRow
+                        v-slot="{ labelId, descriptionId }"
+                        label="Start breaks automatically"
+                        description="A 5-minute break begins when a focus session ends."
+                    >
+                        <Switch v-model="timer.autoBreak" :labelledby="labelId" :describedby="descriptionId" />
+                    </SettingRow>
+                    <SettingRow
+                        label="Desktop notifications"
+                        description="Shown when a session ends while Focus is in the background."
+                    >
+                        <Text :tone="notificationPermission === 'granted' ? undefined : 'muted'">{{
+                            notificationStatus
+                        }}</Text>
+                        <template v-if="notificationsSupported && notificationPermission === 'default'" #action>
+                            <Button variant="outline" size="sm" @click="allowNotifications">Allow</Button>
+                        </template>
                     </SettingRow>
                 </SettingsSection>
 
@@ -286,8 +371,29 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                         </template>
                     </SettingRow>
                 </SettingsSection>
+
+                <SettingsSection id="reset" title="Reset" icon="undo">
+                    <SettingRow
+                        label="Preferences on this device"
+                        description="Theme, motion, start page, quotes, clock and timer go back to their defaults. Your tasks and account aren’t touched."
+                    >
+                        <template #action>
+                            <Button variant="outline" size="sm" icon-start="undo" @click="resetOpen = true"
+                                >Reset</Button
+                            >
+                        </template>
+                    </SettingRow>
+                </SettingsSection>
             </div>
         </div>
+
+        <ConfirmDialog
+            v-model:open="resetOpen"
+            title="Reset preferences?"
+            message="Theme, motion, start page, quotes, clock and timer settings on this device go back to their defaults."
+            confirm-label="Reset"
+            @confirm="resetPreferences"
+        />
 
         <Dialog v-model:open="nameOpen" title="Edit name" size="sm">
             <form class="flex flex-col gap-4" novalidate @submit.prevent="saveName">

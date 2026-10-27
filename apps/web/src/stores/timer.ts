@@ -34,6 +34,7 @@ interface Persisted {
     status: TimerStatus;
     task: { id: number; title: string } | null;
     sound: boolean;
+    autoBreak: boolean;
     sessions: { date: string; count: number };
 }
 
@@ -60,6 +61,7 @@ export const useTimerStore = defineStore('timer', () => {
     const status = ref<TimerStatus>(saved.status ?? 'idle');
     const task = ref<Persisted['task']>(saved.task ?? null);
     const sound = ref(saved.sound ?? true);
+    const autoBreak = ref(saved.autoBreak ?? false);
     const sessions = ref(saved.sessions?.date === todayIso() ? saved.sessions : { date: todayIso(), count: 0 });
     const now = ref(Date.now());
     const baseTitle = ref('Focus');
@@ -165,6 +167,10 @@ export const useTimerStore = defineStore('timer', () => {
         if (!announce) return;
         if (sound.value) playChime();
         notify();
+        if (autoBreak.value && kind.value === 'focus') {
+            choose(timerPresets.find((preset) => preset.id === 'short')!);
+            start();
+        }
     }
 
     function notify(): void {
@@ -195,7 +201,7 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     watch(
-        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sound, sessions],
+        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sound, autoBreak, sessions],
         () => {
             try {
                 const state: Persisted = {
@@ -207,6 +213,7 @@ export const useTimerStore = defineStore('timer', () => {
                     status: status.value,
                     task: task.value,
                     sound: sound.value,
+                    autoBreak: autoBreak.value,
                     sessions: sessions.value,
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -234,6 +241,7 @@ export const useTimerStore = defineStore('timer', () => {
         status,
         task,
         sound,
+        autoBreak,
         sessions,
         baseTitle,
         remainingMs,

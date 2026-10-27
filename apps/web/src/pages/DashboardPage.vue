@@ -31,9 +31,11 @@ import { taskPriorityRank } from '@/lib/labels';
 import { dayProgress } from '@/lib/progress';
 import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
+import { usePreferencesStore } from '@/stores/preferences';
 
 const dashboard = useDashboard();
 const goalsStore = useGoalsStore();
+const preferences = usePreferencesStore();
 
 const refresh = () => {
     goalsStore.reset();
@@ -193,7 +195,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                             >Next: {{ data.planned_tasks[0].title }}</Text
                         >
                     </Card>
-                    <QuoteCard data-stagger :initial="data.quote" />
+                    <QuoteCard v-if="preferences.prefs.showQuotes" data-stagger :initial="data.quote" />
                 </div>
             </div>
 

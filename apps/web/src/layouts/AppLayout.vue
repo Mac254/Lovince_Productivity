@@ -111,7 +111,7 @@ function onQuickTaskSaved(): void {
                     :label="`Switch to ${nextTheme} theme`"
                     variant="ghost"
                     motion="spin"
-                    @click="preferences.theme = nextTheme"
+                    @click="preferences.prefs.theme = nextTheme"
                 />
                 <RouterLink
                     v-if="timer.active"

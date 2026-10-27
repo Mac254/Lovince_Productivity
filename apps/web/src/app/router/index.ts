@@ -1,8 +1,9 @@
 import { isApiError } from '@focus/api-client';
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, START_LOCATION } from 'vue-router';
 import UnavailablePage from '@/pages/UnavailablePage.vue';
 import { clearReloadGuard, isChunkLoadError, reloadOnce } from '@/lib/chunkReload';
 import { useAuthStore } from '@/stores/auth';
+import { usePreferencesStore } from '@/stores/preferences';
 import { useTimerStore } from '@/stores/timer';
 
 function errorKind(error: unknown): string {
@@ -135,7 +136,7 @@ export const router = createRouter({
 
 const PUBLIC_ROUTES = new Set(['not-found', 'unavailable']);
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to, from) => {
     if (to.name === 'unavailable') return true;
 
     const auth = useAuthStore();
@@ -146,9 +147,14 @@ router.beforeEach(async (to) => {
         return { name: 'unavailable', query: { reason: errorKind(error), redirect: to.fullPath } };
     }
 
-    if (to.meta.guest) return auth.isAuthenticated ? { name: 'dashboard' } : true;
+    const startPage = usePreferencesStore().prefs.startPage;
+    if (to.meta.guest) return auth.isAuthenticated ? { name: startPage } : true;
     if (!PUBLIC_ROUTES.has(String(to.name)) && !auth.isAuthenticated) {
         return { name: 'login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : {} };
+    }
+    // Opening Focus (or signing in) lands on the chosen start page; the Dashboard link still works.
+    if (to.name === 'dashboard' && (from === START_LOCATION || from.name === 'login') && startPage !== 'dashboard') {
+        return { name: startPage };
     }
     return true;
 });
