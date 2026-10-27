@@ -104,6 +104,7 @@ class DashboardTest extends TestCase
         $this->actingAs($user)->getJson('/api/v1/dashboard')
             ->assertOk()
             ->assertJsonPath('data.stats.planned_today', 3)
+            ->assertJsonPath('data.stats.planned_completed_today', 1)
             ->assertJsonPath('data.stats.due_today', 1)
             ->assertJsonCount(3, 'data.planned_tasks');
     }

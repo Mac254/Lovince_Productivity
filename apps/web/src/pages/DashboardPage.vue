@@ -98,7 +98,7 @@ const focusTasks = computed<Task[]>(() => {
 
 const day = computed(() => {
     if (!stats.value) return null;
-    const done = stats.value.completed_today;
+    const done = stats.value.planned_completed_today;
     const total = done + stats.value.planned_today;
     return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
 });

@@ -37,7 +37,7 @@ const blockerDialog = ref(false);
 const day = computed(() => {
     const data = dashboard.data;
     if (!data) return null;
-    const done = data.stats.completed_today;
+    const done = data.stats.planned_completed_today;
     const remaining = data.stats.planned_today;
     const total = done + remaining;
     return { done, remaining, total, percent: total ? Math.round((done / total) * 100) : 0 };
@@ -63,10 +63,10 @@ const day = computed(() => {
             <section aria-label="Today in numbers" class="grid gap-4 sm:grid-cols-3">
                 <StatCard label="Remaining" icon="hourglass" :value="day.remaining" hint="In today’s plan, not done" />
                 <StatCard
-                    label="Completed"
+                    label="Completed today"
                     icon="check-circle"
-                    :value="day.done"
-                    :hint="day.total ? `${day.percent}% of today’s plan` : 'Nothing planned'"
+                    :value="dashboard.data.stats.completed_today"
+                    :hint="day.total ? `${day.done} of ${day.total} planned · ${day.percent}%` : 'Nothing planned'"
                     emphasis
                 />
                 <StatCard

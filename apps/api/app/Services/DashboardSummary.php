@@ -56,6 +56,10 @@ class DashboardSummary
             'stats' => [
                 'due_today' => $tasks()->open()->whereDate('due_date', $today)->count(),
                 'planned_today' => $planned()->count(),
+                // Done today and part of the plan (due today or starred): the plan's numerator everywhere.
+                'planned_completed_today' => $tasks()->where('completed_at', '>=', $today)
+                    ->where(fn (Builder $q) => $q->whereDate('due_date', $today)->orWhere('is_highlighted', true))
+                    ->count(),
                 'overdue' => $tasks()->open()->whereDate('due_date', '<', $today)->count(),
                 'in_progress' => $tasks()->where('status', TaskStatus::InProgress)->count(),
                 'open' => $tasks()->open()->count(),

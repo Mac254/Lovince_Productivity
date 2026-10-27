@@ -8,6 +8,8 @@ export interface DashboardStats {
     due_today: number;
     /** Open tasks due today or highlighted: today's plan. */
     planned_today: number;
+    /** Completed today and in today's plan; with `planned_today`, the plan's progress. */
+    planned_completed_today: number;
     overdue: number;
     in_progress: number;
     open: number;
