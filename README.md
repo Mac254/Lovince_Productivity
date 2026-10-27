@@ -128,25 +128,26 @@ php apps/api/artisan serve        # http://localhost:8000 serves the SPA and API
 
 ## Install on your computer
 
-Run Focus as an always-available app — no terminal needed day to day:
+Run Focus as an app on your computer — it runs only when you start it, no terminal needed:
 
 ```bash
 pnpm app:install
 ```
 
-This builds the app, starts two background services for your user (`focus-app` on http://localhost:8765 and `focus-scheduler` for the nightly report) that start at every login, adds **Focus** to your app menu, and opens the Focus window automatically when you log in (`pnpm app:autostart off` to stop that). In Brave or Chrome you can also use **⋮ → Install Focus** for a standalone window and dock icon.
+This builds the app, adds **Focus** to your app menu, and registers three user services: `focus-app` (http://localhost:8765), `focus-scheduler` (the 23:55 daily report) and `focus-queue` (background jobs). Nothing starts at login: opening **Focus** from the app menu starts all three and then opens the window; `pnpm app:stop` stops them. Because the 23:55 report only runs while Focus is open, starting it saves any reports missing from the last 7 days. `pnpm app:autostart on` opens (and so starts) Focus at login if you want that back.
 
 Sign in once with **Keep me signed in** (on by default) and Focus stays signed in on that device until you sign out, or until it goes unused for `FOCUS_REMEMBER_DAYS` (30 by default — every visit renews it).
 
 | Command | |
 |---|---|
-| `pnpm app:open` | Open Focus in its own window |
-| `pnpm app:autostart on\|off` | Open the window at login, or not |
-| `pnpm app:update` | Rebuild after code changes and restart |
+| `pnpm app:open` | Start Focus if needed and open its window (what the menu entry does) |
+| `pnpm app:start` / `pnpm app:stop` | Start or stop the services without opening a window |
+| `pnpm app:autostart on\|off` | Start and open Focus at login, or not (off by default) |
+| `pnpm app:update` | Rebuild after code changes; restarts Focus only if it was running |
 | `pnpm app:status` / `pnpm app:logs` | Service state / live logs |
 | `pnpm app:uninstall` | Remove the services and launcher (data is kept) |
 
-The installed copy runs in production mode (debug off, strict security headers) on 127.0.0.1 only, sharing the same database as `pnpm dev`. Services start when you log in; to keep them running while logged out: `loginctl enable-linger $USER`. Set `FOCUS_PORT` before installing to use another port. The service worker never caches `/api` responses, so your data stays out of the browser cache.
+The installed copy runs in production mode (debug off, strict security headers) on 127.0.0.1 only, sharing the same database as `pnpm dev`. Once started, Focus keeps running until you stop it or log out. Set `FOCUS_PORT` before installing to use another port. The service worker never caches `/api` responses, so your data stays out of the browser cache.
 
 ## Quality checks
 
