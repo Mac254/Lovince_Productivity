@@ -9,6 +9,7 @@ import { formatLongDate, greeting, todayIso } from '@/lib/dates';
 import { useAuthStore } from '@/stores/auth';
 import { useDashboardStore } from '@/stores/dashboard';
 import { useGoalsStore } from '@/stores/goals';
+import { usePreferencesStore } from '@/stores/preferences';
 import { useTimerStore } from '@/stores/timer';
 
 const auth = useAuthStore();
@@ -17,6 +18,8 @@ const goals = useGoalsStore();
 const router = useRouter();
 const toast = useToast();
 const timer = useTimerStore();
+const preferences = usePreferencesStore();
+const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'dark'));
 
 const drawerOpen = ref(false);
 const quickTaskOpen = ref(false);
@@ -103,6 +106,13 @@ function onQuickTaskSaved(): void {
                         {{ formatLongDate(dashboard.data?.date ?? todayIso()) }}
                     </p>
                 </div>
+                <IconButton
+                    :icon="nextTheme === 'light' ? 'sun' : 'moon'"
+                    :label="`Switch to ${nextTheme} theme`"
+                    variant="ghost"
+                    motion="spin"
+                    @click="preferences.theme = nextTheme"
+                />
                 <RouterLink
                     v-if="timer.active"
                     :to="{ name: 'focus', query: { mode: 'timer' } }"
@@ -124,6 +134,7 @@ function onQuickTaskSaved(): void {
                     label="Open focus timer"
                     variant="ghost"
                     motion="spin"
+                    class="max-sm:hidden"
                     :to="{ name: 'focus', query: { mode: 'timer' } }"
                 />
                 <Button icon-start="add" size="sm" class="max-sm:hidden" @click="quickTaskOpen = true">New task</Button>

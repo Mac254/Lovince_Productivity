@@ -42,6 +42,7 @@ import IconLock from '~icons/solar/lock-keyhole-minimalistic-linear';
 import IconLogout from '~icons/solar/logout-3-linear';
 import IconMenu from '~icons/solar/hamburger-menu-linear';
 import IconMetrics from '~icons/solar/chart-2-linear';
+import IconMoon from '~icons/solar/moon-linear';
 import IconMore from '~icons/solar/menu-dots-linear';
 import IconOffline from '~icons/solar/cloud-cross-linear';
 import IconPalette from '~icons/solar/palette-linear';
@@ -106,6 +107,7 @@ export const icons = {
     logout: IconLogout,
     menu: IconMenu,
     metrics: IconMetrics,
+    moon: IconMoon,
     more: IconMore,
     offline: IconOffline,
     palette: IconPalette,
