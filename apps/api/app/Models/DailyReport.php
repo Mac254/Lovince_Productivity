@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * An immutable-in-spirit snapshot of one day, regenerated only for the current day.
+ * A snapshot of one day, regenerated only for the current day. Its work log alone follows later
+ * changes to that day's entries (see TaskNoteObserver).
  */
 #[Fillable([
     'date', 'completed_count', 'created_count', 'due_count', 'due_completed_count',

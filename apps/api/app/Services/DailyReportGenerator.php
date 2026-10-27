@@ -49,10 +49,7 @@ class DailyReportGenerator
         $plannedCompleted = $completed->filter($inPlan)->count();
         $plannedOpen = fn (): Builder => $tasks()->open()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true));
 
-        $workLog = TaskNote::query()->whereBelongsTo($user)->with('task:id,title')
-            ->whereDate('logged_on', $date)
-            ->orderBy('id')
-            ->get();
+        $workLog = $this->workLogFor($user, $date);
 
         $onTimeEligible = $completed->filter(fn (Task $task) => $task->due_date !== null);
         $onTime = $onTimeEligible->filter(fn (Task $task) => $task->completed_at->toDateString() <= $task->due_date->toDateString());
@@ -88,12 +85,7 @@ class DailyReportGenerator
             'narrative' => $this->narrative($summary),
             'completed_tasks' => $this->taskList($completed),
             'by_type' => TypeBreakdown::rows($user, $completed, collect()),
-            'work_log' => $workLog->map(fn (TaskNote $note) => [
-                'id' => $note->id,
-                'body' => $note->body,
-                'minutes' => $note->minutes,
-                'task' => $note->task ? ['id' => $note->task->id, 'title' => $note->task->title] : null,
-            ])->values()->all(),
+            'work_log' => $this->workLogList($workLog),
             'carried_over' => $this->taskList($carriedOver),
             'overdue_tasks' => $this->taskList($overdue->take(self::LIST_LIMIT)),
             'blockers_open' => $this->blockerList($openBlockers->take(self::LIST_LIMIT)),
@@ -130,6 +122,52 @@ class DailyReportGenerator
         ])->save();
 
         return $report;
+    }
+
+    /**
+     * Brings a saved report's work log up to date after work logged for its day changed.
+     * The rest of the report stays as it was recorded.
+     */
+    public function refreshWorkLog(User $user, Carbon $date): void
+    {
+        $report = DailyReport::query()->whereBelongsTo($user)->whereDate('date', $date)->first();
+        if (! $report) {
+            return;
+        }
+
+        $workLog = $this->workLogFor($user, $date->copy()->startOfDay());
+        $data = $report->data;
+        $data['summary']['notes_logged'] = $workLog->count();
+        $data['summary']['minutes_logged'] = (int) $workLog->sum('minutes');
+        $data['narrative'] = $this->narrative($data['summary']);
+        $data['work_log'] = $this->workLogList($workLog);
+
+        $report->update(['data' => $data]);
+    }
+
+    /**
+     * @return Collection<int, TaskNote>
+     */
+    private function workLogFor(User $user, Carbon $date): Collection
+    {
+        return TaskNote::query()->whereBelongsTo($user)->with('task:id,title')
+            ->whereDate('logged_on', $date)
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * @param  Collection<int, TaskNote>  $workLog
+     * @return list<array<string, mixed>>
+     */
+    private function workLogList(Collection $workLog): array
+    {
+        return $workLog->map(fn (TaskNote $note) => [
+            'id' => $note->id,
+            'body' => $note->body,
+            'minutes' => $note->minutes,
+            'task' => $note->task ? ['id' => $note->task->id, 'title' => $note->task->title] : null,
+        ])->values()->all();
     }
 
     /**

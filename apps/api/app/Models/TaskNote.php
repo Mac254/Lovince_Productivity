@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Observers\TaskNoteObserver;
 use Database\Factories\TaskNoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * One entry in a task's work log: what was done on a day, optionally with the time it took.
  */
+#[ObservedBy(TaskNoteObserver::class)]
 #[Fillable(['logged_on', 'body', 'minutes'])]
 class TaskNote extends Model
 {

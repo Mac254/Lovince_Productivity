@@ -166,4 +166,30 @@ class ReportAndMetricsTest extends TestCase
             ->assertJsonPath('data.summary.planned', 1)
             ->assertJsonPath('data.summary.planned_worked', 1);
     }
+
+    public function test_saved_reports_follow_changes_to_their_days_work_log(): void
+    {
+        Carbon::setTestNow('2026-10-27 23:55:00');
+        $user = User::factory()->create();
+        $task = Task::factory()->for($user)->create(['title' => 'Write the spec']);
+        TaskNote::factory()->for($task)->create(['user_id' => $user->id, 'logged_on' => '2026-10-27', 'minutes' => 30]);
+        $this->actingAs($user)->postJson('/api/v1/reports')->assertCreated();
+        $report = fn () => $this->getJson('/api/v1/reports/2026-10-27')->json('data');
+
+        Carbon::setTestNow('2026-10-28 09:00:00');
+        $late = $this->postJson("/api/v1/tasks/{$task->id}/notes", ['logged_on' => '2026-10-27', 'body' => 'Late entry', 'minutes' => 15])
+            ->assertCreated()->json('data.id');
+
+        $this->assertSame(2, $report()['summary']['notes_logged']);
+        $this->assertSame(45, $report()['summary']['minutes_logged']);
+        $this->assertSame('Late entry', $report()['work_log'][1]['body']);
+        $this->assertStringContainsString('2 work notes were logged', $report()['narrative']);
+
+        $this->patchJson("/api/v1/task-notes/{$late}", ['logged_on' => '2026-10-28', 'body' => 'Moved'])->assertOk();
+        $this->assertSame(1, $report()['summary']['notes_logged']);
+
+        TaskNote::query()->whereBelongsTo($user)->get()->each->delete();
+        $this->assertSame([], $report()['work_log']);
+        $this->assertSame(0, $report()['summary']['completed']);
+    }
 }
