@@ -127,4 +127,22 @@ class ReportAndMetricsTest extends TestCase
 
         $this->getJson('/api/v1/dashboard')->assertJsonPath('data.by_type.0.label', 'Study')->assertJsonCount(3, 'data.by_type');
     }
+
+    public function test_missing_reports_are_filled_in_when_the_app_starts(): void
+    {
+        Carbon::setTestNow('2026-10-28 08:00:00');
+        $user = User::factory()->create(['created_at' => '2026-10-25 12:00:00']);
+        $this->actingAs($user)->postJson('/api/v1/reports')->assertCreated();
+        Carbon::setTestNow('2026-10-26 20:00:00');
+        $this->postJson('/api/v1/reports')->assertCreated();
+        Carbon::setTestNow('2026-10-28 08:00:00');
+
+        $this->artisan('focus:daily-report', ['--missing' => 7])->assertSuccessful();
+
+        $dates = DailyReport::query()->orderBy('date')->pluck('date')->map(fn ($d) => Carbon::parse($d)->toDateString())->all();
+        $this->assertSame(['2026-10-25', '2026-10-26', '2026-10-27', '2026-10-28'], $dates, 'Fills the 25th and 27th, never before sign-up');
+
+        $this->artisan('focus:daily-report', ['--missing' => 7])->expectsOutputToContain('No missing reports.');
+        $this->artisan('focus:daily-report', ['--missing' => 0])->assertFailed();
+    }
 }
