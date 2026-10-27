@@ -47,6 +47,15 @@ class MetricsService
             ->sort()
             ->values();
 
+        // Work logged, by the day it was done (`logged_on`).
+        $notes = TaskNote::query()->whereBelongsTo($user)
+            ->whereDate('logged_on', '>=', $previousStart)
+            ->whereDate('logged_on', '<=', $end)
+            ->with('task:id,task_type_id,category')
+            ->get(['id', 'task_id', 'logged_on', 'minutes']);
+        $notesInRange = $notes->filter(fn (TaskNote $n) => $n->logged_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
+        $minutesPrevious = (int) $notes->filter(fn (TaskNote $n) => $n->logged_on->lessThan($start->copy()->startOfDay()))->sum('minutes');
+
         $blockers = Blocker::query()->whereBelongsTo($user)->get();
         $resolved = $blockers->filter(fn (Blocker $b) => $b->status === BlockerStatus::Resolved && $b->resolved_at?->between($start, $end));
 
@@ -65,8 +74,11 @@ class MetricsService
                     && $t->due_date?->isBefore(today()))->count(),
                 'open_blockers' => $blockers->where('status', BlockerStatus::Open)->count(),
                 'blockers_resolved' => $resolved->count(),
+                'entries_logged' => $notesInRange->count(),
+                'minutes_logged' => (int) $notesInRange->sum('minutes'),
+                'minutes_logged_previous' => $minutesPrevious,
             ],
-            'daily' => $this->daily($start, $days, $createdInRange, $completedInRange),
+            'daily' => $this->daily($start, $days, $createdInRange, $completedInRange, $notesInRange),
             'heatmap' => $this->heatmap($user, $tasks),
             'by_priority' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => [
                 'key' => $p->value,
@@ -82,6 +94,7 @@ class MetricsService
                 $user,
                 $completedInRange,
                 $tasks->filter(fn (Task $t) => in_array($t->status, TaskStatus::open(), true)),
+                $notesInRange,
             ),
             'goals' => Goal::query()->whereBelongsTo($user)->where('status', GoalStatus::Active)->withProgress()->orderBy('target_date')->get()
                 ->map(fn (Goal $g) => [
@@ -98,17 +111,25 @@ class MetricsService
     /**
      * @param  Collection<int, Task>  $created
      * @param  Collection<int, Task>  $completed
-     * @return list<array{date: string, created: int, completed: int}>
+     * @param  Collection<int, TaskNote>  $notes
+     * @return list<array{date: string, created: int, completed: int, logged: int, minutes: int}>
      */
-    private function daily(Carbon $start, int $days, Collection $created, Collection $completed): array
+    private function daily(Carbon $start, int $days, Collection $created, Collection $completed, Collection $notes): array
     {
         $createdByDay = $created->countBy(fn (Task $t) => $t->created_at->toDateString());
         $completedByDay = $completed->countBy(fn (Task $t) => $t->completed_at->toDateString());
+        $notesByDay = $notes->groupBy(fn (TaskNote $n) => $n->logged_on->toDateString());
 
-        return collect(range(0, $days - 1))->map(function (int $offset) use ($start, $createdByDay, $completedByDay) {
+        return collect(range(0, $days - 1))->map(function (int $offset) use ($start, $createdByDay, $completedByDay, $notesByDay) {
             $date = $start->copy()->addDays($offset)->toDateString();
 
-            return ['date' => $date, 'created' => $createdByDay[$date] ?? 0, 'completed' => $completedByDay[$date] ?? 0];
+            return [
+                'date' => $date,
+                'created' => $createdByDay[$date] ?? 0,
+                'completed' => $completedByDay[$date] ?? 0,
+                'logged' => isset($notesByDay[$date]) ? $notesByDay[$date]->count() : 0,
+                'minutes' => isset($notesByDay[$date]) ? (int) $notesByDay[$date]->sum('minutes') : 0,
+            ];
         })->all();
     }
 

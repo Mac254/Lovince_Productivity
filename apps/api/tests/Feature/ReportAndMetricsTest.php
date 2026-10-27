@@ -244,4 +244,36 @@ class ReportAndMetricsTest extends TestCase
         $this->getJson('/api/v1/reports/2026-10-27')->assertJsonPath('data.summary.completed', 1);
         $this->artisan('focus:daily-report', ['--missing' => 7])->expectsOutputToContain('No missing reports.');
     }
+
+    public function test_metrics_count_logged_work_and_time(): void
+    {
+        Carbon::setTestNow('2026-10-28 12:00:00');
+        $user = User::factory()->create();
+        $study = TaskType::factory()->for($user)->create(['name' => 'Study']);
+        $reading = Task::factory()->for($user)->create(['task_type_id' => $study->id]);
+        $chores = Task::factory()->for($user)->create(['category' => 'development']);
+        $log = fn (Task $task, string $day, ?int $minutes) => TaskNote::factory()->for($task)
+            ->create(['user_id' => $user->id, 'logged_on' => $day, 'minutes' => $minutes]);
+
+        $log($reading, '2026-10-28', 45);
+        $log($reading, '2026-10-28', 30);
+        $log($chores, '2026-10-25', null);
+        $log($chores, '2026-10-24', 60);
+        $log($chores, '2026-10-20', 90);
+        $log($chores, '2026-10-29', 15);
+        TaskNote::factory()->create(['logged_on' => '2026-10-28', 'minutes' => 500]);
+
+        $metrics = $this->actingAs($user)->getJson('/api/v1/metrics?days=7')->assertOk()
+            ->assertJsonPath('data.totals.entries_logged', 4)
+            ->assertJsonPath('data.totals.minutes_logged', 135)
+            ->assertJsonPath('data.totals.minutes_logged_previous', 90)
+            ->assertJsonPath('data.daily.6.logged', 2)
+            ->assertJsonPath('data.daily.6.minutes', 75)
+            ->assertJsonPath('data.daily.3.logged', 1)
+            ->assertJsonPath('data.daily.3.minutes', 0);
+
+        $byType = collect($metrics->json('data.by_type'))->keyBy('key');
+        $this->assertSame(75, $byType["type:{$study->id}"]['minutes']);
+        $this->assertSame(60, $byType['category:development']['minutes']);
+    }
 }

@@ -73,9 +73,10 @@ export const darkTheme = {
     skeleton: 'neutral.850',
     scrim: 'raw:rgb(0 0 0 / 0.7)',
 
-    /* Charts: the measure in green; context series in grey. Never reused for status. */
+    /* Charts: the measure in green; context series in grey; logged work in blue. Never reused for status. */
     'chart-1': 'green.600',
     'chart-2': 'neutral.500',
+    'chart-3': 'blue.400',
     'chart-grid': 'neutral.850',
 
     /* Activity heatmap: one hue, dark to bright (sequential on a dark surface). */
@@ -158,6 +159,7 @@ export const lightTheme = {
 
     'chart-1': 'green.600',
     'chart-2': 'neutral.500',
+    'chart-3': 'blue.700',
     'chart-grid': 'neutral.100',
 
     'heat-0': 'neutral.100',
@@ -200,6 +202,7 @@ export const contrastPairs: { fg: ColorRole; bg: ColorRole; min: number }[] = [
     })),
     { fg: 'chart-1', bg: 'surface', min: 3 },
     { fg: 'chart-2', bg: 'surface', min: 3 },
+    { fg: 'chart-3', bg: 'surface', min: 3 },
     { fg: 'fg-inverse', bg: 'surface-inverse', min: 4.5 },
     { fg: 'fg-inverse', bg: 'surface-inverse-hover', min: 4.5 },
     { fg: 'fg-inverse-muted', bg: 'surface-inverse', min: 4.5 },

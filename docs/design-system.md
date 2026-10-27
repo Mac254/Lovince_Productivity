@@ -43,7 +43,7 @@ Themes: **dark** (default) and **light**, chosen per device in Settings → Appe
 | `accent` · `accent-solid` + `accent-ink` | Green graphics (bars, rings) · charcoal surfaces with neon text (quote card) |
 | `danger` · `danger-fg` | Destructive actions, overdue |
 | `tone-green … tone-cyan` | Goal identity colours (CVD-safe, ≥3:1 on cards) |
-| `chart-1` · `chart-2` · `chart-grid` · `heat-0…4` | Chart measure (green), context (grey), gridlines, heatmap from dark to bright |
+| `chart-1` · `chart-2` · `chart-3` · `chart-grid` · `heat-0…4` | Chart measure (green), context (grey), logged work (blue), gridlines, heatmap from dark to bright |
 | `focus-ring` · `selection` · `skeleton` · `scrim` | Utility roles |
 
 ### Interaction

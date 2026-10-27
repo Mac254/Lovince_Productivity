@@ -18,8 +18,13 @@ export interface Metrics {
         overdue_now: number;
         open_blockers: number;
         blockers_resolved: number;
+        /** Work log entries dated in the range, and the minutes recorded on them. */
+        entries_logged: number;
+        minutes_logged: number;
+        minutes_logged_previous: number;
     };
-    daily: { date: IsoDate; created: number; completed: number }[];
+    /** `logged` counts work log entries for the day; `minutes` is the time recorded on them. */
+    daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number }[];
     /** `count` is `completed` tasks plus `logged` work log entries for the day. */
     heatmap: { date: IsoDate; count: number; completed: number; logged: number }[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];

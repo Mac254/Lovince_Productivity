@@ -13,6 +13,7 @@ export function useChartTheme() {
     const colors = {
         series1: token('chart-1'),
         series2: token('chart-2'),
+        series3: token('chart-3'),
         grid: token('chart-grid'),
         text: token('fg'),
         muted: token('fg-muted'),

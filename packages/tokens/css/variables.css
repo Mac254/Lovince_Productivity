@@ -110,6 +110,7 @@
     --scrim: rgb(0 0 0 / 0.7);
     --chart-1: var(--focus-green-600);
     --chart-2: var(--focus-neutral-500);
+    --chart-3: var(--focus-blue-400);
     --chart-grid: var(--focus-neutral-850);
     --heat-0: var(--focus-neutral-850);
     --heat-1: var(--focus-green-900);
@@ -175,6 +176,7 @@
     --scrim: rgb(0 0 0 / 0.45);
     --chart-1: var(--focus-green-600);
     --chart-2: var(--focus-neutral-500);
+    --chart-3: var(--focus-blue-700);
     --chart-grid: var(--focus-neutral-100);
     --heat-0: var(--focus-neutral-100);
     --heat-1: var(--focus-green-200);

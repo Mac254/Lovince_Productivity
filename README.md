@@ -12,7 +12,7 @@ Focus is a modular monorepo: a Vue 3 + TypeScript frontend, a Laravel API, share
 - **Blockers** — log what's stopping progress (optionally against a task, marking it blocked), resolve and reopen
 - **Journal** — one private entry per day with autosave; searchable
 - **Daily reports** — stored snapshots generated every night at 23:55 (and on demand): completed, carried over, overdue, blockers, goal progress, the day's work log and journal. A saved report's work log stays up to date when entries for that day are added, edited or removed.
-- **Metrics** — ApexCharts: completed vs created trend, six-month activity heatmap, breakdowns by priority and type, on-time rate, median cycle time
+- **Metrics** — ApexCharts: daily trend of tasks completed, created and work logged, time logged (with the change from the previous period), six-month activity heatmap, breakdowns by priority and type with time per type, on-time rate, median cycle time
 - **Focus clock** — full-screen clock with built-in wallpapers, 12/24h, next task and today's progress
 - **Settings** — key–value rows for profile (photo, name, email), start page (Dashboard, Today or focus clock), appearance (dark, light or system theme, reduce motion, daily quote), clock and timer (time format, seconds, ticking sound, chime, automatic breaks, desktop notifications), security (password, this device's sign-in) and a reset for this device's preferences. The top bar also has a dark/light switch
 - Development and integration tracked as separate deliverables; random quotes; animated icons; responsive layout

@@ -12,6 +12,8 @@ export interface TypeBreakdownRow {
     tone: GoalTone | null;
     completed: number;
     open: number;
+    /** Minutes logged on this type's tasks; present on Metrics only. */
+    minutes?: number;
 }
 
 export interface ReportSummary {
