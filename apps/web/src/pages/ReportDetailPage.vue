@@ -18,7 +18,7 @@ import { useRoute } from 'vue-router';
 import StatCard from '@/features/dashboard/StatCard.vue';
 import TaskTypeBadge from '@/features/tasks/TaskTypeBadge.vue';
 import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
-import { dueLabel, formatDate, todayIso } from '@/lib/dates';
+import { dueLabel, formatDate, formatMinutes, todayIso } from '@/lib/dates';
 import { taskPriorityLabels, taskPriorityTones } from '@/lib/labels';
 
 const route = useRoute();
@@ -56,6 +56,8 @@ async function regenerate(): Promise<void> {
 }
 
 watch(date, load, { immediate: true });
+
+const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
 </script>
 
 <template>
@@ -122,7 +124,7 @@ watch(date, load, { immediate: true });
                         title="Completed"
                         title-id="done-heading"
                         icon="check-circle"
-                        :subtitle="`${report.completed_tasks.length} tasks`"
+                        :subtitle="plural(report.completed_tasks.length, 'task')"
                     />
                     <ul v-if="report.completed_tasks.length" class="flex flex-col divide-y divide-border">
                         <li
@@ -177,7 +179,7 @@ watch(date, load, { immediate: true });
                         title="Overdue"
                         title-id="overdue-heading"
                         icon="warning"
-                        :subtitle="`${report.summary.overdue} tasks`"
+                        :subtitle="plural(report.summary.overdue, 'task')"
                     />
                     <ul v-if="report.overdue_tasks.length" class="flex flex-col divide-y divide-border">
                         <li
@@ -223,6 +225,43 @@ watch(date, load, { immediate: true });
                         </li>
                     </ul>
                     <Text v-else role="label" tone="muted">None resolved.</Text>
+                </Card>
+
+                <Card as="section" aria-labelledby="worklog-heading" class="group">
+                    <CardHeader
+                        title="Work log"
+                        title-id="worklog-heading"
+                        icon="history"
+                        :subtitle="
+                            report.summary.notes_logged
+                                ? [
+                                      plural(report.summary.notes_logged, 'entry', 'entries'),
+                                      formatMinutes(report.summary.minutes_logged),
+                                  ]
+                                      .filter(Boolean)
+                                      .join(' · ')
+                                : 'Notes logged on tasks this day'
+                        "
+                    />
+                    <ul v-if="report.work_log?.length" class="flex flex-col divide-y divide-border">
+                        <li v-for="entry in report.work_log" :key="entry.id" class="flex flex-col gap-1 py-2">
+                            <span class="flex items-baseline justify-between gap-3">
+                                <RouterLink
+                                    v-if="entry.task"
+                                    :to="{ name: 'task-detail', params: { id: entry.task.id } }"
+                                    class="min-w-0 truncate text-label font-semibold underline-offset-4 hover:underline"
+                                    >{{ entry.task.title }}</RouterLink
+                                >
+                                <Text v-if="entry.minutes" as="span" role="caption" tone="muted" tabular>{{
+                                    formatMinutes(entry.minutes)
+                                }}</Text>
+                            </span>
+                            <Text role="label" tone="muted" class="break-words whitespace-pre-line">{{
+                                entry.body
+                            }}</Text>
+                        </li>
+                    </ul>
+                    <Text v-else role="label" tone="muted">Nothing was logged this day.</Text>
                 </Card>
 
                 <Card as="section" aria-labelledby="types-heading" class="group">
