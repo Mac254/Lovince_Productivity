@@ -8,9 +8,18 @@ export type { Blocker } from './models/blocker';
 export type { JournalEntry } from './models/journal';
 export type { Wallpaper } from './models/wallpaper';
 export type { TaskType, TaskTypeRef } from './models/taskType';
+export type { TaskNote } from './models/taskNote';
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
-export type { BlockerInput, GoalInput, LoginInput, PasswordInput, TaskInput, TaskTypeInput } from './api/inputs';
+export type {
+    BlockerInput,
+    GoalInput,
+    LoginInput,
+    PasswordInput,
+    TaskInput,
+    TaskNoteInput,
+    TaskTypeInput,
+} from './api/inputs';
 export type { BlockerFilters, GoalFilters, TaskFilters } from './api/filters';
 export type { Dashboard, DashboardStats, IntegrationSummary } from './api/dashboard';
 export type {
@@ -20,6 +29,7 @@ export type {
     ReportGoal,
     ReportSummary,
     ReportTask,
+    ReportWorkLogEntry,
     TypeBreakdownRow,
 } from './api/reports';
 export type { MetricRange, Metrics } from './api/metrics';

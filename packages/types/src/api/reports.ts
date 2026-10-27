@@ -31,6 +31,9 @@ export interface ReportSummary {
     /** Today's plan (due this day or starred); absent on reports made before plans existed. */
     planned?: number;
     planned_completed?: number;
+    /** Work log entries for the day; absent on older reports. */
+    notes_logged?: number;
+    minutes_logged?: number;
 }
 
 export interface ReportTask {
@@ -42,6 +45,13 @@ export interface ReportTask {
     type?: TaskTypeRef | null;
     due_date: IsoDate | null;
     goal: { id: number; title: string } | null;
+}
+
+export interface ReportWorkLogEntry {
+    id: number;
+    body: string;
+    minutes: number | null;
+    task: { id: number; title: string } | null;
 }
 
 export interface ReportBlocker {
@@ -71,6 +81,8 @@ export interface DailyReport extends DailyReportSummary {
     completed_tasks: ReportTask[];
     /** Completed this day, per type. */
     by_type: TypeBreakdownRow[];
+    /** Task notes logged this day, oldest first. */
+    work_log?: ReportWorkLogEntry[];
     carried_over: ReportTask[];
     overdue_tasks: ReportTask[];
     blockers_open: ReportBlocker[];

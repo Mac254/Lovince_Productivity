@@ -1,6 +1,7 @@
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Task } from '../models/task';
+import type { TaskNote } from '../models/taskNote';
 import type { TaskType } from '../models/taskType';
 
 export type TaskInput = Partial<
@@ -18,6 +19,8 @@ export type TaskInput = Partial<
         | 'task_type_id'
     >
 >;
+
+export type TaskNoteInput = Partial<Pick<TaskNote, 'body' | 'logged_on' | 'minutes'>>;
 
 export type TaskTypeInput = Partial<Pick<TaskType, 'name' | 'tone'>>;
 
