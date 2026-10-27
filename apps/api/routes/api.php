@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuoteController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\TaskNoteController;
 use App\Http\Controllers\Api\V1\TaskTypeController;
 use App\Http\Controllers\Api\V1\WallpaperController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,10 @@ Route::prefix('v1')->group(function () {
         Route::get('dashboard', DashboardController::class);
         Route::apiResource('task-types', TaskTypeController::class)->except('show');
         Route::apiResource('tasks', TaskController::class);
+        Route::get('tasks/{task}/notes', [TaskNoteController::class, 'index'])->whereNumber('task');
+        Route::post('tasks/{task}/notes', [TaskNoteController::class, 'store'])->whereNumber('task')->middleware('throttle:60,1');
+        Route::patch('task-notes/{note}', [TaskNoteController::class, 'update'])->whereNumber('note');
+        Route::delete('task-notes/{note}', [TaskNoteController::class, 'destroy'])->whereNumber('note');
         Route::apiResource('goals', GoalController::class);
         Route::get('quotes/random', [QuoteController::class, 'random']);
 

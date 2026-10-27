@@ -45,6 +45,10 @@ export const LIMITS = {
     perPageDefault: 25,
     journal: 20000,
     blocker: 1000,
+    taskNote: {
+        body: 5000,
+        minutes: 720,
+    },
     taskType: {
         name: 40,
         max: 30,

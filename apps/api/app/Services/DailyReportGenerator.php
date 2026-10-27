@@ -11,6 +11,7 @@ use App\Models\DailyReport;
 use App\Models\Goal;
 use App\Models\JournalEntry;
 use App\Models\Task;
+use App\Models\TaskNote;
 use App\Models\User;
 use App\Support\TypeBreakdown;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,6 +49,11 @@ class DailyReportGenerator
         $plannedCompleted = $completed->filter($inPlan)->count();
         $plannedOpen = $tasks()->open()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true))->count();
 
+        $workLog = TaskNote::query()->whereBelongsTo($user)->with('task:id,title')
+            ->whereDate('logged_on', $date)
+            ->orderBy('id')
+            ->get();
+
         $onTimeEligible = $completed->filter(fn (Task $task) => $task->due_date !== null);
         $onTime = $onTimeEligible->filter(fn (Task $task) => $task->completed_at->toDateString() <= $task->due_date->toDateString());
 
@@ -71,6 +77,8 @@ class DailyReportGenerator
             'blockers_resolved' => $blockersResolved->count(),
             'planned' => $plannedCompleted + $plannedOpen,
             'planned_completed' => $plannedCompleted,
+            'notes_logged' => $workLog->count(),
+            'minutes_logged' => (int) $workLog->sum('minutes'),
             'high_priority_completed' => $completed->filter(fn (Task $task) => in_array($task->priority->value, ['high', 'urgent'], true))->count(),
         ];
 
@@ -79,6 +87,12 @@ class DailyReportGenerator
             'narrative' => $this->narrative($summary),
             'completed_tasks' => $this->taskList($completed),
             'by_type' => TypeBreakdown::rows($user, $completed, collect()),
+            'work_log' => $workLog->map(fn (TaskNote $note) => [
+                'id' => $note->id,
+                'body' => $note->body,
+                'minutes' => $note->minutes,
+                'task' => $note->task ? ['id' => $note->task->id, 'title' => $note->task->title] : null,
+            ])->values()->all(),
             'carried_over' => $this->taskList($carriedOver),
             'overdue_tasks' => $this->taskList($overdue->take(self::LIST_LIMIT)),
             'blockers_open' => $this->blockerList($openBlockers->take(self::LIST_LIMIT)),
@@ -149,6 +163,14 @@ class DailyReportGenerator
         ])->values()->all();
     }
 
+    private function duration(int $minutes): string
+    {
+        $hours = intdiv($minutes, 60);
+        $rest = $minutes % 60;
+
+        return trim(($hours ? "{$hours}h " : '').($rest ? "{$rest}m" : ''));
+    }
+
     /**
      * A plain-language summary built only from the numbers — no judgement of quality.
      *
@@ -165,6 +187,10 @@ class DailyReportGenerator
 
         if (($s['planned'] ?? 0) > 0) {
             $parts[] = "{$s['planned_completed']} of {$s['planned']} planned ".($s['planned'] === 1 ? 'task was' : 'tasks were').' done.';
+        }
+        if (($s['notes_logged'] ?? 0) > 0) {
+            $parts[] = "{$s['notes_logged']} work ".($s['notes_logged'] === 1 ? 'note was' : 'notes were').' logged'
+                .($s['minutes_logged'] > 0 ? ' ('.$this->duration($s['minutes_logged']).')' : '').'.';
         }
         if ($s['due'] > 0) {
             $parts[] = "{$s['due_completed']} of {$s['due']} tasks due today were done.";

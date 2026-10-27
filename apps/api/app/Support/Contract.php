@@ -37,6 +37,11 @@ final class Contract
 
     public const AVATAR_MAX_KB = 2048;
 
+    public const TASK_NOTE_MAX = 5000;
+
+    /** Twelve hours: the most one log entry can claim. */
+    public const TASK_NOTE_MINUTES_MAX = 720;
+
     public const TASK_TYPE_NAME_MAX = 40;
 
     public const TASK_TYPE_LIMIT = 30;
@@ -79,6 +84,7 @@ final class Contract
             'perPageDefault' => self::PER_PAGE_DEFAULT,
             'journal' => self::JOURNAL_MAX,
             'blocker' => self::BLOCKER_MAX,
+            'taskNote' => ['body' => self::TASK_NOTE_MAX, 'minutes' => self::TASK_NOTE_MINUTES_MAX],
             'taskType' => ['name' => self::TASK_TYPE_NAME_MAX, 'max' => self::TASK_TYPE_LIMIT],
             'wallpaperKb' => self::WALLPAPER_MAX_KB,
             'wallpapers' => self::WALLPAPER_LIMIT,

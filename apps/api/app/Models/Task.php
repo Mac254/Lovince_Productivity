@@ -87,6 +87,14 @@ class Task extends Model
     }
 
     /**
+     * @return HasMany<TaskNote, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(TaskNote::class);
+    }
+
+    /**
      * @return HasMany<Blocker, $this>
      */
     public function blockers(): HasMany
