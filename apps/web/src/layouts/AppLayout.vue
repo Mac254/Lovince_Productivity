@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Avatar, Button, Dialog, DropdownMenu, Icon, IconButton, useToast } from '@focus/ui';
-import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
 import SidebarNav from '@/components/SidebarNav.vue';
 import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
@@ -14,7 +14,6 @@ import { useTimerStore } from '@/stores/timer';
 const auth = useAuthStore();
 const dashboard = useDashboardStore();
 const goals = useGoalsStore();
-const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const timer = useTimerStore();
@@ -46,14 +45,8 @@ const accountMenu = [
 
 function onQuickTaskSaved(): void {
     goals.reset();
-    void dashboard.load();
+    void dashboard.invalidate();
 }
-
-watch(
-    () => route.name,
-    () => void dashboard.load(),
-    { immediate: true },
-);
 </script>
 
 <template>

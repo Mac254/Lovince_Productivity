@@ -28,15 +28,15 @@ import TaskRow from '@/features/tasks/TaskRow.vue';
 import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityRank } from '@/lib/labels';
-import { useDashboardStore } from '@/stores/dashboard';
+import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
 
-const dashboard = useDashboardStore();
+const dashboard = useDashboard();
 const goalsStore = useGoalsStore();
 
 const refresh = () => {
     goalsStore.reset();
-    return dashboard.load();
+    return dashboard.invalidate();
 };
 const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, confirmDelete } =
     useTaskEditing(refresh);

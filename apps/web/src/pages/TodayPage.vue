@@ -21,14 +21,14 @@ import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { formatLongDate } from '@/lib/dates';
-import { useDashboardStore } from '@/stores/dashboard';
+import { useDashboard } from '@/composables/useDashboard';
 import { useGoalsStore } from '@/stores/goals';
 
-const dashboard = useDashboardStore();
+const dashboard = useDashboard();
 const goals = useGoalsStore();
 const refresh = () => {
     goals.reset();
-    return dashboard.load();
+    return dashboard.invalidate();
 };
 const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, confirmDelete } =
     useTaskEditing(refresh);

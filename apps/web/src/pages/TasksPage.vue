@@ -184,7 +184,7 @@ const refresh = async () => {
     goals.reset();
     void goals.load().catch(() => undefined);
     void taskTypes.load(true).catch(() => undefined);
-    void dashboard.load();
+    void dashboard.invalidate();
     await run();
 };
 const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, edit, askDelete, confirmDelete } =

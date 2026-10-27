@@ -63,7 +63,7 @@ async function load(): Promise<void> {
 
 const changed = () => {
     goalsStore.reset();
-    void dashboard.load();
+    void dashboard.invalidate();
     return load();
 };
 const actions = useTaskActions(changed);

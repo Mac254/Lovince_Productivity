@@ -7,11 +7,11 @@ import { useRoute, useRouter } from 'vue-router';
 import FocusTimer from '@/features/clock/FocusTimer.vue';
 import RollingDigits from '@/features/clock/RollingDigits.vue';
 import { customWallpaperKey, loadPrefs, savePrefs, wallpapers } from '@/features/clock/wallpapers';
-import { useDashboardStore } from '@/stores/dashboard';
+import { useDashboard } from '@/composables/useDashboard';
 
 const router = useRouter();
 const route = useRoute();
-const dashboard = useDashboardStore();
+const dashboard = useDashboard();
 
 const modes = [
     { id: 'clock', label: 'Clock' },
@@ -137,7 +137,6 @@ onMounted(() => {
     tick = window.setInterval(() => (now.value = new Date()), 500);
     document.addEventListener('fullscreenchange', syncFullscreen);
     document.addEventListener('keydown', onKey);
-    void dashboard.load();
     void loadUploads();
     wake();
 });

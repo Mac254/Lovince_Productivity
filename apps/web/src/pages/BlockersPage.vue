@@ -24,7 +24,7 @@ const { data, loading, error, run } = useAsync((signal) =>
 );
 
 function changed(): void {
-    void dashboard.load();
+    void dashboard.invalidate();
     void run();
 }
 

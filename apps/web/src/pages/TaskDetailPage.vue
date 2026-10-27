@@ -68,7 +68,7 @@ async function load(): Promise<void> {
 }
 
 const changed = () => {
-    void dashboard.load();
+    void dashboard.invalidate();
     return load();
 };
 const actions = useTaskActions(changed);
@@ -83,7 +83,7 @@ async function confirmDelete(): Promise<void> {
     try {
         await api.tasks.remove(task.value.id);
         toast.success('Task deleted');
-        void dashboard.load();
+        void dashboard.invalidate();
         await router.replace({ name: 'tasks' });
     } catch (e) {
         toast.error(errorMessage(e, 'Could not delete the task.'));

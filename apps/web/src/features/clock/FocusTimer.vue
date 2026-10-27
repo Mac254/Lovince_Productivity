@@ -18,7 +18,7 @@ const ringSize = ref(320);
 const notificationsAllowed = ref(typeof Notification !== 'undefined' && Notification.permission === 'granted');
 const canNotify = typeof Notification !== 'undefined' && Notification.permission !== 'denied';
 
-const actions = useTaskActions(() => void dashboard.load());
+const actions = useTaskActions(() => void dashboard.invalidate());
 
 const statusLine = computed(() => {
     if (timer.status === 'done') return timer.kind === 'focus' ? 'Session complete' : 'Break over';

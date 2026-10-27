@@ -45,7 +45,7 @@ function open(goal: Goal | null): void {
 }
 
 async function saved(): Promise<void> {
-    void dashboard.load();
+    void dashboard.invalidate();
     await run();
 }
 
