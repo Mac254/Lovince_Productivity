@@ -71,4 +71,25 @@ class TaskTypeTest extends TestCase
         TaskType::factory()->for($other)->count(Contract::TASK_TYPE_LIMIT)->create();
         $this->postJson('/api/v1/task-types', ['name' => 'One more'])->assertJsonValidationErrors('name');
     }
+
+    public function test_a_task_has_either_a_custom_type_or_a_built_in_category(): void
+    {
+        $user = User::factory()->create();
+        $type = TaskType::factory()->for($user)->create();
+        $this->actingAs($user);
+
+        $id = $this->postJson('/api/v1/tasks', ['title' => 'Mixed', 'category' => 'integration', 'task_type_id' => $type->id])
+            ->assertCreated()
+            ->assertJsonPath('data.category', 'general')
+            ->assertJsonPath('data.task_type_id', $type->id)
+            ->json('data.id');
+
+        $this->patchJson("/api/v1/tasks/{$id}", ['category' => 'development'])
+            ->assertJsonPath('data.category', 'development')
+            ->assertJsonPath('data.task_type_id', null);
+
+        $this->patchJson("/api/v1/tasks/{$id}", ['task_type_id' => $type->id])
+            ->assertJsonPath('data.category', 'general')
+            ->assertJsonPath('data.type.id', $type->id);
+    }
 }

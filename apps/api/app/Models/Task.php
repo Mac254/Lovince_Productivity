@@ -34,6 +34,13 @@ class Task extends Model
     protected static function booted(): void
     {
         static::saving(function (Task $task) {
+            // A task has one type: a custom type, or a built-in category. Whichever changed last wins.
+            if ($task->isDirty('category') && ! $task->isDirty('task_type_id') && $task->category !== TaskCategory::General) {
+                $task->task_type_id = null;
+            } elseif ($task->task_type_id !== null) {
+                $task->category = TaskCategory::General;
+            }
+
             if ($task->status === TaskStatus::Completed) {
                 $task->completed_at ??= now();
             } else {
