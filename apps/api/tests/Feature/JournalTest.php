@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Blocker;
 use App\Models\JournalEntry;
+use App\Models\Task;
+use App\Models\TaskNote;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -64,5 +67,36 @@ class JournalTest extends TestCase
         $this->getJson('/api/v1/journal?from=2026-10-01')->assertJsonValidationErrors('to');
         $this->getJson('/api/v1/journal?from=2026-10-31&to=2026-10-01')->assertJsonValidationErrors('to');
         $this->getJson('/api/v1/journal?from=2026-01-01&to=2026-12-31')->assertJsonValidationErrors('to');
+    }
+
+    public function test_day_context_gathers_what_happened_that_day(): void
+    {
+        Carbon::setTestNow('2026-10-26 09:00:00');
+        $user = User::factory()->create();
+        $shipped = Task::factory()->for($user)->create(['title' => 'Ship the API']);
+        $open = Task::factory()->for($user)->dueOn('2026-10-27')->create(['title' => 'Write the docs']);
+        $lateFinish = Task::factory()->for($user)->dueOn('2026-10-27')->create(['title' => 'Fix the build']);
+
+        Carbon::setTestNow('2026-10-27 15:00:00');
+        $shipped->update(['status' => 'completed']);
+        TaskNote::factory()->for($open)->create(['user_id' => $user->id, 'logged_on' => '2026-10-27', 'body' => 'Outlined sections', 'minutes' => 40]);
+        Blocker::factory()->for($user)->create(['description' => 'Waiting on review']);
+        Task::factory()->create(['title' => 'Someone else’s task'])->update(['status' => 'completed']);
+
+        Carbon::setTestNow('2026-10-28 10:00:00');
+        $lateFinish->update(['status' => 'completed']);
+
+        $this->actingAs($user)->getJson('/api/v1/journal/2026-10-27/context')->assertOk()
+            ->assertJsonPath('data.completed', [['id' => $shipped->id, 'title' => 'Ship the API']])
+            ->assertJsonPath('data.work_log.0.body', 'Outlined sections')
+            ->assertJsonPath('data.work_log.0.task.title', 'Write the docs')
+            ->assertJsonPath('data.blockers.0.description', 'Waiting on review')
+            ->assertJsonPath('data.blockers.0.resolved', false)
+            ->assertJsonPath('data.still_open', [
+                ['id' => $open->id, 'title' => 'Write the docs'],
+                ['id' => $lateFinish->id, 'title' => 'Fix the build'],
+            ]);
+
+        $this->getJson('/api/v1/journal/2026-10-29/context')->assertNotFound();
     }
 }

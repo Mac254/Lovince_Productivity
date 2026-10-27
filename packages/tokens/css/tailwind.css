@@ -14,6 +14,7 @@
     --spacing: 0.25rem;
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Outfit Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     --text-caption: 0.75rem;
     --text-caption--line-height: 1rem;
     --text-label: 0.875rem;

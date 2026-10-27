@@ -4,10 +4,11 @@ import { monthGrid, monthOf, shiftDate, WEEKDAYS, type MonthIso } from '@/lib/ca
 import { formatDate, todayIso } from '@/lib/dates';
 
 /**
- * A month of days, Monday first. Days with an entry show a dot and the first line of the note.
- * Arrow keys move between days (crossing months), Enter or click opens one; future days are disabled.
+ * A month of days, Monday first. Days with an entry show a dot and, unless `compact`, the first line
+ * of the note. Arrow keys move between days (crossing months), Enter or click opens one; future days
+ * are disabled.
  */
-const props = defineProps<{ month: MonthIso; selected: string; previews: Record<string, string> }>();
+const props = defineProps<{ month: MonthIso; selected: string; previews: Record<string, string>; compact?: boolean }>();
 const emit = defineEmits<{ select: [date: string]; 'update:month': [month: MonthIso] }>();
 
 const today = todayIso();
@@ -75,13 +76,13 @@ function onKeydown(event: KeyboardEvent): void {
             v-for="(week, w) in weeks"
             :key="w"
             role="row"
-            class="grid grid-cols-7 border-b border-border last:border-b-0"
+            :class="['grid grid-cols-7', !compact && 'border-b border-border last:border-b-0']"
         >
             <div
                 v-for="cell in week"
                 :key="cell.date"
                 role="gridcell"
-                class="border-r border-border p-1 last:border-r-0"
+                :class="compact ? 'p-0' : 'border-r border-border p-1 last:border-r-0'"
             >
                 <button
                     type="button"
@@ -92,7 +93,8 @@ function onKeydown(event: KeyboardEvent): void {
                     :aria-selected="cell.date === selected"
                     :aria-current="cell.date === today ? 'date' : undefined"
                     :class="[
-                        'flex h-full min-h-16 w-full flex-col gap-1 rounded-md p-2 text-left transition-colors duration-(--duration-instant) focus-visible:outline-2 focus-visible:outline-focus-ring disabled:cursor-not-allowed sm:min-h-24',
+                        'flex h-full w-full flex-col gap-1 rounded-md transition-colors duration-(--duration-instant) focus-visible:outline-2 focus-visible:outline-focus-ring disabled:cursor-not-allowed',
+                        compact ? 'min-h-11 items-center justify-center p-1' : 'min-h-16 p-2 text-left sm:min-h-24',
                         cell.date === selected ? 'bg-surface-raised ring-1 ring-highlight' : 'hover:bg-surface-raised',
                         !cell.inMonth && 'opacity-40',
                         cell.date > today && 'opacity-30',
@@ -100,7 +102,20 @@ function onKeydown(event: KeyboardEvent): void {
                     @click="emit('select', cell.date)"
                     @focus="focused = cell.date"
                 >
-                    <span class="flex items-center justify-between gap-1">
+                    <span v-if="compact" class="flex flex-col items-center gap-1">
+                        <span
+                            :class="[
+                                'inline-flex size-6 items-center justify-center rounded-full text-label font-semibold tabular',
+                                cell.date === today ? 'bg-highlight text-highlight-ink' : 'text-fg',
+                            ]"
+                            >{{ cell.day }}</span
+                        >
+                        <span
+                            aria-hidden="true"
+                            :class="['size-1 rounded-full', previews[cell.date] ? 'bg-highlight-fg' : 'bg-transparent']"
+                        />
+                    </span>
+                    <span v-else class="flex items-center justify-between gap-1">
                         <span
                             :class="[
                                 'inline-flex size-6 items-center justify-center rounded-full text-label font-semibold tabular',
@@ -115,7 +130,7 @@ function onKeydown(event: KeyboardEvent): void {
                         />
                     </span>
                     <span
-                        v-if="previews[cell.date]"
+                        v-if="previews[cell.date] && !compact"
                         aria-hidden="true"
                         class="hidden border-l-2 border-highlight-fg pl-2 text-caption text-fg-muted sm:line-clamp-2"
                         >{{ firstLine(previews[cell.date]!) }}</span

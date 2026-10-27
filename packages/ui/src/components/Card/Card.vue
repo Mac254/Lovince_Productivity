@@ -3,13 +3,14 @@ import { provideSurfaceTone } from '../../composables/useSurfaceTone';
 
 /**
  * The surface for grouped content (pair with CardHeader). Children read the surface tone,
- * so text and badges stay legible on highlight and accent cards.
+ * so text and badges stay legible on highlight and accent cards. `padding="none"` is for flush
+ * content such as an editor, which then pads its own regions.
  */
 const props = withDefaults(
     defineProps<{
         as?: string;
         tone?: 'default' | 'highlight' | 'accent';
-        padding?: 'md' | 'lg';
+        padding?: 'none' | 'md' | 'lg';
         interactive?: boolean;
     }>(),
     { as: 'article', tone: 'default', padding: 'md' },
@@ -23,7 +24,7 @@ provideSurfaceTone(props.tone);
         :is="as"
         :class="[
             'relative flex min-w-0 flex-col rounded-lg transition-shadow duration-(--duration-fast)',
-            padding === 'lg' ? 'p-6 sm:p-8' : 'p-4 sm:p-6',
+            { none: 'overflow-hidden', md: 'p-4 sm:p-6', lg: 'p-6 sm:p-8' }[padding],
             {
                 default: 'bg-surface text-fg ring-1 ring-border',
                 highlight: 'bg-highlight text-highlight-ink',

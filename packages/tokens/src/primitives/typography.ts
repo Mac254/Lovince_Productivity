@@ -1,6 +1,8 @@
 export const fontFamily = {
     sans: "'Inter Variable', ui-sans-serif, system-ui, sans-serif",
     display: "'Outfit Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif",
+    /* Code-like surfaces: the journal editor and its status bar. */
+    mono: "'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace",
 } as const;
 
 /** Weight 500 is the floor in this system; only these weights are used. */

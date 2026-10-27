@@ -375,7 +375,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                 <SettingsSection id="reset" title="Reset" icon="undo">
                     <SettingRow
                         label="Preferences on this device"
-                        description="Theme, motion, start page, quotes, clock and timer go back to their defaults. Your tasks and account aren’t touched."
+                        description="Theme, motion, start page, quotes, journal font, clock and timer go back to their defaults. Your tasks and account aren’t touched."
                     >
                         <template #action>
                             <Button variant="outline" size="sm" icon-start="undo" @click="resetOpen = true"
@@ -390,7 +390,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
         <ConfirmDialog
             v-model:open="resetOpen"
             title="Reset preferences?"
-            message="Theme, motion, start page, quotes, clock and timer settings on this device go back to their defaults."
+            message="Theme, motion, start page, quotes, journal font, clock and timer settings on this device go back to their defaults."
             confirm-label="Reset"
             @confirm="resetPreferences"
         />

@@ -5,7 +5,7 @@ export type { GoalRef, IsoDate, IsoDateTime, Task } from './models/task';
 export type { Goal } from './models/goal';
 export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
-export type { JournalEntry } from './models/journal';
+export type { JournalContext, JournalEntry } from './models/journal';
 export type { Wallpaper } from './models/wallpaper';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';

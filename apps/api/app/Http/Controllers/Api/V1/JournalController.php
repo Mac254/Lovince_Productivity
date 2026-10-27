@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\BlockerStatus;
+use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Journal\JournalRequest;
 use App\Http\Resources\JournalEntryResource;
+use App\Models\Blocker;
 use App\Models\JournalEntry;
+use App\Models\Task;
+use App\Models\TaskNote;
 use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 
 /**
  * One journal entry per day, addressed by date (`YYYY-MM-DD`). Saving an empty body deletes it.
@@ -68,6 +74,60 @@ class JournalController extends Controller
         $entry->save();
 
         return response()->json(['data' => JournalEntryResource::make($entry)->resolve()]);
+    }
+
+    /**
+     * What happened on a day, for writing about it: tasks completed, work logged, blockers raised or
+     * resolved, and tasks due that day still open when it ended (or now, for today).
+     */
+    public function context(Request $request, string $date): JsonResponse
+    {
+        $user = $request->user();
+        $start = Carbon::createFromFormat('!Y-m-d', $this->day($date));
+        $end = now()->min($start->copy()->endOfDay());
+        $task = fn (?Task $t) => $t ? ['id' => $t->id, 'title' => $t->title] : null;
+
+        $completed = Task::query()->whereBelongsTo($user)
+            ->where('status', TaskStatus::Completed)
+            ->whereBetween('completed_at', [$start, $end])
+            ->orderBy('completed_at')
+            ->get(['id', 'title']);
+
+        $workLog = TaskNote::query()->whereBelongsTo($user)->with('task:id,title')
+            ->whereDate('logged_on', $start)
+            ->orderBy('id')
+            ->get();
+
+        $blockers = Blocker::query()->whereBelongsTo($user)->with('task:id,title')
+            ->where(fn ($q) => $q->whereBetween('created_at', [$start, $end])
+                ->orWhere(fn ($q) => $q->where('status', BlockerStatus::Resolved)->whereBetween('resolved_at', [$start, $end])))
+            ->orderBy('created_at')
+            ->get();
+
+        $stillOpen = Task::query()->whereBelongsTo($user)
+            ->whereDate('due_date', $start)
+            ->where('status', '!=', TaskStatus::Cancelled)
+            ->where(fn ($q) => $q->whereNull('completed_at')->orWhere('completed_at', '>', $end))
+            ->orderBy('id')
+            ->get(['id', 'title']);
+
+        return response()->json(['data' => [
+            'date' => $start->toDateString(),
+            'completed' => $completed->map($task)->all(),
+            'work_log' => $workLog->map(fn (TaskNote $note) => [
+                'id' => $note->id,
+                'body' => $note->body,
+                'minutes' => $note->minutes,
+                'task' => $task($note->task),
+            ])->all(),
+            'blockers' => $blockers->map(fn (Blocker $blocker) => [
+                'id' => $blocker->id,
+                'description' => $blocker->description,
+                'resolved' => $blocker->status === BlockerStatus::Resolved && $blocker->resolved_at <= $end,
+                'task' => $task($blocker->task),
+            ])->all(),
+            'still_open' => $stillOpen->map($task)->all(),
+        ]]);
     }
 
     public function destroy(Request $request, string $date): Response

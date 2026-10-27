@@ -41,6 +41,7 @@ describe('preferences', () => {
             startPage: 'dashboard',
             reduceMotion: false,
             showQuotes: true,
+            journalFont: 'mono',
         });
         expect(document.documentElement.dataset.motion).toBeUndefined();
     });

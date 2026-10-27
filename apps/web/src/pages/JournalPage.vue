@@ -1,42 +1,88 @@
 <script setup lang="ts">
-import { api, errorMessage } from '@focus/api-client';
-import { LIMITS, type JournalEntry } from '@focus/types';
-import { Button, Card, Icon, IconButton, PageHeader, SearchField, Text, useToast } from '@focus/ui';
+import { api, errorMessage, isApiError } from '@focus/api-client';
+import { LIMITS, type JournalContext, type JournalEntry } from '@focus/types';
+import { Button, Card, ChipGroup, Icon, IconButton, PageHeader, SearchField, Text, useToast } from '@focus/ui';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import DayContext from '@/features/journal/DayContext.vue';
 import JournalCalendar from '@/features/journal/JournalCalendar.vue';
+import JournalEditor from '@/features/journal/JournalEditor.vue';
+import JournalPreview from '@/features/journal/JournalPreview.vue';
 import { addMonths, monthGrid, monthOf, shiftDate } from '@/lib/calendar';
 import { formatDate, formatLongDate, todayIso } from '@/lib/dates';
+import { standupDraft } from '@/lib/standup';
+import { usePreferencesStore } from '@/stores/preferences';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const preferences = usePreferencesStore();
 
 const date = computed(() => {
     const value = route.query.date;
     return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && value <= todayIso() ? value : todayIso();
 });
+const isToday = computed(() => date.value === todayIso());
 
 const body = ref('');
 const saved = ref('');
+const savedAt = ref<string | null>(null);
 const status = ref<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('loading');
+const view = ref<'write' | 'preview'>('write');
+const editor = ref<InstanceType<typeof JournalEditor> | null>(null);
+const dirty = computed(() => body.value !== saved.value);
+let autosave: number | undefined;
+
 const month = ref(monthOf(date.value));
 const previews = ref<Record<string, string>>({});
+const recent = ref<Set<string>>(new Set());
 const results = ref<JournalEntry[]>([]);
 const search = ref('');
 const monthCount = computed(() => Object.keys(previews.value).filter((d) => d.startsWith(month.value)).length);
-const dirty = computed(() => body.value !== saved.value);
-let autosave: number | undefined;
+
+const context = ref<JournalContext | null>(null);
+const contextLoading = ref(false);
+let contextRequest: AbortController | null = null;
+
+const views = [
+    { value: 'write' as const, label: 'Write' },
+    { value: 'preview' as const, label: 'Preview' },
+];
+
+/** Consecutive days with an entry, ending today (or yesterday, while today is still blank). */
+const streak = computed(() => {
+    let day = recent.value.has(todayIso()) ? todayIso() : shiftDate(todayIso(), -1);
+    let count = 0;
+    while (recent.value.has(day)) {
+        count++;
+        day = shiftDate(day, -1);
+    }
+    return count;
+});
 
 async function loadDay(): Promise<void> {
     status.value = 'loading';
     try {
         const entry = await api.journal.get(date.value);
         body.value = saved.value = entry?.body ?? '';
+        savedAt.value = entry?.updated_at ?? null;
         status.value = 'idle';
     } catch (e) {
         status.value = 'error';
         toast.error(errorMessage(e, 'Could not load the journal.'));
+    }
+}
+
+async function loadContext(): Promise<void> {
+    contextRequest?.abort();
+    const request = (contextRequest = new AbortController());
+    contextLoading.value = true;
+    try {
+        context.value = await api.journal.context(date.value, { signal: request.signal });
+    } catch (e) {
+        if (!(isApiError(e) && e.isCancelled)) context.value = null;
+    } finally {
+        if (contextRequest === request) contextLoading.value = false;
     }
 }
 
@@ -48,6 +94,13 @@ async function loadMonth(): Promise<void> {
     } catch (e) {
         toast.error(errorMessage(e, 'Could not load this month.'));
     }
+}
+
+async function loadRecent(): Promise<void> {
+    const { data } = await api.journal
+        .list({ from: shiftDate(todayIso(), -62), to: todayIso() })
+        .catch(() => ({ data: [] as JournalEntry[] }));
+    recent.value = new Set(data.map((entry) => entry.date));
 }
 
 async function searchEntries(): Promise<void> {
@@ -66,46 +119,53 @@ async function save(): Promise<void> {
     status.value = 'saving';
     const text = body.value;
     try {
-        await api.journal.save(date.value, text);
+        const entry = await api.journal.save(date.value, text);
         saved.value = text;
+        savedAt.value = entry?.updated_at ?? null;
         status.value = 'saved';
         const next = { ...previews.value };
-        if (text.trim()) next[date.value] = text;
-        else delete next[date.value];
+        const days = new Set(recent.value);
+        if (text.trim()) {
+            next[date.value] = text;
+            days.add(date.value);
+        } else {
+            delete next[date.value];
+            days.delete(date.value);
+        }
         previews.value = next;
+        recent.value = days;
     } catch (e) {
         status.value = 'error';
         toast.error(errorMessage(e, 'Could not save your entry.'));
     }
 }
 
-function onInput(): void {
-    window.clearTimeout(autosave);
-    autosave = window.setTimeout(save, 1500);
-}
-
-function onKeydown(event: KeyboardEvent): void {
-    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-        event.preventDefault();
-        void save();
-    }
-}
-
 async function go(day: string): Promise<void> {
+    if (day > todayIso()) return;
     await save();
     await router.push({ query: day === todayIso() ? {} : { date: day } });
 }
 
-const statusText = computed(
-    () =>
-        ({
-            idle: dirty.value ? 'Unsaved changes' : saved.value ? 'Saved' : 'Nothing written yet',
-            loading: 'Loading…',
-            saving: 'Saving…',
-            saved: dirty.value ? 'Unsaved changes' : 'Saved',
-            error: 'Not saved — try again',
-        })[status.value],
-);
+function draft(): void {
+    view.value = 'write';
+    editor.value?.append(standupDraft(context.value));
+    toast.success('Stand-up draft added — Ctrl+Z undoes it');
+}
+
+const statusText = computed(() => {
+    if (status.value === 'loading') return 'Loading…';
+    if (status.value === 'saving') return 'Saving…';
+    if (status.value === 'error') return 'Not saved — try again';
+    if (dirty.value) return 'Unsaved';
+    if (!saved.value) return 'Empty';
+    return savedAt.value ? `Saved ${formatDate(savedAt.value, { timeStyle: 'short' })}` : 'Saved';
+});
+
+watch(body, () => {
+    if (!dirty.value) return;
+    window.clearTimeout(autosave);
+    autosave = window.setTimeout(save, 1500);
+});
 
 let searchTimer: number | undefined;
 watch(search, () => {
@@ -114,6 +174,7 @@ watch(search, () => {
 });
 watch(date, (value) => {
     void loadDay();
+    void loadContext();
     if (monthOf(value) !== month.value) month.value = monthOf(value);
 });
 watch(month, loadMonth);
@@ -122,9 +183,14 @@ onBeforeRouteLeave(async () => {
 });
 onMounted(() => {
     void loadDay();
+    void loadContext();
     void loadMonth();
+    void loadRecent();
 });
-onBeforeUnmount(() => window.clearTimeout(autosave));
+onBeforeUnmount(() => {
+    window.clearTimeout(autosave);
+    contextRequest?.abort();
+});
 </script>
 
 <template>
@@ -132,13 +198,67 @@ onBeforeUnmount(() => window.clearTimeout(autosave));
         <PageHeader
             title="Journal"
             title-id="page-title"
-            description="A private note for each day. It’s included in that day’s report."
+            description="A private devlog, one entry a day. It’s included in that day’s report."
         />
 
-        <div class="grid items-start gap-6 xl:grid-cols-5">
-            <Card as="section" aria-labelledby="calendar-heading" class="gap-4 xl:col-span-3">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-2">
+        <div class="grid items-start gap-6 xl:grid-cols-12">
+            <Card as="section" aria-labelledby="entry-heading" padding="none" class="xl:col-span-8">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
+                    <div class="flex min-w-0 items-center gap-1">
+                        <IconButton
+                            icon="chevron-left"
+                            label="Previous day (Alt+←)"
+                            variant="ghost"
+                            size="sm"
+                            motion="nudge-back"
+                            @click="go(shiftDate(date, -1))"
+                        />
+                        <div class="min-w-0 px-1">
+                            <h2 id="entry-heading" class="truncate font-display text-title font-semibold">
+                                {{ isToday ? 'Today' : formatDate(date, { weekday: 'long' }) }}
+                            </h2>
+                            <Text role="caption" tone="muted" class="font-mono">{{ date }}</Text>
+                        </div>
+                        <IconButton
+                            icon="chevron-right"
+                            label="Next day (Alt+→)"
+                            variant="ghost"
+                            size="sm"
+                            motion="nudge"
+                            :disabled="isToday"
+                            @click="go(shiftDate(date, 1))"
+                        />
+                        <Button v-if="!isToday" variant="ghost" size="sm" @click="go(todayIso())">Today</Button>
+                    </div>
+                    <ChipGroup v-model="view" label="Editor view" :options="views" />
+                </div>
+
+                <JournalEditor
+                    v-show="view === 'write'"
+                    ref="editor"
+                    v-model="body"
+                    v-model:font="preferences.prefs.journalFont"
+                    :label="`Journal entry for ${formatLongDate(date)}`"
+                    :disabled="status === 'loading'"
+                    :save-state="statusText"
+                    @save="save"
+                    @previous="go(shiftDate(date, -1))"
+                    @next="go(shiftDate(date, 1))"
+                />
+                <div v-if="view === 'preview'" class="min-h-96 px-6 py-6">
+                    <JournalPreview :source="body">
+                        <template #empty>
+                            <Text tone="muted">Nothing written for this day yet.</Text>
+                        </template>
+                    </JournalPreview>
+                </div>
+            </Card>
+
+            <div class="flex flex-col gap-6 xl:col-span-4">
+                <DayContext :context="context" :loading="contextLoading" :is-today="isToday" @draft="draft" />
+
+                <Card as="section" aria-labelledby="calendar-heading" class="gap-4">
+                    <div class="flex items-center justify-between gap-2">
                         <IconButton
                             icon="chevron-left"
                             label="Previous month"
@@ -147,8 +267,8 @@ onBeforeUnmount(() => window.clearTimeout(autosave));
                             motion="nudge-back"
                             @click="month = addMonths(month, -1)"
                         />
-                        <div class="min-w-40 text-center">
-                            <h2 id="calendar-heading" class="font-display text-title font-semibold">
+                        <div class="text-center">
+                            <h2 id="calendar-heading" class="font-display text-lead font-semibold">
                                 {{ formatDate(`${month}-01`, { month: 'long', year: 'numeric' }) }}
                             </h2>
                             <Text role="caption" tone="muted" tabular
@@ -164,106 +284,60 @@ onBeforeUnmount(() => window.clearTimeout(autosave));
                             :disabled="month >= monthOf(todayIso())"
                             @click="month = addMonths(month, 1)"
                         />
-                        <Button
-                            v-if="month !== monthOf(todayIso()) || date !== todayIso()"
-                            variant="outline"
-                            size="sm"
-                            @click="go(todayIso())"
-                            >Today</Button
-                        >
                     </div>
+
+                    <div
+                        class="flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2"
+                        :aria-label="`Writing streak: ${streak} ${streak === 1 ? 'day' : 'days'}`"
+                        role="status"
+                    >
+                        <Icon name="flame" :class="streak ? 'text-highlight-fg' : 'text-fg-subtle'" />
+                        <Text as="span" role="label" weight="semibold" tabular
+                            >{{ streak >= 63 ? '63+' : streak }}-day streak</Text
+                        >
+                        <Text as="span" role="caption" tone="muted" class="ml-auto">
+                            {{ streak ? 'Keep it going' : 'Write today to start one' }}
+                        </Text>
+                    </div>
+
                     <SearchField
                         id="journal-search"
                         v-model="search"
                         label="Search entries"
                         placeholder="Search your journal"
                         :maxlength="LIMITS.search"
-                        class="w-full sm:w-64"
                     />
-                </div>
 
-                <template v-if="search.trim()">
-                    <Text role="label" tone="muted" aria-live="polite"
-                        >{{ results.length }} {{ results.length === 1 ? 'entry matches' : 'entries match' }}</Text
-                    >
-                    <ul v-if="results.length" class="-mx-2 flex flex-col divide-y divide-border">
-                        <li v-for="entry in results" :key="entry.id">
-                            <button
-                                type="button"
-                                class="group flex w-full flex-col gap-1 rounded-md px-2 py-3 text-left transition-colors hover:bg-surface-raised"
-                                @click="go(entry.date)"
-                            >
-                                <span class="flex items-center justify-between gap-2 text-label font-semibold">
-                                    {{
-                                        formatDate(entry.date, {
-                                            weekday: 'short',
-                                            day: 'numeric',
-                                            month: 'short',
-                                            year: 'numeric',
-                                        })
-                                    }}
-                                    <Icon name="arrow-right" motion="nudge" class="text-fg-muted" />
-                                </span>
-                                <span class="line-clamp-2 text-caption text-fg-muted">{{ entry.body }}</span>
-                            </button>
-                        </li>
-                    </ul>
-                </template>
-                <JournalCalendar v-else v-model:month="month" :selected="date" :previews="previews" @select="go" />
-            </Card>
-
-            <Card as="section" aria-labelledby="entry-heading" class="order-first gap-4 xl:order-none xl:col-span-2">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-1">
-                        <IconButton
-                            icon="chevron-left"
-                            label="Previous day"
-                            variant="ghost"
-                            size="sm"
-                            motion="nudge-back"
-                            @click="go(shiftDate(date, -1))"
-                        />
-                        <h2 id="entry-heading" class="font-display text-title font-semibold">
-                            {{ formatLongDate(date) }}
-                        </h2>
-                        <IconButton
-                            icon="chevron-right"
-                            label="Next day"
-                            variant="ghost"
-                            size="sm"
-                            motion="nudge"
-                            :disabled="date >= todayIso()"
-                            @click="go(shiftDate(date, 1))"
-                        />
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <Text as="span" role="caption" tone="muted" aria-live="polite">{{ statusText }}</Text>
-                        <Button
-                            size="sm"
-                            icon-start="save"
-                            :disabled="!dirty"
-                            :loading="status === 'saving'"
-                            @click="save"
-                            >Save</Button
+                    <template v-if="search.trim()">
+                        <Text role="label" tone="muted" aria-live="polite"
+                            >{{ results.length }} {{ results.length === 1 ? 'entry matches' : 'entries match' }}</Text
                         >
-                    </div>
-                </div>
-                <label for="journal-body" class="sr-only">Journal entry for {{ formatLongDate(date) }}</label>
-                <textarea
-                    id="journal-body"
-                    v-model="body"
-                    :maxlength="LIMITS.journal"
-                    rows="18"
-                    placeholder="What did you work on? What went well, what got in the way, what’s next?"
-                    class="min-h-96 w-full resize-y rounded-md border border-border-control bg-surface p-4 text-body leading-relaxed text-fg placeholder:text-fg-subtle hover:border-border-strong focus-visible:border-highlight-fg focus-visible:outline-none"
-                    :disabled="status === 'loading'"
-                    @input="onInput"
-                    @keydown="onKeydown"
-                />
-                <Text role="caption" tone="muted" class="text-right tabular"
-                    >{{ body.length.toLocaleString() }} / {{ LIMITS.journal.toLocaleString() }} · Ctrl+S to save</Text
-                >
-            </Card>
+                        <ul v-if="results.length" class="-mx-2 flex flex-col divide-y divide-border">
+                            <li v-for="entry in results" :key="entry.id">
+                                <button
+                                    type="button"
+                                    class="group flex w-full flex-col gap-1 rounded-md px-2 py-3 text-left transition-colors hover:bg-surface-raised"
+                                    @click="go(entry.date)"
+                                >
+                                    <span class="flex items-center justify-between gap-2 text-label font-semibold">
+                                        <span class="font-mono">{{ entry.date }}</span>
+                                        <Icon name="arrow-right" motion="nudge" class="text-fg-muted" />
+                                    </span>
+                                    <span class="line-clamp-2 text-caption text-fg-muted">{{ entry.body }}</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </template>
+                    <JournalCalendar
+                        v-else
+                        v-model:month="month"
+                        compact
+                        :selected="date"
+                        :previews="previews"
+                        @select="go"
+                    />
+                </Card>
+            </div>
         </div>
     </div>
 </template>

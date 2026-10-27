@@ -3,16 +3,24 @@ import { computed, reactive, ref, watch, watchEffect } from 'vue';
 
 export type ThemeChoice = 'system' | 'dark' | 'light';
 export type StartPage = 'dashboard' | 'today' | 'focus';
+export type JournalFont = 'mono' | 'sans';
 
 interface Preferences {
     theme: ThemeChoice;
     startPage: StartPage;
     reduceMotion: boolean;
     showQuotes: boolean;
+    journalFont: JournalFont;
 }
 
 const KEY = 'focus.preferences';
-const defaults: Preferences = { theme: 'dark', startPage: 'dashboard', reduceMotion: false, showQuotes: true };
+const defaults: Preferences = {
+    theme: 'dark',
+    startPage: 'dashboard',
+    reduceMotion: false,
+    showQuotes: true,
+    journalFont: 'mono',
+};
 
 function read(): Preferences {
     try {
@@ -27,6 +35,7 @@ function read(): Preferences {
                 : defaults.startPage,
             reduceMotion: merged.reduceMotion === true,
             showQuotes: merged.showQuotes !== false,
+            journalFont: merged.journalFont === 'sans' ? 'sans' : 'mono',
         };
     } catch {
         return { ...defaults };
@@ -41,7 +50,7 @@ function media(query: string) {
 }
 
 /**
- * Preferences for this device: theme, motion, start page and quotes. The theme and motion are
+ * Preferences for this device: theme, motion, start page, quotes and the journal's writing font. The theme and motion are
  * applied to `<html>` as `data-theme` and `data-motion`, so CSS and every component follow them.
  */
 export const usePreferencesStore = defineStore('preferences', () => {

@@ -35,6 +35,7 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('blockers', BlockerController::class)->except('show');
 
         Route::get('journal', [JournalController::class, 'index']);
+        Route::get('journal/{date}/context', [JournalController::class, 'context']);
         Route::get('journal/{date}', [JournalController::class, 'show']);
         Route::put('journal/{date}', [JournalController::class, 'update']);
         Route::delete('journal/{date}', [JournalController::class, 'destroy']);
