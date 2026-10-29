@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { playChime } from '@/lib/chime';
 import { todayIso } from '@/lib/dates';
+import { useSettingsStore } from './settings';
 
 export type SessionKind = 'focus' | 'break';
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'done';
@@ -33,8 +34,6 @@ interface Persisted {
     pausedRemainingMs: number | null;
     status: TimerStatus;
     task: { id: number; title: string } | null;
-    sound: boolean;
-    autoBreak: boolean;
     sessions: { date: string; count: number };
 }
 
@@ -48,7 +47,7 @@ function read(): Partial<Persisted> {
 
 /**
  * A countdown measured against a stored end time, so it stays accurate in background tabs
- * and survives reloads. Per-device state: kept in localStorage, never sent to the server.
+ * and survives reloads. The countdown is per-device state, kept in localStorage and never sent to the server.
  */
 export const useTimerStore = defineStore('timer', () => {
     const saved = read();
@@ -60,8 +59,10 @@ export const useTimerStore = defineStore('timer', () => {
     const pausedRemainingMs = ref<number | null>(saved.pausedRemainingMs ?? null);
     const status = ref<TimerStatus>(saved.status ?? 'idle');
     const task = ref<Persisted['task']>(saved.task ?? null);
-    const sound = ref(saved.sound ?? true);
-    const autoBreak = ref(saved.autoBreak ?? false);
+    // The chime and auto-break are account settings; the countdown itself stays on this device.
+    const settings = useSettingsStore();
+    const sound = settings.bind('timer', 'chime');
+    const autoBreak = settings.bind('timer', 'auto_break');
     const sessions = ref(saved.sessions?.date === todayIso() ? saved.sessions : { date: todayIso(), count: 0 });
     const now = ref(Date.now());
     const baseTitle = ref('Focus');
@@ -201,7 +202,7 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     watch(
-        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sound, autoBreak, sessions],
+        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sessions],
         () => {
             try {
                 const state: Persisted = {
@@ -212,8 +213,6 @@ export const useTimerStore = defineStore('timer', () => {
                     pausedRemainingMs: pausedRemainingMs.value,
                     status: status.value,
                     task: task.value,
-                    sound: sound.value,
-                    autoBreak: autoBreak.value,
                     sessions: sessions.value,
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));

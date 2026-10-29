@@ -9,6 +9,12 @@ export type { JournalContext, JournalEntry } from './models/journal';
 export type { Wallpaper } from './models/wallpaper';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';
+export type {
+    SettingDescription,
+    SettingsChanges,
+    SettingsModuleDescription,
+    SettingsState,
+} from './models/settings';
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
 export type {

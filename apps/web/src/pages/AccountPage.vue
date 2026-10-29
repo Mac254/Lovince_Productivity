@@ -2,9 +2,9 @@
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS } from '@focus/types';
 import { Avatar, Button, ChipGroup, ConfirmDialog, Dialog, Input, PageHeader, Switch, Text, useToast } from '@focus/ui';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { defaultClockPrefs, loadPrefs, savePrefs } from '@/features/clock/wallpapers';
+import { useClockPrefs } from '@/features/clock/wallpapers';
 import SettingRow from '@/features/settings/SettingRow.vue';
 import SettingsSection from '@/features/settings/SettingsSection.vue';
 import { formatDate } from '@/lib/dates';
@@ -42,12 +42,11 @@ const timeFormats = [
     { value: '12', label: '12-hour' },
 ];
 
-const clock = reactive(loadPrefs());
+const clock = useClockPrefs();
 const timeFormat = computed({
     get: () => (clock.hour12 ? '12' : '24'),
     set: (value: string) => (clock.hour12 = value === '12'),
 });
-watch(clock, savePrefs, { deep: true });
 
 const notificationsSupported = typeof Notification !== 'undefined';
 const notificationPermission = ref(notificationsSupported ? Notification.permission : 'denied');
@@ -68,13 +67,18 @@ async function allowNotifications(): Promise<void> {
 }
 
 const resetOpen = ref(false);
-function resetPreferences(): void {
-    preferences.reset();
-    Object.assign(clock, defaultClockPrefs);
-    timer.sound = true;
-    timer.autoBreak = false;
-    resetOpen.value = false;
-    toast.success('Preferences reset on this device');
+const resetting = ref(false);
+async function resetPreferences(): Promise<void> {
+    resetting.value = true;
+    try {
+        await preferences.reset();
+        resetOpen.value = false;
+        toast.success('Settings reset to their defaults');
+    } catch (error) {
+        toast.error(errorMessage(error));
+    } finally {
+        resetting.value = false;
+    }
 }
 
 const session = computed(() => {
@@ -374,8 +378,8 @@ onMounted(() => void auth.refresh().catch(() => undefined));
 
                 <SettingsSection id="reset" title="Reset" icon="undo">
                     <SettingRow
-                        label="Preferences on this device"
-                        description="Theme, motion, start page, quotes, journal font, clock and timer go back to their defaults. Your tasks and account aren’t touched."
+                        label="All settings"
+                        description="Theme, motion, start page, quotes, journal font, clock and timer go back to their defaults on every device. Your tasks and account aren’t touched."
                     >
                         <template #action>
                             <Button variant="outline" size="sm" icon-start="undo" @click="resetOpen = true"
@@ -389,9 +393,10 @@ onMounted(() => void auth.refresh().catch(() => undefined));
 
         <ConfirmDialog
             v-model:open="resetOpen"
-            title="Reset preferences?"
-            message="Theme, motion, start page, quotes, journal font, clock and timer settings on this device go back to their defaults."
+            title="Reset settings?"
+            message="Theme, motion, start page, quotes, journal font, clock and timer settings go back to their defaults on every device you use."
             confirm-label="Reset"
+            :loading="resetting"
             @confirm="resetPreferences"
         />
 

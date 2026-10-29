@@ -8,6 +8,7 @@ import { metricEndpoints } from './endpoints/metrics';
 import { profileEndpoints } from './endpoints/profile';
 import { quoteEndpoints } from './endpoints/quotes';
 import { reportEndpoints } from './endpoints/reports';
+import { settingsEndpoints } from './endpoints/settings';
 import { wallpaperEndpoints } from './endpoints/wallpapers';
 import { taskEndpoints } from './endpoints/tasks';
 import { taskNoteEndpoints } from './endpoints/taskNotes';
@@ -25,6 +26,7 @@ export function createApi(http: AxiosInstance) {
         reports: reportEndpoints(http),
         metrics: metricEndpoints(http),
         profile: profileEndpoints(http),
+        settings: settingsEndpoints(http),
         wallpapers: wallpaperEndpoints(http),
         taskTypes: taskTypeEndpoints(http),
         taskNotes: taskNoteEndpoints(http),

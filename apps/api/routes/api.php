@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\MetricsController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuoteController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\TaskNoteController;
 use App\Http\Controllers\Api\V1\TaskTypeController;
@@ -47,6 +48,10 @@ Route::prefix('v1')->group(function () {
         Route::get('profile/avatar', [ProfileController::class, 'showAvatar']);
         Route::post('profile/avatar', [ProfileController::class, 'storeAvatar'])->middleware('throttle:10,1');
         Route::delete('profile/avatar', [ProfileController::class, 'destroyAvatar']);
+
+        Route::get('settings', [SettingsController::class, 'show']);
+        Route::patch('settings', [SettingsController::class, 'update'])->middleware('throttle:60,1');
+        Route::delete('settings', [SettingsController::class, 'destroy']);
 
         Route::get('wallpapers', [WallpaperController::class, 'index']);
         Route::post('wallpapers', [WallpaperController::class, 'store'])->middleware('throttle:20,1');

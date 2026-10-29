@@ -57,3 +57,54 @@ export const LIMITS = {
     wallpaperKb: 8192,
     wallpapers: 12,
 } as const;
+
+/** Settings by module, from apps/api/app/Settings/Modules. */
+export interface Settings {
+    general: {
+        start_page: 'dashboard' | 'today' | 'focus';
+        show_quotes: boolean;
+    };
+    appearance: {
+        theme: 'dark' | 'light' | 'system';
+        reduce_motion: boolean;
+    };
+    clock: {
+        wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | `custom:${number}`;
+        time_format: '24h' | '12h';
+        show_seconds: boolean;
+        ticking: boolean;
+    };
+    timer: {
+        chime: boolean;
+        auto_break: boolean;
+    };
+    journal: {
+        font: 'mono' | 'sans';
+    };
+}
+
+export type SettingsModuleKey = keyof Settings;
+
+export const SETTINGS_DEFAULTS: Settings = {
+    general: {
+        start_page: 'dashboard',
+        show_quotes: true,
+    },
+    appearance: {
+        theme: 'dark',
+        reduce_motion: false,
+    },
+    clock: {
+        wallpaper: 'neon',
+        time_format: '24h',
+        show_seconds: true,
+        ticking: false,
+    },
+    timer: {
+        chime: true,
+        auto_break: false,
+    },
+    journal: {
+        font: 'mono',
+    },
+};

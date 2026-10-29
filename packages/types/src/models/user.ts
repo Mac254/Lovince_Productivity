@@ -1,3 +1,5 @@
+import type { Settings } from '../generated/contract';
+
 export interface User {
     id: number;
     name: string;
@@ -19,4 +21,5 @@ export interface AuthSession {
 export interface Me {
     user: User;
     session: AuthSession;
+    settings: Settings;
 }

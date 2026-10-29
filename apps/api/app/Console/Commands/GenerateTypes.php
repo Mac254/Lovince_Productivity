@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Settings\Setting;
+use App\Settings\SettingsRegistry;
 use App\Support\Contract;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -56,8 +58,39 @@ class GenerateTypes extends Command
         }
 
         $lines[] = 'export const LIMITS = '.$this->literal(Contract::limits()).' as const;';
+        $lines[] = '';
 
-        return implode("\n", $lines)."\n";
+        return implode("\n", [...$lines, ...$this->settings()])."\n";
+    }
+
+    /**
+     * The settings modules as a `Settings` type and their defaults.
+     *
+     * @return list<string>
+     */
+    private function settings(): array
+    {
+        $registry = app(SettingsRegistry::class);
+        $lines = ['/** Settings by module, from apps/api/app/Settings/Modules. */', 'export interface Settings {'];
+        foreach ($registry->modules() as $name => $module) {
+            $lines[] = "    {$name}: {";
+            foreach ($module->settings() as $setting) {
+                /** @var Setting $setting */
+                $lines[] = "        {$setting->key}: {$setting->tsType()};";
+            }
+            $lines[] = '    };';
+        }
+        $lines[] = '}';
+        $lines[] = '';
+        $lines[] = 'export type SettingsModuleKey = keyof Settings;';
+        $lines[] = '';
+
+        $defaults = json_encode($registry->defaults(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $defaults = preg_replace('/^( +)"([a-z_0-9]+)":/m', '$1$2:', $defaults);
+        $defaults = preg_replace('/"([^"]*)"/', "'$1'", $defaults);
+        $defaults = preg_replace('/([^,{\[\n])\n/', "$1,\n", $defaults);
+
+        return [...$lines, "export const SETTINGS_DEFAULTS: Settings = {$defaults};"];
     }
 
     /**

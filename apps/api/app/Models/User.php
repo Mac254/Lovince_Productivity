@@ -12,11 +12,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token', 'avatar_path'])]
+#[Hidden(['password', 'remember_token', 'avatar_path', 'settings'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /** @var array<string, mixed> */
+    protected $attributes = ['settings' => null];
 
     /**
      * Get the attributes that should be cast.
@@ -28,6 +31,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'settings' => 'array',
         ];
     }
 

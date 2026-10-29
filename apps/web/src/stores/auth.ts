@@ -2,17 +2,20 @@ import { api, isApiError } from '@focus/api-client';
 import type { AuthSession, LoginInput, Me, User } from '@focus/types';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import { useSettingsStore } from './settings';
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null);
     const session = ref<AuthSession | null>(null);
     const resolved = ref(false);
+    const settings = useSettingsStore();
 
     const isAuthenticated = computed(() => user.value !== null);
 
     function apply(me: Me): void {
         user.value = me.user;
         session.value = me.session;
+        settings.hydrate(me.settings);
         resolved.value = true;
     }
 
@@ -50,6 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     function clear(): void {
         user.value = null;
         session.value = null;
+        settings.signOut();
         resolved.value = true;
     }
 

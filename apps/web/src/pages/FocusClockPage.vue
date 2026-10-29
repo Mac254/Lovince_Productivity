@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { LIMITS } from '@focus/types';
 import { IconButton } from '@focus/ui';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import DayRail from '@/features/clock/DayRail.vue';
 import FocusTimer from '@/features/clock/FocusTimer.vue';
 import RollingDigits from '@/features/clock/RollingDigits.vue';
 import TodayStrip from '@/features/clock/TodayStrip.vue';
 import { useWallpapers } from '@/features/clock/useWallpapers';
-import { customWallpaperKey, loadPrefs, savePrefs, wallpapers } from '@/features/clock/wallpapers';
+import { customWallpaperKey, useClockPrefs, wallpapers } from '@/features/clock/wallpapers';
 import { useDashboard } from '@/composables/useDashboard';
 import { isoWeek } from '@/lib/dates';
 import { createTicker } from '@/lib/ticker';
@@ -28,7 +28,7 @@ const mode = computed<'clock' | 'timer'>({
     set: (value) => void router.replace({ query: value === 'timer' ? { mode: 'timer' } : {} }),
 });
 
-const prefs = reactive(loadPrefs());
+const prefs = useClockPrefs();
 const { uploads, uploading, activeUpload, wallpaper, load: loadUploads, upload, removeActive } = useWallpapers(prefs);
 const ticker = createTicker();
 
@@ -105,7 +105,6 @@ function onFile(event: Event): void {
 
 const syncFullscreen = () => (fullscreen.value = !!document.fullscreenElement);
 
-watch(prefs, savePrefs, { deep: true });
 watch(
     () => prefs.tick,
     (on) => (on ? ticker.start() : ticker.stop()),
