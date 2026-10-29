@@ -80,4 +80,29 @@ class TaskNoteTest extends TestCase
             ->assertJsonPath('data.work_log.0.task.title', 'Read the book');
         $this->assertStringContainsString('2 work notes were logged (1h 15m).', $report->json('data.narrative'));
     }
+
+    public function test_saved_reports_follow_a_deleted_task_and_late_work_on_the_plan(): void
+    {
+        Carbon::setTestNow('2026-10-27 23:55:00');
+        $user = User::factory()->create();
+        $planned = Task::factory()->for($user)->create(['due_date' => '2026-10-27', 'created_at' => '2026-10-27 08:00:00']);
+        $other = Task::factory()->for($user)->create(['created_at' => '2026-10-27 08:00:00']);
+        TaskNote::factory()->create(['task_id' => $other->id, 'body' => 'Spike', 'logged_on' => '2026-10-27']);
+        $this->actingAs($user)->postJson('/api/v1/reports')->assertCreated()
+            ->assertJsonPath('data.summary.planned_worked', 0)
+            ->assertJsonPath('data.summary.notes_logged', 1);
+
+        Carbon::setTestNow('2026-10-28 10:00:00');
+        $this->postJson("/api/v1/tasks/{$planned->id}/notes", ['body' => 'Forgot to log this', 'logged_on' => '2026-10-27'])
+            ->assertCreated();
+        $this->getJson('/api/v1/reports/2026-10-27')
+            ->assertJsonPath('data.summary.planned_worked', 1)
+            ->assertJsonPath('data.summary.notes_logged', 2);
+
+        $this->deleteJson("/api/v1/tasks/{$other->id}")->assertNoContent();
+        $this->getJson('/api/v1/reports/2026-10-27')
+            ->assertJsonPath('data.summary.notes_logged', 1)
+            ->assertJsonCount(1, 'data.work_log')
+            ->assertJsonPath('data.work_log.0.task.id', $planned->id);
+    }
 }

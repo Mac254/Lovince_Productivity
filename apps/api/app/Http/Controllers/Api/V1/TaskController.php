@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
@@ -79,7 +80,8 @@ class TaskController extends Controller
     {
         Gate::authorize('delete', $task);
 
-        $task->delete();
+        // The task, its work log and the reports that listed it change together or not at all.
+        DB::transaction(fn () => $task->delete());
 
         return response()->noContent();
     }

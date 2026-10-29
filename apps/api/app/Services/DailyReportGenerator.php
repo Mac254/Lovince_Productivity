@@ -58,7 +58,7 @@ class DailyReportGenerator
         // The day's plan, as the Today page shows it: due this day or starred (stars are as they are now).
         $inPlan = fn (Task $task) => $task->is_highlighted || $task->due_date?->isSameDay($date);
         $plannedCompleted = $completed->filter($inPlan)->count();
-        $plannedOpen = fn (): Builder => $openThen()->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true));
+        $plannedOpen = fn (): Builder => $this->plannedOpen($user, $date, $asOf);
 
         $workLog = $this->workLogFor($user, $date);
 
@@ -90,7 +90,7 @@ class DailyReportGenerator
             'blockers_resolved' => $blockersResolved->count(),
             'planned' => $plannedCompleted + $plannedOpen()->count(),
             'planned_completed' => $plannedCompleted,
-            'planned_worked' => $plannedOpen()->whereHas('notes', fn (Builder $q) => $q->whereDate('logged_on', $date))->count(),
+            'planned_worked' => $this->plannedWorked($user, $date, $asOf),
             'notes_logged' => $workLog->count(),
             'minutes_logged' => (int) $workLog->sum('minutes'),
             'high_priority_completed' => $completed->filter(fn (Task $task) => in_array($task->priority->value, ['high', 'urgent'], true))->count(),
@@ -157,14 +157,42 @@ class DailyReportGenerator
             return;
         }
 
-        $workLog = $this->workLogFor($user, $date->copy()->startOfDay());
+        $day = $date->copy()->startOfDay();
+        $workLog = $this->workLogFor($user, $day);
         $data = $report->data;
+        if (array_key_exists('planned_worked', $data['summary'])) {
+            $asOf = ($report->generated_at ?? now())->min($day->copy()->endOfDay());
+            $data['summary']['planned_worked'] = $this->plannedWorked($user, $day, $asOf);
+        }
         $data['summary']['notes_logged'] = $workLog->count();
         $data['summary']['minutes_logged'] = (int) $workLog->sum('minutes');
         $data['narrative'] = $this->narrative($data['summary']);
         $data['work_log'] = $this->workLogList($workLog);
 
         $report->update(['data' => $data]);
+    }
+
+    /**
+     * The day's plan still open at the cut-off: due that day or starred, and not cancelled
+     * or completed by then.
+     *
+     * @return Builder<Task>
+     */
+    private function plannedOpen(User $user, Carbon $date, Carbon $asOf): Builder
+    {
+        return Task::query()->whereBelongsTo($user)
+            ->where('created_at', '<=', $asOf)
+            ->where('status', '!=', TaskStatus::Cancelled)
+            ->where(fn (Builder $q) => $q->whereNull('completed_at')->orWhere('completed_at', '>', $asOf))
+            ->where(fn (Builder $q) => $q->whereDate('due_date', $date)->orWhere('is_highlighted', true));
+    }
+
+    /** Open tasks in the day's plan with work logged on that day: half a step of progress each. */
+    private function plannedWorked(User $user, Carbon $date, Carbon $asOf): int
+    {
+        return $this->plannedOpen($user, $date, $asOf)
+            ->whereHas('notes', fn (Builder $q) => $q->whereDate('logged_on', $date))
+            ->count();
     }
 
     /**
