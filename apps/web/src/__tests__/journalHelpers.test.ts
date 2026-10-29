@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseInline, parseMarkdown } from '@/lib/markdownLite';
+import { parseInline, parseMarkdown, summarizeEntry } from '@/lib/markdownLite';
 import { standupDraft } from '@/lib/standup';
 import { caretPosition, continueList, indentList } from '@/lib/textEditing';
 
@@ -102,5 +102,21 @@ describe('stand-up draft', () => {
                 '- Docs',
             ].join('\n'),
         );
+    });
+});
+
+describe('entry summary', () => {
+    it('uses the first written line, not a heading, and counts sections and items', () => {
+        expect(summarizeEntry('## Done\n- Updated the `Nexus` UI\n- \n- Merged\n\n## Personal\n- Read')).toEqual({
+            title: 'Updated the Nexus UI',
+            sections: ['Done', 'Personal'],
+            items: 3,
+        });
+    });
+
+    it('falls back to a heading, and handles plain text', () => {
+        expect(summarizeEntry('## Notes').title).toBe('Notes');
+        expect(summarizeEntry('Shipped it.\nMore').title).toBe('Shipped it. More');
+        expect(summarizeEntry('').title).toBe('');
     });
 });

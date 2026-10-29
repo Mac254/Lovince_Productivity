@@ -108,3 +108,40 @@ export function parseMarkdown(source: string): Block[] {
 
     return blocks;
 }
+
+export interface EntrySummary {
+    /** The first line with content, without Markdown markers. */
+    title: string;
+    /** Section headings, in order. */
+    sections: string[];
+    /** List items written, placeholders excluded. */
+    items: number;
+}
+
+/** What a list of entries shows for one: its first real line, its sections and how much it holds. */
+export function summarizeEntry(source: string): EntrySummary {
+    const blocks = parseMarkdown(source);
+    const text = (inline: Inline[]) =>
+        inline
+            .map((part) => part.text)
+            .join('')
+            .replace(/\s+/g, ' ')
+            .trim();
+    const first = blocks.find((block) => block.kind !== 'heading' && block.kind !== 'rule');
+    let title = '';
+    if (first?.kind === 'list') title = text(first.items[0]!.inline);
+    else if (first?.kind === 'code')
+        title =
+            first.text
+                .split('\n')
+                .find((line) => line.trim())
+                ?.trim() ?? '';
+    else if (first && 'inline' in first) title = text(first.inline);
+
+    const sections = blocks.flatMap((block) => (block.kind === 'heading' ? [text(block.inline)] : []));
+    return {
+        title: title || sections[0] || '',
+        sections,
+        items: blocks.reduce((sum, block) => sum + (block.kind === 'list' ? block.items.length : 0), 0),
+    };
+}

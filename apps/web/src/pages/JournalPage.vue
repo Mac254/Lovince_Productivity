@@ -7,6 +7,7 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import DayContext from '@/features/journal/DayContext.vue';
 import JournalCalendar from '@/features/journal/JournalCalendar.vue';
 import JournalEditor from '@/features/journal/JournalEditor.vue';
+import JournalEntryList from '@/features/journal/JournalEntryList.vue';
 import JournalPreview from '@/features/journal/JournalPreview.vue';
 import { addMonths, monthGrid, monthOf, shiftDate } from '@/lib/calendar';
 import { formatDate, formatLongDate, todayIso } from '@/lib/dates';
@@ -38,7 +39,12 @@ const previews = ref<Record<string, string>>({});
 const recent = ref<Set<string>>(new Set());
 const results = ref<JournalEntry[]>([]);
 const search = ref('');
-const monthCount = computed(() => Object.keys(previews.value).filter((d) => d.startsWith(month.value)).length);
+const monthEntries = computed(() =>
+    Object.entries(previews.value)
+        .filter(([day]) => day.startsWith(month.value))
+        .map(([day, text]) => ({ date: day, body: text })),
+);
+const monthName = computed(() => formatDate(`${month.value}-01`, { month: 'long' }));
 
 const context = ref<JournalContext | null>(null);
 const contextLoading = ref(false);
@@ -202,61 +208,65 @@ onBeforeUnmount(() => {
         />
 
         <div class="grid items-start gap-6 xl:grid-cols-12">
-            <Card as="section" aria-labelledby="entry-heading" padding="none" class="xl:col-span-8">
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
-                    <div class="flex min-w-0 items-center gap-1">
-                        <IconButton
-                            icon="chevron-left"
-                            label="Previous day (Alt+←)"
-                            variant="ghost"
-                            size="sm"
-                            motion="nudge-back"
-                            @click="go(shiftDate(date, -1))"
-                        />
-                        <div class="min-w-0 px-1">
-                            <h2 id="entry-heading" class="truncate font-display text-title font-semibold">
-                                {{ isToday ? 'Today' : formatDate(date, { weekday: 'long' }) }}
-                            </h2>
-                            <Text role="caption" tone="muted" class="font-mono">{{ date }}</Text>
+            <div class="flex min-w-0 flex-col gap-6 xl:col-span-8">
+                <Card as="section" aria-labelledby="entry-heading" padding="none">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6"
+                    >
+                        <div class="flex min-w-0 items-center gap-1">
+                            <IconButton
+                                icon="chevron-left"
+                                label="Previous day (Alt+←)"
+                                variant="ghost"
+                                size="sm"
+                                motion="nudge-back"
+                                @click="go(shiftDate(date, -1))"
+                            />
+                            <div class="min-w-0 px-1">
+                                <h2 id="entry-heading" class="truncate font-display text-title font-semibold">
+                                    {{ isToday ? 'Today' : formatDate(date, { weekday: 'long' }) }}
+                                </h2>
+                                <Text role="caption" tone="muted" class="font-mono">{{ date }}</Text>
+                            </div>
+                            <IconButton
+                                icon="chevron-right"
+                                label="Next day (Alt+→)"
+                                variant="ghost"
+                                size="sm"
+                                motion="nudge"
+                                :disabled="isToday"
+                                @click="go(shiftDate(date, 1))"
+                            />
+                            <Button v-if="!isToday" variant="ghost" size="sm" @click="go(todayIso())">Today</Button>
                         </div>
-                        <IconButton
-                            icon="chevron-right"
-                            label="Next day (Alt+→)"
-                            variant="ghost"
-                            size="sm"
-                            motion="nudge"
-                            :disabled="isToday"
-                            @click="go(shiftDate(date, 1))"
-                        />
-                        <Button v-if="!isToday" variant="ghost" size="sm" @click="go(todayIso())">Today</Button>
+                        <ChipGroup v-model="view" label="Editor view" :options="views" />
                     </div>
-                    <ChipGroup v-model="view" label="Editor view" :options="views" />
-                </div>
 
-                <JournalEditor
-                    v-show="view === 'write'"
-                    ref="editor"
-                    v-model="body"
-                    v-model:font="preferences.prefs.journalFont"
-                    :label="`Journal entry for ${formatLongDate(date)}`"
-                    :disabled="status === 'loading'"
-                    :save-state="statusText"
-                    @save="save"
-                    @previous="go(shiftDate(date, -1))"
-                    @next="go(shiftDate(date, 1))"
-                />
-                <div v-if="view === 'preview'" class="min-h-96 px-6 py-6">
-                    <JournalPreview :source="body">
-                        <template #empty>
-                            <Text tone="muted">Nothing written for this day yet.</Text>
-                        </template>
-                    </JournalPreview>
-                </div>
-            </Card>
+                    <JournalEditor
+                        v-show="view === 'write'"
+                        ref="editor"
+                        v-model="body"
+                        v-model:font="preferences.prefs.journalFont"
+                        :label="`Journal entry for ${formatLongDate(date)}`"
+                        :disabled="status === 'loading'"
+                        :save-state="statusText"
+                        @save="save"
+                        @previous="go(shiftDate(date, -1))"
+                        @next="go(shiftDate(date, 1))"
+                    />
+                    <div v-if="view === 'preview'" class="min-h-96 px-6 py-6">
+                        <JournalPreview :source="body">
+                            <template #empty>
+                                <Text tone="muted">Nothing written for this day yet.</Text>
+                            </template>
+                        </JournalPreview>
+                    </div>
+                </Card>
 
-            <div class="flex flex-col gap-6 xl:col-span-4">
                 <DayContext :context="context" :loading="contextLoading" :is-today="isToday" @draft="draft" />
+            </div>
 
+            <aside aria-label="Your entries" class="flex min-w-0 flex-col gap-6 xl:order-first xl:col-span-4">
                 <Card as="section" aria-labelledby="calendar-heading" class="gap-4">
                     <div class="flex items-center justify-between gap-2">
                         <IconButton
@@ -267,14 +277,9 @@ onBeforeUnmount(() => {
                             motion="nudge-back"
                             @click="month = addMonths(month, -1)"
                         />
-                        <div class="text-center">
-                            <h2 id="calendar-heading" class="font-display text-lead font-semibold">
-                                {{ formatDate(`${month}-01`, { month: 'long', year: 'numeric' }) }}
-                            </h2>
-                            <Text role="caption" tone="muted" tabular
-                                >{{ monthCount }} {{ monthCount === 1 ? 'entry' : 'entries' }}</Text
-                            >
-                        </div>
+                        <h2 id="calendar-heading" class="font-display text-lead font-semibold">
+                            {{ formatDate(`${month}-01`, { month: 'long', year: 'numeric' }) }}
+                        </h2>
                         <IconButton
                             icon="chevron-right"
                             label="Next month"
@@ -285,6 +290,8 @@ onBeforeUnmount(() => {
                             @click="month = addMonths(month, 1)"
                         />
                     </div>
+
+                    <JournalCalendar v-model:month="month" compact :selected="date" :previews="previews" @select="go" />
 
                     <div
                         class="flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2"
@@ -299,6 +306,18 @@ onBeforeUnmount(() => {
                             {{ streak ? 'Keep it going' : 'Write today to start one' }}
                         </Text>
                     </div>
+                </Card>
+
+                <Card as="section" aria-labelledby="entries-heading" class="gap-4">
+                    <div class="flex items-baseline justify-between gap-2">
+                        <h2 id="entries-heading" class="font-display text-lead font-semibold">
+                            {{ search.trim() ? 'Search results' : `Entries in ${monthName}` }}
+                        </h2>
+                        <Text as="span" role="caption" tone="muted" tabular aria-live="polite">
+                            {{ search.trim() ? results.length : monthEntries.length }}
+                            {{ (search.trim() ? results.length : monthEntries.length) === 1 ? 'entry' : 'entries' }}
+                        </Text>
+                    </div>
 
                     <SearchField
                         id="journal-search"
@@ -308,36 +327,18 @@ onBeforeUnmount(() => {
                         :maxlength="LIMITS.search"
                     />
 
-                    <template v-if="search.trim()">
-                        <Text role="label" tone="muted" aria-live="polite"
-                            >{{ results.length }} {{ results.length === 1 ? 'entry matches' : 'entries match' }}</Text
-                        >
-                        <ul v-if="results.length" class="-mx-2 flex flex-col divide-y divide-border">
-                            <li v-for="entry in results" :key="entry.id">
-                                <button
-                                    type="button"
-                                    class="group flex w-full flex-col gap-1 rounded-md px-2 py-3 text-left transition-colors hover:bg-surface-raised"
-                                    @click="go(entry.date)"
-                                >
-                                    <span class="flex items-center justify-between gap-2 text-label font-semibold">
-                                        <span class="font-mono">{{ entry.date }}</span>
-                                        <Icon name="arrow-right" motion="nudge" class="text-fg-muted" />
-                                    </span>
-                                    <span class="line-clamp-2 text-caption text-fg-muted">{{ entry.body }}</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </template>
-                    <JournalCalendar
-                        v-else
-                        v-model:month="month"
-                        compact
+                    <JournalEntryList
+                        v-if="search.trim() ? results.length : monthEntries.length"
+                        :entries="search.trim() ? results : monthEntries"
+                        :across-months="!!search.trim()"
                         :selected="date"
-                        :previews="previews"
                         @select="go"
                     />
+                    <Text v-else role="label" tone="muted">
+                        {{ search.trim() ? 'No entries match.' : `Nothing written in ${monthName} yet.` }}
+                    </Text>
                 </Card>
-            </div>
+            </aside>
         </div>
     </div>
 </template>
