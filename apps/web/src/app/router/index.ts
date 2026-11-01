@@ -65,6 +65,12 @@ export const router = createRouter({
                     meta: { title: 'Goal' },
                 },
                 {
+                    path: 'schedules',
+                    name: 'schedules',
+                    component: () => import('@/pages/SchedulesPage.vue'),
+                    meta: { title: 'Schedules' },
+                },
+                {
                     path: 'types',
                     name: 'types',
                     component: () => import('@/pages/TaskTypesPage.vue'),

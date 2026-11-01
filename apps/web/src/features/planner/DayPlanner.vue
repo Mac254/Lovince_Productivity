@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { api, errorMessage } from '@focus/api-client';
-import type { Task, TimeBlock } from '@focus/types';
+import { api, errorMessage, isApiError } from '@focus/api-client';
+import type { Schedule, Task, TimeBlock } from '@focus/types';
 import { formatMinutes, todayIso } from '@/lib/dates';
 import { clockTime, freeMinutes, plannedMinutes, snap, visibleRange } from './timeline';
 
 const props = defineProps<{ date: string; tasks: Task[] }>();
 
 const settings = useSettingsStore();
+const toast = useToast();
 const blocks = ref<TimeBlock[]>([]);
+const schedules = ref<Schedule[]>([]);
+const replacing = ref<{ schedule: Schedule; message: string } | null>(null);
+const replaceBusy = ref(false);
 const error = ref<string | null>(null);
 const dialogOpen = ref(false);
 const editing = ref<TimeBlock | null>(null);
@@ -40,6 +44,42 @@ async function load(): Promise<void> {
     }
 }
 
+const scheduleMenu = computed(() =>
+    schedules.value.map((schedule) => ({
+        label: schedule.name,
+        icon: 'calendar-clock' as const,
+        onSelect: () => void applySchedule(schedule),
+    })),
+);
+
+async function loadSchedules(): Promise<void> {
+    try {
+        schedules.value = await api.schedules.list();
+    } catch {
+        schedules.value = [];
+    }
+}
+
+async function applySchedule(schedule: Schedule, replace = false): Promise<void> {
+    try {
+        await api.schedules.apply(schedule.id, props.date, replace);
+        replacing.value = null;
+        toast.success(`“${schedule.name}” planned`);
+        await load();
+    } catch (e) {
+        if (isApiError(e) && e.isValidation && !replace)
+            replacing.value = { schedule, message: e.fieldErrors().date ?? '' };
+        else toast.error(errorMessage(e, 'Could not apply the schedule.'));
+    }
+}
+
+async function confirmReplace(): Promise<void> {
+    if (!replacing.value) return;
+    replaceBusy.value = true;
+    await applySchedule(replacing.value.schedule, true);
+    replaceBusy.value = false;
+}
+
 function openAt(event: MouseEvent): void {
     if (!column.value) return;
     const box = column.value.getBoundingClientRect();
@@ -60,7 +100,10 @@ function edit(block: TimeBlock): void {
 }
 
 watch(() => props.date, load, { immediate: true });
-onMounted(() => (clock = window.setInterval(() => (now.value = new Date()), 60_000)));
+onMounted(() => {
+    void loadSchedules();
+    clock = window.setInterval(() => (now.value = new Date()), 60_000);
+});
 onBeforeUnmount(() => window.clearInterval(clock));
 </script>
 
@@ -72,6 +115,14 @@ onBeforeUnmount(() => window.clearInterval(clock));
             icon="calendar-clock"
             :subtitle="blocks.length ? `${planned} blocked out` : 'Click the timeline to block out time'"
         >
+            <DropdownMenu
+                v-if="schedules.length"
+                :items="scheduleMenu"
+                label="Use a schedule"
+                icon="calendar-clock"
+                trigger-variant="ghost"
+                size="sm"
+            />
             <Button variant="ghost" size="sm" icon-start="add" @click="newBlock()">Block</Button>
         </CardHeader>
 
@@ -128,6 +179,15 @@ onBeforeUnmount(() => window.clearInterval(clock));
             :minutes="draftMinutes"
             :tasks="tasks"
             @changed="load"
+        />
+        <ConfirmDialog
+            :open="!!replacing"
+            title="Replace this day's plan?"
+            :message="`${replacing?.message ?? ''} Replacing removes the blocks already planned for this day; their tasks are kept.`"
+            confirm-label="Replace plan"
+            :loading="replaceBusy"
+            @update:open="(value) => !value && (replacing = null)"
+            @confirm="confirmReplace"
         />
     </Card>
 </template>

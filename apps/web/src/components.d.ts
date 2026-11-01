@@ -66,6 +66,8 @@ declare module 'vue' {
     RollingDigits: typeof import('./features/clock/RollingDigits.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ScheduleCard: typeof import('./features/planner/ScheduleCard.vue')['default']
+    ScheduleFormDialog: typeof import('./features/planner/ScheduleFormDialog.vue')['default']
     SearchField: typeof import('@focus/ui')['SearchField']
     Section: typeof import('@focus/ui')['Section']
     Select: typeof import('@focus/ui')['Select']

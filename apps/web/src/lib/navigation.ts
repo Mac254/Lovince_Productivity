@@ -13,6 +13,7 @@ export const navigation: { label: string; items: NavItem[] }[] = [
         items: [
             { name: 'dashboard', label: 'Dashboard', icon: 'dashboard', motion: 'pop' },
             { name: 'today', label: 'Today', icon: 'calendar-check', motion: 'lift' },
+            { name: 'schedules', label: 'Schedules', icon: 'calendar-clock', motion: 'nudge' },
         ],
     },
     {
