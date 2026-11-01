@@ -240,11 +240,10 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                 </Card>
             </div>
 
-            <section aria-labelledby="goals-heading" class="flex flex-col gap-4">
-                <div class="flex items-center justify-between gap-3">
-                    <h2 id="goals-heading" class="font-display text-title font-semibold">Active goals</h2>
+            <Section title="Active goals">
+                <template #actions>
                     <Button variant="ghost" size="sm" :to="{ name: 'goals' }" icon-end="arrow-right">All goals</Button>
-                </div>
+                </template>
                 <div v-if="data.active_goals.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
                     <GoalCard
                         v-for="goal in data.active_goals"
@@ -260,7 +259,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     title="No active goals"
                     message="Group related tasks under a goal to see measurable progress."
                 />
-            </section>
+            </Section>
 
             <div class="grid gap-6 lg:grid-cols-3">
                 <Card as="section" data-stagger aria-labelledby="types-heading" class="group">

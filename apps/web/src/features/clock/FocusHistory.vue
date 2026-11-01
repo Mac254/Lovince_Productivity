@@ -126,9 +126,8 @@ watch(
             </ol>
         </section>
 
-        <section aria-labelledby="history-day" class="flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3">
-                <h2 id="history-day" class="font-display text-title font-medium">{{ dayTitle }}</h2>
+        <Section :title="dayTitle">
+            <template #actions>
                 <div class="flex gap-1">
                     <IconButton icon="chevron-left" label="Previous day" variant="ghost" size="sm" @click="shift(-1)" />
                     <IconButton
@@ -140,7 +139,7 @@ watch(
                         @click="shift(1)"
                     />
                 </div>
-            </div>
+            </template>
 
             <dl class="grid grid-cols-3 gap-2">
                 <div
@@ -218,7 +217,7 @@ watch(
                     />
                 </li>
             </ul>
-        </section>
+        </Section>
     </Sheet>
 </template>
 

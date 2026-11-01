@@ -337,8 +337,8 @@ importers:
         specifier: ^1.2.13
         version: 1.2.13
       '@lovince/ui-vue':
-        specifier: ^0.2.0
-        version: 0.2.0(vue@3.5.44(typescript@6.0.3))
+        specifier: ^0.3.0
+        version: 0.3.0(vue@3.5.44(typescript@6.0.3))
       unplugin-icons:
         specifier: ^24.0.0
         version: 24.0.0(@vue/compiler-sfc@3.5.44)(rolldown@1.2.15)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0))
@@ -577,8 +577,12 @@ packages:
     resolution: {integrity: sha512-SnWzhR2utjbdR4fL0gwpZ6yb+Iz1OaAe4x27eGD1JlsbMHan1hTCM81HXdymDzffNZT1iAC0ZqBNevKnNmV0kA==}
     engines: {node: '>=18'}
 
-  '@lovince/ui-vue@0.2.0':
-    resolution: {integrity: sha512-QG5k8tfonNGJzuCA8UjaQpuDvZSIy+8zlggKExvETzJoyew49IRJKW1oh76ym6hqLbvUBKEKhutvAvvXR2KLgg==}
+  '@lovince/ui-headless@0.3.0':
+    resolution: {integrity: sha512-lOizp3SFkGgzuZN7Y8RVHbWfQ3xGG0eXO+l2UaJDvFfcCd+POQeaOTgWkqONYu0t6aDOnprQVMADds4itmpCAg==}
+    engines: {node: '>=18'}
+
+  '@lovince/ui-vue@0.3.0':
+    resolution: {integrity: sha512-0yXBQ7K0R+iD1G7G0OYwrLkGRiYwrAvDVDsc8hI/+paxwQpFKlW9ckBUBMKg5HH3kbpJtcONrswjcickjvpkZA==}
     engines: {node: '>=18'}
     peerDependencies:
       '@lovince/icons': ^1.3.1
@@ -2506,10 +2510,12 @@ snapshots:
 
   '@lovince/ui-headless@0.2.0': {}
 
-  '@lovince/ui-vue@0.2.0(vue@3.5.44(typescript@6.0.3))':
+  '@lovince/ui-headless@0.3.0': {}
+
+  '@lovince/ui-vue@0.3.0(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       '@lovince/ui-dom': 0.2.0
-      '@lovince/ui-headless': 0.2.0
+      '@lovince/ui-headless': 0.3.0
       vue: 3.5.44(typescript@6.0.3)
 
   '@nodelib/fs.scandir@2.1.5':

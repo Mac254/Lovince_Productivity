@@ -175,35 +175,35 @@ onMounted(run);
                         message="Create, complete or log work on tasks to see the trend."
                     />
                 </template>
-                <div v-else class="max-h-80 overflow-auto">
-                    <table class="w-full text-label">
-                        <caption class="sr-only">
-                            Tasks created and completed, work logged and focus time, per day
-                        </caption>
-                        <thead class="sticky top-0 bg-surface text-left text-fg-muted">
-                            <tr>
-                                <th scope="col" class="py-2 font-semibold">Date</th>
-                                <th scope="col" class="py-2 text-right font-semibold">Created</th>
-                                <th scope="col" class="py-2 text-right font-semibold">Completed</th>
-                                <th scope="col" class="py-2 text-right font-semibold">Work logged</th>
-                                <th scope="col" class="py-2 text-right font-semibold">Time</th>
-                                <th scope="col" class="py-2 text-right font-semibold">Focus</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border">
-                            <tr v-for="row in [...data.daily].reverse()" :key="row.date">
-                                <th scope="row" class="py-2 text-left font-medium">
-                                    {{ formatDate(row.date, { weekday: 'short', day: 'numeric', month: 'short' }) }}
-                                </th>
-                                <td class="py-2 text-right tabular">{{ row.created }}</td>
-                                <td class="py-2 text-right font-semibold tabular">{{ row.completed }}</td>
-                                <td class="py-2 text-right tabular">{{ row.logged }}</td>
-                                <td class="py-2 text-right tabular">{{ formatMinutes(row.minutes) || '—' }}</td>
-                                <td class="py-2 text-right tabular">{{ formatMinutes(row.focus) || '—' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <Table
+                    v-else
+                    caption="Tasks created and completed, work logged and focus time, per day"
+                    label="Daily numbers"
+                    class="max-h-80 overflow-auto"
+                >
+                    <TableHeader class="sticky top-0 bg-surface">
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead align="end">Created</TableHead>
+                            <TableHead align="end">Completed</TableHead>
+                            <TableHead align="end">Work logged</TableHead>
+                            <TableHead align="end">Time</TableHead>
+                            <TableHead align="end">Focus</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="row in [...data.daily].reverse()" :key="row.date">
+                            <TableHead scope="row">
+                                {{ formatDate(row.date, { weekday: 'short', day: 'numeric', month: 'short' }) }}
+                            </TableHead>
+                            <TableCell align="end" numeric>{{ row.created }}</TableCell>
+                            <TableCell align="end" numeric class="font-semibold">{{ row.completed }}</TableCell>
+                            <TableCell align="end" numeric>{{ row.logged }}</TableCell>
+                            <TableCell align="end" numeric>{{ formatMinutes(row.minutes) || '—' }}</TableCell>
+                            <TableCell align="end" numeric>{{ formatMinutes(row.focus) || '—' }}</TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </Card>
 
             <Card as="section" aria-labelledby="focus-heading" class="group">
