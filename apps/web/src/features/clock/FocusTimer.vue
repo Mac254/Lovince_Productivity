@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { api } from '@focus/api-client';
 import type { Task } from '@focus/types';
-import { Button, Icon, IconButton, useToast } from '@focus/ui';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
-import { useDashboardStore } from '@/stores/dashboard';
-import { MAX_MINUTES, MIN_MINUTES, timerPresets, useTimerStore } from '@/stores/timer';
-import RollingDigits from './RollingDigits.vue';
-import TimerRing from './TimerRing.vue';
 
 const timer = useTimerStore();
 const dashboard = useDashboardStore();
@@ -27,9 +21,19 @@ const statusLine = computed(() => {
     return timer.kind === 'focus' ? 'Ready to focus' : 'Ready for a break';
 });
 
+const taskOptions = computed(() => [
+    { value: '' as const, label: 'No task — just focus' },
+    ...tasks.value.map((item) => ({ value: item.id, label: item.title })),
+]);
+/** The minutes field edits text; `applyCustom` reads it as a number. */
+const customText = computed({
+    get: () => String(customMinutes.value),
+    set: (value: string | null) => (customMinutes.value = Number(value)),
+});
+
 const taskId = computed({
     get: () => timer.task?.id ?? '',
-    set: (id: number | '') => {
+    set: (id: number | '' | null) => {
         const found = tasks.value.find((t) => t.id === id);
         timer.setTask(found ? { id: found.id, title: found.title } : null);
     },
@@ -115,7 +119,7 @@ onBeforeUnmount(() => {
             aria-label="Session length"
             class="flex flex-wrap justify-center gap-2 rounded-full bg-chrome p-1 shadow-floating"
         >
-            <button
+            <Pressable
                 v-for="preset in timerPresets"
                 :key="preset.id"
                 type="button"
@@ -130,7 +134,7 @@ onBeforeUnmount(() => {
                 @click="timer.choose(preset)"
             >
                 {{ preset.label }} {{ preset.minutes }}m
-            </button>
+            </Pressable>
         </div>
 
         <TimerRing :progress="timer.progress" :size="ringSize" :label="`${statusLine}, ${timer.display} remaining`">
@@ -152,7 +156,7 @@ onBeforeUnmount(() => {
                 :disabled="timer.status === 'idle'"
                 @click="timer.reset()"
             />
-            <button
+            <Pressable
                 type="button"
                 class="group inline-flex h-(--control-lg) min-w-40 items-center justify-center gap-2 rounded-full bg-highlight px-8 text-lead font-semibold text-highlight-ink shadow-floating transition-colors hover:bg-highlight-hover"
                 @click="timer.status === 'done' ? (timer.reset(), timer.start()) : timer.toggle()"
@@ -167,14 +171,14 @@ onBeforeUnmount(() => {
                             ? 'Again'
                             : 'Start'
                 }}
-            </button>
-            <button
+            </Pressable>
+            <Pressable
                 type="button"
                 class="h-(--control-lg) rounded-full bg-chrome px-6 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover"
                 @click="timer.addMinutes(5)"
             >
                 +5 min
-            </button>
+            </Pressable>
         </div>
 
         <div
@@ -196,55 +200,44 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="grid w-full gap-3 rounded-lg bg-chrome p-4 text-chrome-fg shadow-floating sm:grid-cols-2">
-            <label class="flex flex-col gap-1 text-label font-semibold">
-                Focusing on
-                <select
-                    v-model="taskId"
-                    class="h-(--control-md) rounded-md border border-chrome-border bg-chrome-hover px-3 text-body text-chrome-fg focus-visible:border-highlight focus-visible:outline-none"
-                >
-                    <option value="">No task — just focus</option>
-                    <option v-for="item in tasks" :key="item.id" :value="item.id">{{ item.title }}</option>
-                </select>
-            </label>
-            <form class="flex flex-col gap-1" @submit.prevent="applyCustom">
-                <label for="custom-minutes" class="text-label font-semibold">Custom length (minutes)</label>
-                <div class="flex gap-2">
-                    <input
+            <Select id="timer-task" v-model="taskId" label="Focusing on" :options="taskOptions" surface="chrome" />
+            <form class="flex items-end gap-2" @submit.prevent="applyCustom">
+                <div class="min-w-0 flex-1">
+                    <Input
                         id="custom-minutes"
-                        v-model.number="customMinutes"
+                        v-model="customText"
+                        label="Custom length (minutes)"
                         type="number"
                         inputmode="numeric"
                         :min="MIN_MINUTES"
                         :max="MAX_MINUTES"
                         :disabled="timer.active"
-                        class="h-(--control-md) w-full rounded-md border border-chrome-border bg-chrome-hover px-3 text-body text-chrome-fg tabular focus-visible:border-highlight focus-visible:outline-none disabled:opacity-50"
+                        surface="chrome"
+                        class="tabular"
                     />
-                    <button
-                        type="submit"
-                        :disabled="timer.active"
-                        class="h-(--control-md) rounded-md bg-highlight px-4 text-label font-semibold text-highlight-ink disabled:opacity-50"
-                    >
-                        Set
-                    </button>
                 </div>
+                <Pressable
+                    type="submit"
+                    :disabled="timer.active"
+                    class="h-(--control-md) rounded-md bg-highlight px-4 text-label font-semibold text-highlight-ink disabled:opacity-50"
+                >
+                    Set
+                </Pressable>
             </form>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-label sm:col-span-2">
                 <span class="flex items-center gap-2 font-semibold text-highlight">
                     <Icon name="flame" />
                     {{ timer.sessions.count }} {{ timer.sessions.count === 1 ? 'session' : 'sessions' }} today
                 </span>
-                <label class="flex cursor-pointer items-center gap-2">
-                    <input v-model="timer.sound" type="checkbox" class="size-(--icon-sm) accent-highlight" />
-                    Chime
-                </label>
-                <button
+                <Checkbox id="timer-chime" v-model="timer.sound" label="Chime" surface="chrome" />
+                <Pressable
                     v-if="canNotify && !notificationsAllowed"
                     type="button"
                     class="font-semibold text-chrome-fg-muted underline underline-offset-4 hover:text-chrome-fg"
                     @click="enableNotifications"
                 >
                     Notify me when time’s up
-                </button>
+                </Pressable>
                 <span class="ml-auto text-chrome-fg-muted">Space start/pause · R reset · F full screen</span>
             </div>
         </div>

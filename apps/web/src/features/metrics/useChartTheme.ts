@@ -1,4 +1,3 @@
-import { prefersReducedMotion } from '@focus/motion';
 import { duration } from '@focus/tokens';
 import type { ApexOptions } from 'apexcharts';
 

@@ -1,19 +1,8 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
-import {
-    GOAL_TONES,
-    LIMITS,
-    type Goal,
-    type GoalInput,
-    type GoalStatus,
-    type GoalTimeframe,
-    type GoalTone,
-} from '@focus/types';
-import { Button, Dialog, Input, Select, Textarea, useToast } from '@focus/ui';
-import { computed, reactive, ref, watch } from 'vue';
+import { LIMITS, type Goal, type GoalInput, type GoalStatus, type GoalTimeframe, type GoalTone } from '@focus/types';
 import { endOfWeekIso, todayIso } from '@/lib/dates';
-import { goalStatusOptions, goalTimeframeOptions, goalToneLabels } from '@/lib/labels';
-import { toneDot } from '@/lib/tones';
+import { goalStatusOptions, goalTimeframeOptions } from '@/lib/labels';
 
 const props = defineProps<{ goal?: Goal | null }>();
 const open = defineModel<boolean>('open', { required: true });
@@ -137,28 +126,11 @@ async function submit(): Promise<void> {
                     :error="errors.target_date"
                 />
             </div>
-            <fieldset class="flex flex-col gap-2">
-                <legend class="mb-1 text-label font-semibold">Tone</legend>
-                <p class="text-label text-fg-muted">
-                    Colours this goal’s cards and tasks so jobs are easy to tell apart.
-                </p>
-                <div class="flex flex-wrap gap-2">
-                    <label
-                        v-for="tone in GOAL_TONES"
-                        :key="tone"
-                        :class="[
-                            'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-label font-semibold transition-colors has-focus-visible:outline-2 has-focus-visible:outline-focus-ring',
-                            form.tone === tone
-                                ? 'border-fg bg-surface-raised'
-                                : 'border-border-control hover:border-border-strong',
-                        ]"
-                    >
-                        <input v-model="form.tone" type="radio" name="goal-tone" :value="tone" class="sr-only" />
-                        <span :class="['size-3 rounded-full', toneDot[tone]]" aria-hidden="true" />
-                        {{ goalToneLabels[tone] }}
-                    </label>
-                </div>
-            </fieldset>
+            <TonePicker
+                v-model="form.tone"
+                label="Tone"
+                description="Colours this goal’s cards and tasks so jobs are easy to tell apart."
+            />
         </form>
         <template #footer>
             <Button variant="outline" @click="open = false">Cancel</Button>

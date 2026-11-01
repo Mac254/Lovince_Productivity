@@ -23,6 +23,8 @@ export const zIndex = {
     sticky: 1100,
     overlay: 1200,
     modal: 1300,
+    /** Menus and listboxes, which may open from inside a modal. */
+    popover: 1350,
     toast: 1400,
     skip: 1500,
 } as const;

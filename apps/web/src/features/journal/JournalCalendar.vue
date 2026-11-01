@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
 import { monthGrid, monthOf, shiftDate, WEEKDAYS, type MonthIso } from '@/lib/calendar';
 import { formatDate, todayIso } from '@/lib/dates';
 
@@ -84,7 +83,7 @@ function onKeydown(event: KeyboardEvent): void {
                 role="gridcell"
                 :class="compact ? 'p-0' : 'border-r border-border p-1 last:border-r-0'"
             >
-                <button
+                <Pressable
                     type="button"
                     :data-date="cell.date"
                     :tabindex="cell.date === focused ? 0 : -1"
@@ -135,7 +134,7 @@ function onKeydown(event: KeyboardEvent): void {
                         class="hidden border-l-2 border-highlight-fg pl-2 text-caption text-fg-muted sm:line-clamp-2"
                         >{{ firstLine(previews[cell.date]!) }}</span
                     >
-                </button>
+                </Pressable>
             </div>
         </div>
     </div>

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 /**
  * Renders text one character per slot; a slot animates only when its character changes,
  * rolling the old value up and out while the new one rises in. Separators (":") breathe.

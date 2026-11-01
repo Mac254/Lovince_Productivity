@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ApexOptions } from 'apexcharts';
-import { computed } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { useChartTheme } from './useChartTheme';
 

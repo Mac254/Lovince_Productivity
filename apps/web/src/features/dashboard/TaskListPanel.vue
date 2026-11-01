@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '@focus/types';
-import { Card, CardHeader, Text, type IconName } from '@focus/ui';
-import ToneDot from '@/components/ToneDot.vue';
+import type { IconName } from '@focus/ui';
 import { dueLabel, relativeTime } from '@/lib/dates';
 import { taskStatusLabels } from '@/lib/labels';
 

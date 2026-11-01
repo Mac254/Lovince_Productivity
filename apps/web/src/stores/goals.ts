@@ -1,7 +1,5 @@
 import { api } from '@focus/api-client';
 import type { Goal } from '@focus/types';
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
 
 /** Goals are shared by the goals page and every task form's goal picker. */
 export const useGoalsStore = defineStore('goals', () => {

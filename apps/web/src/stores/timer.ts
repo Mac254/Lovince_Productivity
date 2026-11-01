@@ -1,8 +1,5 @@
-import { defineStore } from 'pinia';
-import { computed, ref, watch } from 'vue';
 import { playChime } from '@/lib/chime';
 import { todayIso } from '@/lib/dates';
-import { useSettingsStore } from './settings';
 
 export type SessionKind = 'focus' | 'break';
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'done';

@@ -1,7 +1,6 @@
 import { api, isApiError } from '@focus/api-client';
 import { SETTINGS_DEFAULTS, type Settings, type SettingsChanges, type SettingsModuleKey } from '@focus/types';
-import { defineStore } from 'pinia';
-import { computed, reactive, type WritableComputedRef } from 'vue';
+import type { WritableComputedRef } from 'vue';
 
 const KEY = 'focus.settings';
 const SAVE_DELAY_MS = 400;
@@ -71,7 +70,10 @@ function legacyChanges(): SettingsChanges {
     put('timer', 'chime', timer?.sound);
     put('timer', 'auto_break', timer?.autoBreak);
 
-    storage(() => ['focus.preferences', 'focus.clock', 'focus.theme'].forEach((key) => localStorage.removeItem(key)), undefined);
+    storage(
+        () => ['focus.preferences', 'focus.clock', 'focus.theme'].forEach((key) => localStorage.removeItem(key)),
+        undefined,
+    );
     return changes as SettingsChanges;
 }
 
@@ -96,7 +98,14 @@ export const useSettingsStore = defineStore('settings', () => {
     let timer: number | undefined;
 
     function persist(): void {
-        storage(() => localStorage.setItem(KEY, JSON.stringify({ values, ...(isEmpty(pending) ? {} : { unsynced: pending }) })), undefined);
+        storage(
+            () =>
+                localStorage.setItem(
+                    KEY,
+                    JSON.stringify({ values, ...(isEmpty(pending) ? {} : { unsynced: pending }) }),
+                ),
+            undefined,
+        );
     }
 
     function apply(server: Settings): void {
@@ -132,7 +141,11 @@ export const useSettingsStore = defineStore('settings', () => {
         }
     }
 
-    function set<M extends SettingsModuleKey, K extends keyof Settings[M]>(module: M, key: K, value: Settings[M][K]): void {
+    function set<M extends SettingsModuleKey, K extends keyof Settings[M]>(
+        module: M,
+        key: K,
+        value: Settings[M][K],
+    ): void {
         if (values[module][key] === value) return;
         values[module][key] = value;
         pending = mergeChanges(pending, { [module]: { [key]: value } } as SettingsChanges);

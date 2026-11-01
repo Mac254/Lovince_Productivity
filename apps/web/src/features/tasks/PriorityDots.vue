@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { TaskPriority } from '@focus/types';
-import { useSurfaceTone } from '@focus/ui';
-import { computed } from 'vue';
 import { taskPriorityLabels, taskPriorityRank } from '@/lib/labels';
 
 /** Priority as a four-dot meter plus its label — never colour alone. */

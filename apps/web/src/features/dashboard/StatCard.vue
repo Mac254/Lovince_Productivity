@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { useAnimatedNumber } from '@focus/motion';
-import { Card, Icon, type IconMotion, type IconName } from '@focus/ui';
-import { computed } from 'vue';
+import type { IconMotion, IconName } from '@focus/ui';
 
 /** KPI tile: label, one number, and a supporting line. Values animate in; the icon reacts on hover. */
 const props = withDefaults(

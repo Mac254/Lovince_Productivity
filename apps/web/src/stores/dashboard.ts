@@ -1,7 +1,5 @@
 import { api, errorMessage } from '@focus/api-client';
 import type { Dashboard } from '@focus/types';
-import { defineStore } from 'pinia';
-import { ref, shallowRef } from 'vue';
 import { todayIso } from '@/lib/dates';
 
 /**

@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { errorMessage, isApiError } from '@focus/api-client';
-import { Button, Card, Checkbox, Heading, Icon, Input, Text } from '@focus/ui';
-import { reactive, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import Wordmark from '@/components/Wordmark.vue';
-import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
 const route = useRoute();

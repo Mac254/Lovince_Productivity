@@ -1,4 +1,3 @@
-import { ref } from 'vue';
 import type { Task, TaskInput } from '@focus/types';
 import { todayIso } from '@/lib/dates';
 import { useTaskActions } from './useTaskActions';

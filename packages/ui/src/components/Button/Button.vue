@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { LvButton } from '@lovince/ui-vue';
 import { computed } from 'vue';
+import { RouterLink } from 'vue-router';
 import type { IconName } from '../../icons/registry';
 import type { RouteLocationRaw } from 'vue-router';
 import Icon from '../../primitives/Icon/Icon.vue';
-import { buttonVariants, controlHeights, interactive, type ButtonSize, type ButtonVariant } from './variants';
+import { buttonVariants, controlHeights, interactive, lovinceVariants, type ButtonSize, type ButtonVariant } from './variants';
 
 const props = withDefaults(
     defineProps<{
@@ -28,23 +30,19 @@ const classes = computed(() => [
 </script>
 
 <template>
-    <RouterLink v-if="to" :to="to" :class="classes">
-        <Icon v-if="iconStart" :name="iconStart" motion="pop" />
-        <slot />
-        <Icon v-if="iconEnd" :name="iconEnd" motion="nudge" />
-    </RouterLink>
-    <button
-        v-else
+    <LvButton
+        :as="to ? RouterLink : 'button'"
+        :to="to"
         :type="type"
-        :class="classes"
+        :variant="lovinceVariants[variant]"
+        :size="size"
+        :loading="loading"
         :disabled="disabled"
-        :aria-disabled="loading || undefined"
-        :aria-busy="loading || undefined"
-        @click="loading && $event.preventDefault()"
+        :class="classes"
     >
         <Icon v-if="loading" name="spinner" class="animate-spin" />
         <Icon v-else-if="iconStart" :name="iconStart" motion="pop" />
         <slot />
         <Icon v-if="iconEnd" :name="iconEnd" motion="nudge" />
-    </button>
+    </LvButton>
 </template>

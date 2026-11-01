@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { LIMITS } from '@focus/types';
-import { computed, ref } from 'vue';
 import { caretPosition, continueList, indentList, type Edit } from '@/lib/textEditing';
 
 /**
@@ -13,7 +12,8 @@ const emit = defineEmits<{ save: []; previous: []; next: [] }>();
 const body = defineModel<string>({ required: true });
 const font = defineModel<'mono' | 'sans'>('font', { required: true });
 
-const textarea = ref<HTMLTextAreaElement | null>(null);
+const editor = ref<{ $el: HTMLTextAreaElement } | null>(null);
+const textarea = computed(() => editor.value?.$el ?? null);
 const caret = ref({ line: 1, column: 1 });
 
 const words = computed(() => body.value.trim().split(/\s+/).filter(Boolean).length);
@@ -84,13 +84,14 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
 <template>
     <div class="flex min-h-0 flex-1 flex-col">
         <label for="journal-body" class="sr-only">{{ props.label }}</label>
-        <textarea
+        <PlainTextarea
             id="journal-body"
-            ref="textarea"
+            ref="editor"
             v-model="body"
             :maxlength="LIMITS.journal"
             :disabled="disabled"
-            rows="22"
+            :rows="22"
+            style="field-sizing: fixed"
             spellcheck="true"
             placeholder="## Done&#10;- &#10;&#10;## Learned&#10;- &#10;&#10;## Next&#10;- "
             :class="[
@@ -115,14 +116,14 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
                 >
             </span>
             <span class="flex items-center gap-4">
-                <button
+                <Pressable
                     type="button"
                     class="rounded-sm underline-offset-4 hover:text-fg hover:underline"
                     :aria-label="`Writing font: ${font === 'mono' ? 'monospace' : 'sans serif'}. Switch font`"
                     @click="font = font === 'mono' ? 'sans' : 'mono'"
                 >
                     {{ font === 'mono' ? 'Mono' : 'Sans' }}
-                </button>
+                </Pressable>
                 <span class="max-sm:hidden">Markdown</span>
                 <span aria-live="polite">{{ saveState }}</span>
             </span>

@@ -1,18 +1,9 @@
 <script setup lang="ts">
 import { LIMITS } from '@focus/types';
-import { IconButton } from '@focus/ui';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import DayRail from '@/features/clock/DayRail.vue';
-import FocusTimer from '@/features/clock/FocusTimer.vue';
-import RollingDigits from '@/features/clock/RollingDigits.vue';
-import TodayStrip from '@/features/clock/TodayStrip.vue';
 import { useWallpapers } from '@/features/clock/useWallpapers';
 import { customWallpaperKey, useClockPrefs, wallpapers } from '@/features/clock/wallpapers';
-import { useDashboard } from '@/composables/useDashboard';
 import { isoWeek } from '@/lib/dates';
 import { createTicker } from '@/lib/ticker';
-import { usePreferencesStore } from '@/stores/preferences';
 
 const router = useRouter();
 const route = useRoute();
@@ -38,7 +29,6 @@ const settingsOpen = ref(false);
 const fullscreen = ref(false);
 const root = ref<HTMLElement | null>(null);
 const settings = ref<HTMLElement | null>(null);
-const fileInput = ref<HTMLInputElement | null>(null);
 let tick: number | undefined;
 let idle: number | undefined;
 
@@ -89,7 +79,11 @@ function onKey(event: KeyboardEvent): void {
     wake();
     if (event.key === 'Escape') settingsOpen.value = false;
     const target = event.target as HTMLElement | null;
-    if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return;
+    if (
+        target &&
+        (['INPUT', 'TEXTAREA'].includes(target.tagName) || target.closest('[role="combobox"], [role="listbox"]'))
+    )
+        return;
     if (event.key.toLowerCase() === 'f' && !event.ctrlKey && !event.metaKey) void toggleFullscreen();
 }
 
@@ -97,10 +91,8 @@ function onPointerDown(event: PointerEvent): void {
     if (settingsOpen.value && !settings.value?.contains(event.target as Node)) settingsOpen.value = false;
 }
 
-function onFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (fileInput.value) fileInput.value.value = '';
-    if (file) void upload(file);
+function onFile(file: File): void {
+    void upload(file);
 }
 
 const syncFullscreen = () => (fullscreen.value = !!document.fullscreenElement);
@@ -169,7 +161,7 @@ onBeforeUnmount(() => {
                     :to="{ name: 'dashboard' }"
                 />
                 <div role="group" aria-label="Mode" class="flex rounded-full bg-chrome p-1 shadow-floating">
-                    <button
+                    <Pressable
                         v-for="item in modes"
                         :key="item.id"
                         type="button"
@@ -183,12 +175,12 @@ onBeforeUnmount(() => {
                         @click="mode = item.id"
                     >
                         {{ item.label }}
-                    </button>
+                    </Pressable>
                 </div>
             </div>
 
             <div ref="settings" class="relative flex items-center gap-1 rounded-full bg-chrome p-1 shadow-floating">
-                <button
+                <Pressable
                     type="button"
                     :aria-expanded="settingsOpen"
                     aria-controls="clock-settings"
@@ -199,7 +191,7 @@ onBeforeUnmount(() => {
                     @click="settingsOpen = !settingsOpen"
                 >
                     Display
-                </button>
+                </Pressable>
                 <IconButton
                     :icon="fullscreen ? 'exit-fullscreen' : 'fullscreen'"
                     :label="fullscreen ? 'Exit full screen (F)' : 'Full screen (F)'"
@@ -221,7 +213,7 @@ onBeforeUnmount(() => {
                                 Wallpaper
                             </p>
                             <div class="grid grid-cols-6 gap-2">
-                                <button
+                                <Pressable
                                     v-for="item in wallpapers"
                                     :key="item.id"
                                     type="button"
@@ -235,7 +227,7 @@ onBeforeUnmount(() => {
                                     ]"
                                     @click="prefs.wallpaper = item.id"
                                 />
-                                <button
+                                <Pressable
                                     v-for="item in uploads"
                                     :key="`custom-${item.id}`"
                                     type="button"
@@ -251,33 +243,33 @@ onBeforeUnmount(() => {
                                     :style="{ backgroundImage: `url(&quot;${item.url}&quot;)` }"
                                     @click="prefs.wallpaper = customWallpaperKey(item.id)"
                                 />
-                                <IconButton
+                                <FilePicker
                                     v-if="uploads.length < LIMITS.wallpapers"
-                                    icon="upload"
-                                    label="Add your own wallpaper"
-                                    variant="ghost"
-                                    size="sm"
-                                    class="aspect-square size-auto rounded-md border-2 border-dashed border-chrome-border text-chrome-fg hover:bg-chrome-hover"
+                                    v-slot="{ open }"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    label="Choose a wallpaper image"
                                     :disabled="uploading"
-                                    @click="fileInput?.click()"
-                                />
+                                    @pick="onFile"
+                                >
+                                    <IconButton
+                                        icon="upload"
+                                        label="Add your own wallpaper"
+                                        variant="ghost"
+                                        size="sm"
+                                        class="aspect-square size-auto rounded-md border-2 border-dashed border-chrome-border text-chrome-fg hover:bg-chrome-hover"
+                                        :disabled="uploading"
+                                        @click="open"
+                                    />
+                                </FilePicker>
                             </div>
-                            <button
+                            <Pressable
                                 v-if="activeUpload"
                                 type="button"
                                 class="self-start text-label font-semibold text-chrome-fg-muted underline-offset-4 hover:text-chrome-fg hover:underline"
                                 @click="removeActive"
                             >
                                 Remove this photo
-                            </button>
-                            <input
-                                ref="fileInput"
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                class="sr-only"
-                                aria-label="Choose a wallpaper image"
-                                @change="onFile"
-                            />
+                            </Pressable>
                         </div>
 
                         <div class="flex flex-col gap-3">
@@ -287,7 +279,7 @@ onBeforeUnmount(() => {
                                 aria-label="Time format"
                                 class="grid grid-cols-2 rounded-full bg-chrome-hover p-1"
                             >
-                                <button
+                                <Pressable
                                     v-for="option in [false, true]"
                                     :key="String(option)"
                                     type="button"
@@ -299,9 +291,9 @@ onBeforeUnmount(() => {
                                     @click="prefs.hour12 = option"
                                 >
                                     {{ option ? '12-hour' : '24-hour' }}
-                                </button>
+                                </Pressable>
                             </div>
-                            <button
+                            <Pressable
                                 v-for="toggle in [
                                     { key: 'seconds', label: 'Show seconds' },
                                     { key: 'tick', label: 'Ticking sound' },
@@ -321,7 +313,7 @@ onBeforeUnmount(() => {
                                     ]"
                                     aria-hidden="true"
                                 />
-                            </button>
+                            </Pressable>
                         </div>
 
                         <p class="text-caption text-chrome-fg-muted">

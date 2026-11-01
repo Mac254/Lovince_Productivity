@@ -2,9 +2,6 @@ import { isApiError } from '@focus/api-client';
 import { createRouter, createWebHistory, START_LOCATION } from 'vue-router';
 import UnavailablePage from '@/pages/UnavailablePage.vue';
 import { clearReloadGuard, isChunkLoadError, reloadOnce } from '@/lib/chunkReload';
-import { useAuthStore } from '@/stores/auth';
-import { usePreferencesStore } from '@/stores/preferences';
-import { useTimerStore } from '@/stores/timer';
 
 function errorKind(error: unknown): string {
     if (isChunkLoadError(error)) return 'update';

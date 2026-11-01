@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvBadge } from '@lovince/ui-vue';
 import { computed } from 'vue';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
@@ -34,6 +35,13 @@ const outline: Record<BadgeTone, string> = {
     inverse: 'text-fg ring-surface-inverse',
 };
 
+/** Lovince's tone vocabulary; Focus-only tones (accent, highlight, inverse) read as neutral to it. */
+const lovinceTone = computed(() =>
+    props.tone === 'success' || props.tone === 'warning' || props.tone === 'danger' || props.tone === 'info'
+        ? props.tone
+        : 'neutral',
+);
+
 const classes = computed(() => {
     if (surface === 'highlight') {
         return props.variant === 'outline'
@@ -45,7 +53,8 @@ const classes = computed(() => {
 </script>
 
 <template>
-    <span
+    <LvBadge
+        :tone="lovinceTone"
         :class="[
             'inline-flex h-6 items-center gap-1 rounded-md px-2 text-caption font-medium whitespace-nowrap ring-1 ring-inset',
             classes,
@@ -54,5 +63,5 @@ const classes = computed(() => {
         <span v-if="dot && !icon" class="size-2 rounded-full bg-current" aria-hidden="true" />
         <Icon v-if="icon" :name="icon" class="size-(--icon-sm)" />
         <slot />
-    </span>
+    </LvBadge>
 </template>

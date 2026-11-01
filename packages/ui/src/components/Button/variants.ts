@@ -10,6 +10,15 @@ export const buttonVariants: Record<ButtonVariant, string> = {
     destructive: 'bg-danger text-danger-ink hover:bg-danger-hover',
 };
 
+/** The matching Lovince `data-variant`, so Lovince-aware tooling reads the same intent. */
+export const lovinceVariants = {
+    primary: 'solid',
+    secondary: 'subtle',
+    outline: 'outline',
+    ghost: 'ghost',
+    destructive: 'danger',
+} as const satisfies Record<ButtonVariant, string>;
+
 export const controlHeights: Record<ButtonSize, string> = {
     sm: 'h-(--control-sm)',
     md: 'h-(--control-md)',

@@ -1,23 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { DailyReport } from '@focus/types';
-import {
-    Badge,
-    Button,
-    Card,
-    CardHeader,
-    ErrorState,
-    PageHeader,
-    ProgressBar,
-    Skeleton,
-    Text,
-    useToast,
-} from '@focus/ui';
-import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import StatCard from '@/features/dashboard/StatCard.vue';
-import TaskTypeBadge from '@/features/tasks/TaskTypeBadge.vue';
-import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { dueLabel, formatDate, formatMinutes, todayIso } from '@/lib/dates';
 import { taskPriorityLabels, taskPriorityTones } from '@/lib/labels';
 

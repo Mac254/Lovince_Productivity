@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TaskStatus } from '@focus/types';
-import { Badge, type BadgeTone, type IconName } from '@focus/ui';
+import type { BadgeTone, IconName } from '@focus/ui';
 import { taskStatusLabels } from '@/lib/labels';
 
 defineProps<{ status: TaskStatus }>();

@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, useId } from 'vue';
+import {
+    LvDropdownMenuContent,
+    LvDropdownMenuItem,
+    LvDropdownMenuPortal,
+    LvDropdownMenuRoot,
+    LvDropdownMenuTrigger,
+} from '@lovince/ui-vue';
+import { ref } from 'vue';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
 import { buttonVariants, controlSquares, interactive, type ButtonSize } from '../Button/variants';
 import type { MenuItem } from './types';
 
-/** Menu button pattern: arrow keys, Home/End, Escape and Tab behave as in native menus. */
+/**
+ * Menu button on Lovince UI's menu machine: arrow keys, Home/End, typeahead, Escape, Tab and
+ * outside clicks behave as in native menus, and the menu flips to stay on screen.
+ */
 withDefaults(
     defineProps<{
         items: MenuItem[];
@@ -18,109 +28,73 @@ withDefaults(
 );
 
 const open = ref(false);
-const root = ref<HTMLElement | null>(null);
-const trigger = ref<HTMLButtonElement | null>(null);
-const menuId = useId();
-
-function menuItems(): HTMLElement[] {
-    return Array.from(root.value?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
-}
-
-async function show(focusIndex = 0): Promise<void> {
-    open.value = true;
-    document.addEventListener('pointerdown', onOutside);
-    await nextTick();
-    menuItems().at(focusIndex)?.focus();
-}
-
-function hide(restoreFocus = true): void {
-    open.value = false;
-    document.removeEventListener('pointerdown', onOutside);
-    if (restoreFocus) trigger.value?.focus();
-}
-
-function onOutside(event: PointerEvent): void {
-    if (!root.value?.contains(event.target as Node)) hide(false);
-}
-
-function toggle(): void {
-    if (open.value) hide();
-    else void show();
-}
-
-function onTriggerKey(event: KeyboardEvent): void {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        void show(event.key === 'ArrowDown' ? 0 : -1);
-    }
-}
-
-function onMenuKey(event: KeyboardEvent): void {
-    const items = menuItems();
-    const index = items.indexOf(document.activeElement as HTMLElement);
-    const focusAt = (i: number) => items.at((i + items.length) % items.length)?.focus();
-
-    if (event.key === 'ArrowDown') focusAt(index + 1);
-    else if (event.key === 'ArrowUp') focusAt(index - 1);
-    else if (event.key === 'Home') focusAt(0);
-    else if (event.key === 'End') focusAt(-1);
-    else if (event.key === 'Escape') hide();
-    else if (event.key === 'Tab') hide(false);
-    else return;
-    if (event.key !== 'Tab') event.preventDefault();
-}
-
-function select(item: MenuItem): void {
-    hide();
-    item.onSelect();
-}
-
-onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
 </script>
 
 <template>
-    <div ref="root" class="relative">
-        <button
-            ref="trigger"
-            type="button"
+    <LvDropdownMenuRoot v-model:open="open">
+        <LvDropdownMenuTrigger
             :aria-label="label"
             :title="label"
-            aria-haspopup="menu"
-            :aria-expanded="open"
-            :aria-controls="open ? menuId : undefined"
             :class="[interactive, controlSquares[size], buttonVariants[triggerVariant], open && 'bg-surface']"
-            @click="toggle"
-            @keydown="onTriggerKey"
         >
             <slot name="trigger">
                 <Icon :name="icon" />
             </slot>
-        </button>
-        <div
-            v-if="open"
-            :id="menuId"
-            role="menu"
-            :aria-label="label"
-            class="absolute top-full right-0 z-(--z-dropdown) mt-2 min-w-48 rounded-md border border-border bg-surface-raised p-1 shadow-floating"
-            @keydown="onMenuKey"
-        >
-            <slot name="header" />
-            <button
-                v-for="item in items"
-                :key="item.label"
-                type="button"
-                role="menuitem"
-                tabindex="-1"
-                :class="[
-                    'flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-label font-semibold',
-                    'transition-colors duration-(--duration-instant) hover:bg-border focus-visible:bg-border focus-visible:outline-none',
-                    item.destructive ? 'text-danger-fg' : 'text-fg',
-                ]"
-                @click="select(item)"
+        </LvDropdownMenuTrigger>
+        <LvDropdownMenuPortal>
+            <LvDropdownMenuContent
+                align="end"
+                :side-offset="8"
+                class="menu z-(--z-popover) min-w-48 rounded-md border border-border bg-surface-raised p-1 text-fg shadow-floating focus-visible:outline-none"
             >
-                <Icon v-if="item.icon" :name="item.icon" />
-                {{ item.label }}
-            </button>
-        </div>
-    </div>
+                <slot name="header" />
+                <LvDropdownMenuItem
+                    v-for="item in items"
+                    :key="item.label"
+                    :class="[
+                        'flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-left text-label font-semibold outline-none',
+                        'transition-colors duration-(--duration-instant) data-highlighted:bg-border',
+                        item.destructive ? 'text-danger-fg' : 'text-fg',
+                    ]"
+                    @select="item.onSelect()"
+                >
+                    <Icon v-if="item.icon" :name="item.icon" />
+                    {{ item.label }}
+                </LvDropdownMenuItem>
+            </LvDropdownMenuContent>
+        </LvDropdownMenuPortal>
+    </LvDropdownMenuRoot>
 </template>
+
+<style scoped>
+/* Lovince positions the menu with `transform`, so the entrance uses `translate`/`scale`, which compose with it. */
+.menu {
+    --menu-nudge: calc(var(--spacing) * -1);
+}
+
+.menu[data-side='top'] {
+    --menu-nudge: var(--spacing);
+}
+
+.menu[data-state='open'] {
+    animation: menu-in var(--duration-fast) var(--ease-out);
+}
+
+.menu[data-state='closed'] {
+    animation: menu-out var(--duration-instant) var(--ease-in) forwards;
+}
+
+@keyframes menu-in {
+    from {
+        opacity: 0;
+        translate: 0 var(--menu-nudge);
+        scale: 0.98;
+    }
+}
+
+@keyframes menu-out {
+    to {
+        opacity: 0;
+    }
+}
+</style>

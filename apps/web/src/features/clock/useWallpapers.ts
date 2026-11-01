@@ -1,7 +1,5 @@
 import { api, errorMessage } from '@focus/api-client';
 import { LIMITS, type Wallpaper } from '@focus/types';
-import { useToast } from '@focus/ui';
-import { computed, ref } from 'vue';
 import { customWallpaperKey, wallpapers, type ClockPrefs } from './wallpapers';
 
 /** Built-in and uploaded wallpapers, and which one is active for these preferences. */

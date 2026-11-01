@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS, type TaskNote } from '@focus/types';
-import { Button, Dialog, Input, Textarea, useToast } from '@focus/ui';
-import { computed, reactive, ref, useId, watch } from 'vue';
 import { todayIso } from '@/lib/dates';
 
 /** Logs work on a task, or edits an existing entry when `note` is given. */

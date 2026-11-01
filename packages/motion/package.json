@@ -7,8 +7,9 @@
         ".": "./src/index.ts"
     },
     "dependencies": {
-        "gsap": "^3.15.0",
-        "@focus/tokens": "workspace:*"
+        "@focus/tokens": "workspace:*",
+        "@lovince/motion": "^0.2.0",
+        "gsap": "^3.15.0"
     },
     "peerDependencies": {
         "vue": "^3.5.0"

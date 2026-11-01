@@ -1,21 +1,5 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import {
-    Button,
-    Card,
-    EmptyState,
-    ErrorState,
-    Icon,
-    PageHeader,
-    Pagination,
-    ProgressBar,
-    Skeleton,
-    Text,
-    useToast,
-} from '@focus/ui';
-import { onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAsync } from '@/composables/useAsync';
 import { formatDate, todayIso } from '@/lib/dates';
 
 const router = useRouter();

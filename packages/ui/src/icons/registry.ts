@@ -28,6 +28,7 @@ import IconDashboard from '~icons/solar/widget-linear';
 import IconEdit from '~icons/solar/pen-linear';
 import IconExitFullscreen from '~icons/solar/minimize-square-linear';
 import IconEye from '~icons/solar/eye-linear';
+import IconFilter from '~icons/solar/filter-linear';
 import IconFlame from '~icons/solar/fire-linear';
 import IconForbidden from '~icons/solar/forbidden-circle-linear';
 import IconFullscreen from '~icons/solar/maximize-square-linear';
@@ -93,6 +94,7 @@ export const icons = {
     edit: IconEdit,
     'exit-fullscreen': IconExitFullscreen,
     eye: IconEye,
+    filter: IconFilter,
     flame: IconFlame,
     forbidden: IconForbidden,
     fullscreen: IconFullscreen,

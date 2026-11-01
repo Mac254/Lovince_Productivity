@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import type { Task, TaskStatus } from '@focus/types';
-import { Card, DropdownMenu, Icon, IconButton, Text, type MenuItem } from '@focus/ui';
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
-import ToneDot from '@/components/ToneDot.vue';
+import type { MenuItem } from '@focus/ui';
 import { dueLabel } from '@/lib/dates';
 import { toneBorder } from '@/lib/tones';
-import PriorityDots from './PriorityDots.vue';
-import StatusBadge from './StatusBadge.vue';
-import TaskTypeBadge from './TaskTypeBadge.vue';
 
 const props = defineProps<{ task: Task; featured?: boolean }>();
 const emit = defineEmits<{

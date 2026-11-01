@@ -202,6 +202,7 @@
     --z-sticky: 1100;
     --z-overlay: 1200;
     --z-modal: 1300;
+    --z-popover: 1350;
     --z-toast: 1400;
     --z-skip: 1500;
     --control-sm: 2.25rem;

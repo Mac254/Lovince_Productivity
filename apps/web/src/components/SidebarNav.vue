@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '@focus/ui';
-import { useRoute } from 'vue-router';
 import { navigation } from '@/lib/navigation';
 
 const emit = defineEmits<{ navigate: [] }>();

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Blocker } from '@focus/types';
-import { Badge, DropdownMenu, Icon, Text, useToast, type MenuItem } from '@focus/ui';
+import type { MenuItem } from '@focus/ui';
 import { relativeTime } from '@/lib/dates';
 
 const props = defineProps<{ blockers: Blocker[]; showTask?: boolean }>();

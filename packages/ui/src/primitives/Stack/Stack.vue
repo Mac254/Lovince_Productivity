@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvBox } from '@lovince/ui-vue';
 import { computed } from 'vue';
 
 type Gap = 0 | 1 | 2 | 3 | 4 | 6 | 8 | 12;
@@ -45,5 +46,5 @@ const classes = computed(() => [
 </script>
 
 <template>
-    <component :is="as" :class="classes"><slot /></component>
+    <LvBox :as="as" :class="classes"><slot /></LvBox>
 </template>

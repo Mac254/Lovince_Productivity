@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvHeading } from '@lovince/ui-vue';
 import { computed } from 'vue';
 
 const props = withDefaults(
@@ -24,10 +25,7 @@ const roleClass = computed(
 </script>
 
 <template>
-    <component
-        :is="`h${level}`"
-        :class="['font-display tracking-tight text-balance', roleClass, uppercase && 'uppercase']"
-    >
+    <LvHeading :level="level" :class="['font-display tracking-tight text-balance', roleClass, uppercase && 'uppercase']">
         <slot />
-    </component>
+    </LvHeading>
 </template>

@@ -13,30 +13,11 @@ import {
     type TaskSort,
     type TaskStatus,
 } from '@focus/types';
-import {
-    Button,
-    ChipGroup,
-    ConfirmDialog,
-    EmptyState,
-    ErrorState,
-    PageHeader,
-    Pagination,
-    SearchField,
-    Select,
-    Skeleton,
-    Text,
-} from '@focus/ui';
-import { computed, onMounted, reactive, watch } from 'vue';
-import { useRoute, useRouter, type LocationQuery } from 'vue-router';
-import TaskCard from '@/features/tasks/TaskCard.vue';
-import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
+import type { LocationQuery } from 'vue-router';
+import { allFacet, withoutAll } from '@/lib/facets';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
-import { useAsync } from '@/composables/useAsync';
 import { taskPriorityOptions } from '@/lib/labels';
 import { fromKind, kindOptions, type TaskKind } from '@/lib/taskKind';
-import { useDashboardStore } from '@/stores/dashboard';
-import { useGoalsStore } from '@/stores/goals';
-import { useTaskTypesStore } from '@/stores/taskTypes';
 
 type StatusChip = 'all' | 'open' | Exclude<TaskStatus, 'not_started'>;
 
@@ -90,30 +71,24 @@ const sortLabels: Record<TaskSort, string> = {
     updated_at: 'Recently updated',
     title: 'Title',
 };
-const dueOptions = [
-    { value: '' as const, label: 'Any date' },
-    ...TASK_DUE_FILTERS.map((value) => ({ value, label: dueLabels[value] })),
-];
-const sortOptions = [
-    { value: '' as const, label: 'Smart (open first)' },
-    ...TASK_SORTS.map((value) => ({ value, label: sortLabels[value] })),
-];
-const typeOptions = computed(() => [{ value: '' as const, label: 'Any type' }, ...kindOptions(taskTypes.types)]);
-const typeFilter = computed<TaskKind | '' | null>({
+const dueOptions = TASK_DUE_FILTERS.map((value) => ({ value, label: dueLabels[value] }));
+/** No sort chosen is the API's smart order (open first). */
+const sortOptions = TASK_SORTS.map((value) => ({ value, label: sortLabels[value] }));
+const statusOptions = withoutAll(statusChips);
+const statusFacet = allFacet(toRef(filters, 'status'));
+const typeOptions = computed(() => kindOptions(taskTypes.types));
+const typeFacet = computed<TaskKind | ''>({
     get: () => {
         if (filters.task_type_id) return `type:${filters.task_type_id}` as TaskKind;
         return filters.category ? (`category:${filters.category}` as TaskKind) : '';
     },
-    set: (kind: TaskKind | '' | null) => {
+    set: (kind: TaskKind | '') => {
         const next = kind ? fromKind(kind) : null;
         filters.task_type_id = next?.task_type_id ?? '';
         filters.category = next && !next.task_type_id ? next.category : '';
     },
 });
-const goalOptions = computed(() => [
-    { value: '' as const, label: 'All goals' },
-    ...goals.goals.map((goal) => ({ value: goal.id, label: goal.title })),
-]);
+const goalOptions = computed(() => goals.goals.map((goal) => ({ value: goal.id, label: goal.title })));
 
 const query = computed<TaskFilters>(() => ({
     search: filters.search || undefined,
@@ -215,30 +190,23 @@ onMounted(() => {
             </template>
         </PageHeader>
 
-        <section aria-label="Filters" class="flex flex-col gap-4">
-            <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-                <SearchField
-                    id="task-search"
-                    v-model="filters.search"
-                    label="Search tasks"
-                    placeholder="Search titles and descriptions"
-                    :maxlength="LIMITS.search"
-                    class="lg:w-80"
-                />
-                <ChipGroup v-model="filters.status" label="Filter by status" :options="statusChips" />
-            </div>
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6 xl:items-end">
-                <Select
-                    id="filter-priority"
-                    v-model="filters.priority"
-                    label="Priority"
-                    :options="[{ value: '', label: 'Any priority' }, ...taskPriorityOptions]"
-                />
-                <Select id="filter-type" v-model="typeFilter" label="Type" :options="typeOptions" />
-                <Select id="filter-due" v-model="filters.due" label="Due" :options="dueOptions" />
-                <Select id="filter-goal" v-model="filters.goal_id" label="Goal" :options="goalOptions" />
-                <Select id="filter-sort" v-model="filters.sort" label="Sort by" :options="sortOptions" />
-                <Button v-if="hasFilters" variant="ghost" icon-start="close" class="self-end" @click="clearFilters"
+        <section aria-label="Filters" class="flex flex-col gap-3">
+            <SearchField
+                id="task-search"
+                v-model="filters.search"
+                label="Search tasks"
+                placeholder="Search titles and descriptions"
+                :maxlength="LIMITS.search"
+                class="lg:w-96"
+            />
+            <div class="flex flex-wrap items-center gap-2">
+                <FacetFilter v-model="statusFacet" label="Status" :options="statusOptions" />
+                <FacetFilter v-model="filters.priority" label="Priority" :options="taskPriorityOptions" />
+                <FacetFilter v-model="typeFacet" label="Type" :options="typeOptions" />
+                <FacetFilter v-model="filters.due" label="Due" :options="dueOptions" />
+                <FacetFilter v-model="filters.goal_id" label="Goal" :options="goalOptions" />
+                <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
+                <Button v-if="hasFilters" variant="ghost" size="sm" icon-start="close" @click="clearFilters"
                     >Clear filters</Button
                 >
             </div>

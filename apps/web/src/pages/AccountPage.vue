@@ -1,16 +1,9 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS } from '@focus/types';
-import { Avatar, Button, ChipGroup, ConfirmDialog, Dialog, Input, PageHeader, Switch, Text, useToast } from '@focus/ui';
-import { computed, onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useClockPrefs } from '@/features/clock/wallpapers';
-import SettingRow from '@/features/settings/SettingRow.vue';
-import SettingsSection from '@/features/settings/SettingsSection.vue';
 import { formatDate } from '@/lib/dates';
-import { useAuthStore } from '@/stores/auth';
-import { usePreferencesStore, type StartPage, type ThemeChoice } from '@/stores/preferences';
-import { useTimerStore } from '@/stores/timer';
+import type { StartPage, ThemeChoice } from '@/stores/preferences';
 
 const auth = useAuthStore();
 const preferences = usePreferencesStore();
@@ -105,12 +98,7 @@ async function signOut(): Promise<void> {
 }
 
 const uploading = ref(false);
-const fileInput = ref<HTMLInputElement | null>(null);
-
-async function upload(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (fileInput.value) fileInput.value.value = '';
-    if (!file) return;
+async function upload(file: File): Promise<void> {
     if (file.size > LIMITS.avatarKb * 1024) {
         toast.error(`Choose an image under ${Math.round(LIMITS.avatarKb / 1024)} MB.`);
         return;
@@ -230,22 +218,21 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                                 @click="removePhoto"
                                 >Remove</Button
                             >
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                icon-start="camera"
-                                :loading="uploading"
-                                @click="fileInput?.click()"
-                                >{{ auth.user?.avatar_url ? 'Replace' : 'Upload' }}</Button
-                            >
-                            <input
-                                ref="fileInput"
-                                type="file"
+                            <FilePicker
+                                v-slot="{ open }"
                                 accept="image/jpeg,image/png,image/webp"
-                                class="sr-only"
-                                aria-label="Choose a profile photo"
-                                @change="upload"
-                            />
+                                label="Choose a profile photo"
+                                @pick="upload"
+                            >
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    icon-start="camera"
+                                    :loading="uploading"
+                                    @click="open"
+                                    >{{ auth.user?.avatar_url ? 'Replace' : 'Upload' }}</Button
+                                >
+                            </FilePicker>
                         </template>
                     </SettingRow>
                     <SettingRow label="Name">

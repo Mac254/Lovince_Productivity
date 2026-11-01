@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { TaskNote } from '@focus/types';
-import { Button, Card, CardHeader, ConfirmDialog, IconButton, Skeleton, Text, useToast } from '@focus/ui';
-import { computed, ref, watch } from 'vue';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
-import { useDashboardStore } from '@/stores/dashboard';
-import TaskNoteDialog from './TaskNoteDialog.vue';
 
 /** A task's work log: what was done, when, and how long it took. Newest day first. */
 const props = defineProps<{ taskId: number; taskTitle: string }>();

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { errorMessage, isApiError } from '@focus/api-client';
-import { Button, Input } from '@focus/ui';
-import { nextTick, ref } from 'vue';
 
 /**
  * A "+ New …" link that opens a one-line form under a picker. `create` returns the
@@ -45,14 +43,14 @@ async function submit(): Promise<void> {
 
 <template>
     <div>
-        <button
+        <Pressable
             v-if="!open"
             type="button"
             class="text-label font-semibold text-accent-fg underline-offset-4 hover:underline"
             @click="show"
         >
             + New {{ noun }}
-        </button>
+        </Pressable>
         <div
             v-else
             class="flex flex-col gap-2"

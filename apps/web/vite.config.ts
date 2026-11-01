@@ -3,6 +3,7 @@ import Icons from 'unplugin-icons/vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
+import { autoImports } from './autoImports.ts';
 
 // The API is reached through this dev server (same origin), so session cookies and CSRF work
 // exactly as in production, where Laravel serves the built app from apps/api/public/app.
@@ -13,7 +14,7 @@ export default defineConfig(({ command, mode }) => {
     return {
         base: command === 'build' ? '/app/' : '/',
         // Iconify icons are compiled to inline SVG components at build time — no runtime API calls.
-        plugins: [vue(), Icons({ compiler: 'vue3', scale: 1 }), tailwindcss()],
+        plugins: [vue(), Icons({ compiler: 'vue3', scale: 1 }), ...autoImports(), tailwindcss()],
         resolve: {
             alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
             dedupe: ['vue', 'vue-router', 'pinia'],

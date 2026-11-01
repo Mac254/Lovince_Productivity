@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { JournalContext } from '@focus/types';
-import { Button, Card, CardHeader, Skeleton, Text } from '@focus/ui';
-import { computed } from 'vue';
 import { formatMinutes } from '@/lib/dates';
 
 /** What happened on the day being written about, with a one-click stand-up draft built from it. */

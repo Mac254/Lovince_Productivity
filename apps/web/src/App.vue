@@ -1,6 +1,4 @@
-<script setup lang="ts">
-import { ToastRegion } from '@focus/ui';
-</script>
+<script setup lang="ts"></script>
 
 <template>
     <RouterView />

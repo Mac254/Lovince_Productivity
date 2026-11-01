@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { LvButton } from '@lovince/ui-vue';
+import { RouterLink } from 'vue-router';
 import type { IconName } from '../../icons/registry';
 import type { RouteLocationRaw } from 'vue-router';
 import Icon, { type IconMotion } from '../../primitives/Icon/Icon.vue';
-import { buttonVariants, controlSquares, interactive, type ButtonSize } from '../Button/variants';
+import { buttonVariants, controlSquares, interactive, lovinceVariants, type ButtonSize } from '../Button/variants';
 
 /** An icon-only button. `label` is required: it is the accessible name and the tooltip. */
 withDefaults(
@@ -22,15 +24,16 @@ withDefaults(
 </script>
 
 <template>
-    <component
-        :is="to ? 'RouterLink' : 'button'"
+    <LvButton
+        :as="to ? RouterLink : 'button'"
         :to="to"
-        :type="to ? undefined : 'button'"
+        size="icon"
+        :variant="lovinceVariants[variant]"
+        :disabled="to ? undefined : disabled"
         :aria-label="label"
         :title="label"
         :aria-pressed="pressed"
         :aria-current="current ? 'page' : undefined"
-        :disabled="to ? undefined : disabled"
         :class="[
             interactive,
             controlSquares[size],
@@ -39,5 +42,5 @@ withDefaults(
         ]"
     >
         <Icon :name="icon" :size="size === 'lg' ? 'md' : 'sm'" :motion="motion" />
-    </component>
+    </LvButton>
 </template>

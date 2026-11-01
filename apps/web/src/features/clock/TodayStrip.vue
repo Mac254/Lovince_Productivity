@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { Dashboard } from '@focus/types';
-import { Icon } from '@focus/ui';
-import { computed } from 'vue';
 import { dueLabel } from '@/lib/dates';
 import { dayProgress, dayProgressLabel } from '@/lib/progress';
-import { useTimerStore } from '@/stores/timer';
 
 /** Today at a glance under the clock: the plan's progress, the next task, and the focus timer. */
 const props = defineProps<{ data: Dashboard | null; error: string | null }>();
@@ -78,9 +75,9 @@ const nextMeta = computed(() => {
 
     <p v-else-if="error" class="text-label opacity-80">
         Today’s plan didn’t load.
-        <button type="button" class="font-semibold underline underline-offset-4" @click="$emit('retry')">
+        <Pressable type="button" class="font-semibold underline underline-offset-4" @click="$emit('retry')">
             Try again
-        </button>
+        </Pressable>
     </p>
 </template>
 

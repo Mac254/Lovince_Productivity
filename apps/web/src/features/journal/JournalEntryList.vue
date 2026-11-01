@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '@focus/ui';
-import { computed } from 'vue';
 import { formatDate, todayIso } from '@/lib/dates';
 import { summarizeEntry } from '@/lib/markdownLite';
 
@@ -27,7 +25,7 @@ const rows = computed(() =>
 <template>
     <ul class="-mx-2 flex flex-col gap-1">
         <li v-for="row in rows" :key="row.date">
-            <button
+            <Pressable
                 type="button"
                 :aria-current="row.date === selected ? 'date' : undefined"
                 :aria-label="`${formatDate(row.date, { weekday: 'long', day: 'numeric', month: 'long' })}: ${row.title}`"
@@ -60,7 +58,7 @@ const rows = computed(() =>
                     motion="nudge"
                     class="shrink-0 text-fg-subtle opacity-0 transition-opacity group-hover:opacity-100"
                 />
-            </button>
+            </Pressable>
         </li>
     </ul>
 </template>

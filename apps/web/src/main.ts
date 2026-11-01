@@ -1,13 +1,7 @@
 import './styles/app.css';
 import { onUnauthorized } from '@focus/api-client';
-import { createPinia } from 'pinia';
-import { createApp } from 'vue';
 import App from './App.vue';
 import { router } from './app/router';
-import { useAuthStore } from './stores/auth';
-import { useDashboardStore } from './stores/dashboard';
-import { useGoalsStore } from './stores/goals';
-import { usePreferencesStore } from './stores/preferences';
 
 const app = createApp(App);
 const pinia = createPinia();

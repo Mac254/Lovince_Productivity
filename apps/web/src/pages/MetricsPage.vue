@@ -1,23 +1,6 @@
 <script setup lang="ts">
 import { api } from '@focus/api-client';
 import type { MetricRange } from '@focus/types';
-import {
-    Card,
-    CardHeader,
-    ChipGroup,
-    EmptyState,
-    ErrorState,
-    PageHeader,
-    ProgressBar,
-    Skeleton,
-    Text,
-} from '@focus/ui';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useAsync } from '@/composables/useAsync';
-import StatCard from '@/features/dashboard/StatCard.vue';
-import ActivityHeatmap from '@/features/metrics/ActivityHeatmap.vue';
-import BreakdownChart from '@/features/metrics/BreakdownChart.vue';
-import DailyTrendChart from '@/features/metrics/DailyTrendChart.vue';
 import { formatDate, formatMinutes } from '@/lib/dates';
 import { taskCategoryLabels, taskPriorityLabels } from '@/lib/labels';
 
@@ -158,13 +141,13 @@ onMounted(run);
                     icon="metrics"
                     :subtitle="`${formatDate(data.range.start, { dateStyle: 'medium' })} – ${formatDate(data.range.end, { dateStyle: 'medium' })} · ${data.totals.per_day} completed per day · ${data.totals.entries_logged} work ${data.totals.entries_logged === 1 ? 'entry' : 'entries'}`"
                 >
-                    <button
+                    <Pressable
                         type="button"
                         class="text-label font-semibold text-fg-muted underline-offset-4 hover:text-fg hover:underline"
                         @click="showTable = !showTable"
                     >
                         {{ showTable ? 'Show chart' : 'View as table' }}
-                    </button>
+                    </Pressable>
                 </CardHeader>
                 <template v-if="!showTable">
                     <DailyTrendChart v-if="hasActivity" :daily="data.daily" />

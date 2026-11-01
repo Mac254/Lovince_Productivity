@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { IconName } from '@focus/ui';
-import { Card, CardHeader } from '@focus/ui';
 
 /** A titled group of settings rows, laid out as a key–value list. */
 defineProps<{ id: string; title: string; icon: IconName; description?: string }>();

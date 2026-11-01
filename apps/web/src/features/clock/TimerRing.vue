@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 /** Circular progress: the track is the remaining time, the arc is time spent. */
 const props = withDefaults(defineProps<{ progress: number; size?: number; stroke?: number; label: string }>(), {
     size: 320,

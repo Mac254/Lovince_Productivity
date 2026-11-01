@@ -1,5 +1,4 @@
 import { errorMessage, isApiError } from '@focus/api-client';
-import { onBeforeUnmount, ref, shallowRef } from 'vue';
 
 /**
  * Loading, data and error for one loader. Each run aborts the previous request,

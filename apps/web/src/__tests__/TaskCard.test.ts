@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
+import { nextTick } from 'vue';
 import TaskCard from '@/features/tasks/TaskCard.vue';
 import type { Task } from '@focus/types';
 
@@ -65,12 +66,19 @@ describe('TaskCard', () => {
         await trigger.trigger('click');
         expect(trigger.attributes('aria-expanded')).toBe('true');
 
-        const items = wrapper.findAll('[role="menuitem"]');
-        expect(items.map((item) => item.text())).toEqual(['View details', 'Edit task', 'Cancel task', 'Delete task']);
+        // The menu is portalled to the body, outside the card's own tree.
+        const items = [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+        expect(items.map((item) => item.textContent?.trim())).toEqual([
+            'View details',
+            'Edit task',
+            'Cancel task',
+            'Delete task',
+        ]);
 
-        await items[3]!.trigger('click');
+        items[3]!.click();
+        await nextTick();
         expect(wrapper.emitted('delete')?.[0]).toEqual([task]);
-        expect(wrapper.find('[role="menu"]').exists()).toBe(false);
+        expect(trigger.attributes('aria-expanded')).toBe('false');
         wrapper.unmount();
     });
 });

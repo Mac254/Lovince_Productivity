@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useId } from 'vue';
-
 /** One key–value row: the setting and what it means on the left, its value and actions on the right. */
 defineProps<{ label: string; description?: string }>();
 const labelId = useId();

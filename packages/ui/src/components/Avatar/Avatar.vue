@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { LvAvatarFallback, LvAvatarImage, LvAvatarRoot } from '@lovince/ui-vue';
+import { computed } from 'vue';
 
 /** A photo when one is set (and loads), otherwise initials. Decorative: the name is announced elsewhere. */
 const props = withDefaults(defineProps<{ name: string; src?: string | null; size?: 'sm' | 'md' | 'lg' | 'xl' }>(), {
     size: 'md',
     src: null,
 });
-
-const failed = ref(false);
-watch(
-    () => props.src,
-    () => (failed.value = false),
-);
 
 const initials = computed(() =>
     props.name
@@ -25,7 +20,7 @@ const initials = computed(() =>
 </script>
 
 <template>
-    <span
+    <LvAvatarRoot
         aria-hidden="true"
         :class="[
             'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-highlight bg-surface-raised font-display font-semibold text-highlight-fg',
@@ -37,7 +32,7 @@ const initials = computed(() =>
             }[size],
         ]"
     >
-        <img v-if="src && !failed" :src="src" alt="" class="size-full object-cover" @error="failed = true" />
-        <template v-else>{{ initials || '?' }}</template>
-    </span>
+        <LvAvatarImage :src="src ?? undefined" class="size-full object-cover" />
+        <LvAvatarFallback>{{ initials || '?' }}</LvAvatarFallback>
+    </LvAvatarRoot>
 </template>

@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Goal } from '@focus/types';
-import { Button, ChipGroup, ConfirmDialog, EmptyState, ErrorState, PageHeader, Skeleton, useToast } from '@focus/ui';
-import { computed, onMounted, ref } from 'vue';
-import GoalCard from '@/features/goals/GoalCard.vue';
-import GoalFormDialog from '@/features/goals/GoalFormDialog.vue';
-import { useAsync } from '@/composables/useAsync';
-import { useDashboardStore } from '@/stores/dashboard';
-import { useGoalsStore } from '@/stores/goals';
+import { allFacet, withoutAll } from '@/lib/facets';
 
 type View = 'active' | 'weekly' | 'long_term' | 'completed' | 'all';
 
@@ -17,6 +11,7 @@ const toast = useToast();
 const { loading, error, run } = useAsync(() => store.load(true));
 
 const view = ref<View>('active');
+const viewFacet = allFacet(view);
 const viewOptions: { value: View; label: string }[] = [
     { value: 'active', label: 'Active' },
     { value: 'weekly', label: 'Weekly' },
@@ -79,7 +74,9 @@ onMounted(run);
             </template>
         </PageHeader>
 
-        <ChipGroup v-model="view" label="Filter goals" :options="viewOptions" />
+        <div class="flex flex-wrap gap-2">
+            <FacetFilter v-model="viewFacet" label="Goals" :options="withoutAll(viewOptions)" />
+        </div>
 
         <ErrorState v-if="error" :message="error" @retry="run" />
         <div

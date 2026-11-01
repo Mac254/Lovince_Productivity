@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { dayProgressLabel, type DayProgress } from '@/lib/progress';
 
 /** Today's plan as one bar: done in full colour, worked on at half weight in a lighter tint, the rest to do. */

@@ -9,13 +9,8 @@ import {
     type TaskPriority,
     type TaskStatus,
 } from '@focus/types';
-import { Button, Checkbox, Dialog, Input, Select, Textarea, useToast } from '@focus/ui';
-import { computed, reactive, ref, useId, watch } from 'vue';
-import InlineCreate from '@/components/InlineCreate.vue';
 import { goalTimeframeOptions, taskPriorityOptions, taskStatusOptions } from '@/lib/labels';
 import { fromKind, kindOf, kindOptions, type TaskKind } from '@/lib/taskKind';
-import { useGoalsStore } from '@/stores/goals';
-import { useTaskTypesStore } from '@/stores/taskTypes';
 
 const props = defineProps<{ task?: Task | null; defaults?: TaskInput }>();
 const open = defineModel<boolean>('open', { required: true });

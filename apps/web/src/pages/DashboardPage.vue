@@ -1,37 +1,10 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import { useStaggerIn } from '@focus/motion';
 import type { Goal, Task } from '@focus/types';
-import {
-    Button,
-    Card,
-    CardHeader,
-    ChipGroup,
-    ConfirmDialog,
-    EmptyState,
-    ErrorState,
-    PageHeader,
-    Skeleton,
-    Text,
-    useToast,
-} from '@focus/ui';
-import { computed, ref } from 'vue';
-import BlockerList from '@/features/blockers/BlockerList.vue';
-import StatCard from '@/features/dashboard/StatCard.vue';
-import TaskListPanel from '@/features/dashboard/TaskListPanel.vue';
-import PlanProgress from '@/features/dashboard/PlanProgress.vue';
-import GoalCard from '@/features/goals/GoalCard.vue';
-import GoalFormDialog from '@/features/goals/GoalFormDialog.vue';
-import QuoteCard from '@/features/quotes/QuoteCard.vue';
-import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
-import TaskRow from '@/features/tasks/TaskRow.vue';
-import TypeBreakdownList from '@/features/tasks/TypeBreakdownList.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityRank } from '@/lib/labels';
 import { dayProgress } from '@/lib/progress';
-import { useDashboard } from '@/composables/useDashboard';
-import { useGoalsStore } from '@/stores/goals';
-import { usePreferencesStore } from '@/stores/preferences';
+import { allFacet, withoutAll } from '@/lib/facets';
 
 const dashboard = useDashboard();
 const goalsStore = useGoalsStore();
@@ -71,6 +44,7 @@ async function confirmDeleteGoal(): Promise<void> {
 
 type Focus = 'all' | 'overdue' | 'high' | 'in_progress';
 const focus = ref<Focus>('all');
+const focusFacet = allFacet(focus);
 const focusOptions: { value: Focus; label: string }[] = [
     { value: 'all', label: 'All' },
     { value: 'overdue', label: 'Overdue' },
@@ -166,7 +140,9 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     >
                         <Button variant="ghost" size="sm" icon-start="add" @click="create()">Add</Button>
                     </CardHeader>
-                    <ChipGroup v-model="focus" label="Filter today’s tasks" :options="focusOptions" class="mb-3" />
+                    <div class="mb-3 flex flex-wrap gap-2">
+                        <FacetFilter v-model="focusFacet" label="Show" :options="withoutAll(focusOptions)" />
+                    </div>
                     <ul v-if="focusTasks.length" class="-mx-2 flex flex-col">
                         <TaskRow
                             v-for="task in focusTasks"

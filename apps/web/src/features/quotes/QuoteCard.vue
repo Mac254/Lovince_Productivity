@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { api } from '@focus/api-client';
 import type { Quote } from '@focus/types';
-import { Card, Icon, IconButton, Text } from '@focus/ui';
-import { ref, watch } from 'vue';
 
 /** Works without quotes: the card falls back to a short line and the dashboard is unaffected. */
 const props = defineProps<{ initial: Quote | null }>();

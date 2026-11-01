@@ -1,35 +1,9 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Blocker, Task, TaskStatus } from '@focus/types';
-import {
-    Badge,
-    Button,
-    Card,
-    CardHeader,
-    ConfirmDialog,
-    ErrorState,
-    IconButton,
-    PageHeader,
-    Select,
-    Skeleton,
-    Text,
-    useToast,
-} from '@focus/ui';
-import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import ToneDot from '@/components/ToneDot.vue';
-import BlockerFormDialog from '@/features/blockers/BlockerFormDialog.vue';
-import BlockerList from '@/features/blockers/BlockerList.vue';
-import PriorityDots from '@/features/tasks/PriorityDots.vue';
-import StatusBadge from '@/features/tasks/StatusBadge.vue';
-import TaskTypeBadge from '@/features/tasks/TaskTypeBadge.vue';
-import TaskWorkLog from '@/features/tasks/TaskWorkLog.vue';
-import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
-import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { dueLabel, formatDate } from '@/lib/dates';
 import { taskStatusOptions } from '@/lib/labels';
-import { useDashboardStore } from '@/stores/dashboard';
 
 const route = useRoute();
 const router = useRouter();
@@ -165,13 +139,13 @@ watch(id, load, { immediate: true });
                         }}</Text>
                         <Text v-else tone="muted"
                             >No description yet.
-                            <button
+                            <Pressable
                                 type="button"
                                 class="font-semibold text-fg underline underline-offset-4"
                                 @click="editOpen = true"
                             >
                                 Add one
-                            </button></Text
+                            </Pressable></Text
                         >
                     </Card>
 

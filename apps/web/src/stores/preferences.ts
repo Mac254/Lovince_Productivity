@@ -1,7 +1,4 @@
-import { defineStore } from 'pinia';
 import type { Settings } from '@focus/types';
-import { computed, reactive, ref, watchEffect } from 'vue';
-import { useSettingsStore } from './settings';
 
 export type ThemeChoice = Settings['appearance']['theme'];
 export type StartPage = Settings['general']['start_page'];

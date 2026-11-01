@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 /** The day as 24 hour cells: hours gone, the current hour filling up, hours still ahead. */
 const props = defineProps<{ now: Date; hour12: boolean }>();
 

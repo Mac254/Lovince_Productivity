@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvCard } from '@lovince/ui-vue';
 import { provideSurfaceTone } from '../../composables/useSurfaceTone';
 
 /**
@@ -20,8 +21,9 @@ provideSurfaceTone(props.tone);
 </script>
 
 <template>
-    <component
-        :is="as"
+    <LvCard
+        :as="as"
+        :interactive="interactive"
         :class="[
             'relative flex min-w-0 flex-col rounded-lg transition-shadow duration-(--duration-fast)',
             { none: 'overflow-hidden', md: 'p-4 sm:p-6', lg: 'p-6 sm:p-8' }[padding],
@@ -34,5 +36,5 @@ provideSurfaceTone(props.tone);
         ]"
     >
         <slot />
-    </component>
+    </LvCard>
 </template>

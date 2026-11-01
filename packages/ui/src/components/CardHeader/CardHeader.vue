@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvCardDescription, LvCardHeader, LvCardTitle } from '@lovince/ui-vue';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
 
@@ -7,7 +8,7 @@ defineProps<{ title: string; subtitle?: string; icon?: IconName; titleId?: strin
 </script>
 
 <template>
-    <div class="mb-4 flex items-start justify-between gap-3">
+    <LvCardHeader class="mb-4 flex items-start justify-between gap-3">
         <div class="flex min-w-0 items-center gap-3">
             <span
                 v-if="icon"
@@ -16,12 +17,14 @@ defineProps<{ title: string; subtitle?: string; icon?: IconName; titleId?: strin
                 <Icon :name="icon" />
             </span>
             <div class="min-w-0">
-                <component :is="`h${level ?? 2}`" :id="titleId" class="truncate font-display text-lead font-medium">{{
+                <LvCardTitle :id="titleId" :as="`h${level ?? 2}`" class="truncate font-display text-lead font-medium">{{
                     title
-                }}</component>
-                <p v-if="subtitle" class="truncate text-label text-fg-muted">{{ subtitle }}</p>
+                }}</LvCardTitle>
+                <LvCardDescription v-if="subtitle" class="truncate text-label text-fg-muted">{{
+                    subtitle
+                }}</LvCardDescription>
             </div>
         </div>
         <div v-if="$slots.default" class="flex shrink-0 items-center gap-2"><slot /></div>
-    </div>
+    </LvCardHeader>
 </template>

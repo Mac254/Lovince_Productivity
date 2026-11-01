@@ -1,6 +1,4 @@
-<script setup lang="ts">
-import { Button, Heading } from '@focus/ui';
-</script>
+<script setup lang="ts"></script>
 
 <template>
     <main class="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 text-center">

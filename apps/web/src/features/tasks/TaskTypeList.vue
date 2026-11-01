@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS, type GoalTone, type TaskType } from '@focus/types';
-import { Button, ConfirmDialog, IconButton, Input, Select, Text, useToast } from '@focus/ui';
-import { reactive, ref } from 'vue';
-import ToneDot from '@/components/ToneDot.vue';
 import { goalToneOptions } from '@/lib/labels';
-import { useTaskTypesStore } from '@/stores/taskTypes';
 
 /** The user's task types with their task counts; each can be renamed, recoloured or deleted. */
 const emit = defineEmits<{ changed: [] }>();

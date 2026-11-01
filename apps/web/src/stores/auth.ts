@@ -1,8 +1,5 @@
 import { api, isApiError } from '@focus/api-client';
 import type { AuthSession, LoginInput, Me, User } from '@focus/types';
-import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
-import { useSettingsStore } from './settings';
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null);

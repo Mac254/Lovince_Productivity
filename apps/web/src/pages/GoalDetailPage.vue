@@ -1,31 +1,9 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Goal, Task } from '@focus/types';
-import {
-    Badge,
-    Button,
-    Card,
-    CardHeader,
-    ConfirmDialog,
-    ErrorState,
-    PageHeader,
-    ProgressBar,
-    Skeleton,
-    Text,
-    useToast,
-} from '@focus/ui';
-import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import ToneDot from '@/components/ToneDot.vue';
-import StatCard from '@/features/dashboard/StatCard.vue';
-import GoalFormDialog from '@/features/goals/GoalFormDialog.vue';
-import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
-import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { formatDate } from '@/lib/dates';
 import { goalStatusLabels, goalStatusTones, goalTimeframeLabels } from '@/lib/labels';
-import { useDashboardStore } from '@/stores/dashboard';
-import { useGoalsStore } from '@/stores/goals';
 
 const route = useRoute();
 const router = useRouter();

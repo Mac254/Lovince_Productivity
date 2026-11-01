@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvText } from '@lovince/ui-vue';
 import { computed } from 'vue';
 import { useSurfaceTone } from '../../composables/useSurfaceTone';
 
@@ -34,8 +35,8 @@ const toneClass = computed(() => {
 </script>
 
 <template>
-    <component
-        :is="as"
+    <LvText
+        :as="as"
         :class="[
             {
                 caption: 'text-caption',
@@ -51,5 +52,5 @@ const toneClass = computed(() => {
         ]"
     >
         <slot />
-    </component>
+    </LvText>
 </template>

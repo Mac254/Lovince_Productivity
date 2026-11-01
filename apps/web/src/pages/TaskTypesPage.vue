@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { errorMessage, isApiError } from '@focus/api-client';
 import { GOAL_TONES, LIMITS, type GoalTone } from '@focus/types';
-import { Button, Card, CardHeader, EmptyState, ErrorState, Input, PageHeader, Skeleton, useToast } from '@focus/ui';
-import { onMounted, reactive, ref } from 'vue';
-import TaskTypeList from '@/features/tasks/TaskTypeList.vue';
-import { goalToneLabels } from '@/lib/labels';
-import { toneDot } from '@/lib/tones';
-import { useTaskTypesStore } from '@/stores/taskTypes';
 
 const store = useTaskTypesStore();
 const toast = useToast();
@@ -95,31 +89,7 @@ onMounted(load);
                         :error="formError"
                         autocomplete="off"
                     />
-                    <fieldset class="flex flex-col gap-2">
-                        <legend class="mb-1 text-label font-semibold">Colour</legend>
-                        <div class="flex flex-wrap gap-2">
-                            <label
-                                v-for="tone in GOAL_TONES"
-                                :key="tone"
-                                :class="[
-                                    'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-label font-semibold transition-colors has-focus-visible:outline-2 has-focus-visible:outline-focus-ring',
-                                    form.tone === tone
-                                        ? 'border-fg bg-surface-raised'
-                                        : 'border-border-control hover:border-border-strong',
-                                ]"
-                            >
-                                <input
-                                    v-model="form.tone"
-                                    type="radio"
-                                    name="new-type-tone"
-                                    :value="tone"
-                                    class="sr-only"
-                                />
-                                <span :class="['size-3 rounded-full', toneDot[tone]]" aria-hidden="true" />
-                                {{ goalToneLabels[tone] }}
-                            </label>
-                        </div>
-                    </fieldset>
+                    <TonePicker v-model="form.tone" label="Colour" />
                     <Button
                         type="submit"
                         icon-start="add"

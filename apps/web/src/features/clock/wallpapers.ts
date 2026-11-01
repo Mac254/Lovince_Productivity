@@ -1,6 +1,4 @@
 import type { Settings } from '@focus/types';
-import { computed, reactive } from 'vue';
-import { useSettingsStore } from '@/stores/settings';
 
 export interface Wallpaper {
     id: string;
@@ -36,7 +34,10 @@ export function useClockPrefs(): ClockPrefs {
     const timeFormat = settings.bind('clock', 'time_format');
     return reactive({
         wallpaper: settings.bind('clock', 'wallpaper'),
-        hour12: computed({ get: () => timeFormat.value === '12h', set: (on: boolean) => (timeFormat.value = on ? '12h' : '24h') }),
+        hour12: computed({
+            get: () => timeFormat.value === '12h',
+            set: (on: boolean) => (timeFormat.value = on ? '12h' : '24h'),
+        }),
         seconds: settings.bind('clock', 'show_seconds'),
         tick: settings.bind('clock', 'ticking'),
     });

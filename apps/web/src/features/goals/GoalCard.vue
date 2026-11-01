@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { Goal } from '@focus/types';
-import { Badge, Card, DropdownMenu, Icon, ProgressBar, Text, type MenuItem } from '@focus/ui';
-import { computed } from 'vue';
-import ToneDot from '@/components/ToneDot.vue';
+import type { MenuItem } from '@focus/ui';
 import { formatDate } from '@/lib/dates';
 import { goalStatusLabels, goalStatusTones, goalTimeframeLabels } from '@/lib/labels';
 import { toneBorder } from '@/lib/tones';

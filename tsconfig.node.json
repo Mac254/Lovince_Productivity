@@ -1,5 +1,5 @@
 {
     "extends": "./tsconfig.base.json",
     "compilerOptions": { "types": ["node"] },
-    "include": ["vitest.config.ts", "apps/web/vite.config.ts", "packages/tokens/scripts/**/*.ts"]
+    "include": ["vitest.config.ts", "apps/web/vite.config.ts", "apps/web/autoImports.ts", "packages/tokens/scripts/**/*.ts"]
 }

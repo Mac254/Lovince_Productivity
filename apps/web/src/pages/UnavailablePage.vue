@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { Button, Card, Heading, Icon, Text } from '@focus/ui';
-import { computed, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import Wordmark from '@/components/Wordmark.vue';
 import { clearReloadGuard } from '@/lib/chunkReload';
 
 const route = useRoute();

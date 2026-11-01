@@ -1,18 +1,10 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS, type JournalContext, type JournalEntry } from '@focus/types';
-import { Button, Card, ChipGroup, Icon, IconButton, PageHeader, SearchField, Text, useToast } from '@focus/ui';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
-import DayContext from '@/features/journal/DayContext.vue';
-import JournalCalendar from '@/features/journal/JournalCalendar.vue';
 import JournalEditor from '@/features/journal/JournalEditor.vue';
-import JournalEntryList from '@/features/journal/JournalEntryList.vue';
-import JournalPreview from '@/features/journal/JournalPreview.vue';
 import { addMonths, monthGrid, monthOf, shiftDate } from '@/lib/calendar';
 import { formatDate, formatLongDate, todayIso } from '@/lib/dates';
 import { standupDraft } from '@/lib/standup';
-import { usePreferencesStore } from '@/stores/preferences';
 
 const route = useRoute();
 const router = useRouter();

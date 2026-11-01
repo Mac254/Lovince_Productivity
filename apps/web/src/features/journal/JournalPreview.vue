@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { parseMarkdown, type Inline } from '@/lib/markdownLite';
 
 /** The entry rendered from its Markdown subset. Everything is text interpolation — never HTML. */

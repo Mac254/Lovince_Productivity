@@ -1,7 +1,5 @@
 import { api } from '@focus/api-client';
 import type { TaskType, TaskTypeInput } from '@focus/types';
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
 
 /** The user's task types, shared by the task form, the Tasks filters and the types manager. */
 export const useTaskTypesStore = defineStore('taskTypes', () => {

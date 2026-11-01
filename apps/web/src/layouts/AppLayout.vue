@@ -1,16 +1,5 @@
 <script setup lang="ts">
-import { Avatar, Button, Dialog, DropdownMenu, Icon, IconButton, useToast } from '@focus/ui';
-import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import BrandMark from '@/components/BrandMark.vue';
-import SidebarNav from '@/components/SidebarNav.vue';
-import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
 import { formatLongDate, greeting, todayIso } from '@/lib/dates';
-import { useAuthStore } from '@/stores/auth';
-import { useDashboardStore } from '@/stores/dashboard';
-import { useGoalsStore } from '@/stores/goals';
-import { usePreferencesStore } from '@/stores/preferences';
-import { useTimerStore } from '@/stores/timer';
 
 const auth = useAuthStore();
 const dashboard = useDashboardStore();
@@ -76,16 +65,6 @@ function onQuickTaskSaved(): void {
                 <Icon name="clock" size="md" motion="spin" />
                 Focus timer
                 <span v-if="timer.active" class="ml-auto text-highlight tabular">{{ timer.display }}</span>
-            </RouterLink>
-            <RouterLink
-                :to="{ name: 'account' }"
-                class="group flex items-center gap-3 rounded-md p-2 text-chrome-fg transition-colors hover:bg-chrome-hover"
-            >
-                <Avatar :name="auth.user?.name ?? ''" :src="auth.user?.avatar_url" />
-                <span class="min-w-0">
-                    <span class="block truncate text-label font-semibold">{{ auth.user?.name }}</span>
-                    <span class="block truncate text-caption text-chrome-fg-muted">{{ auth.user?.email }}</span>
-                </span>
             </RouterLink>
         </div>
     </aside>

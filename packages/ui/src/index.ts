@@ -5,6 +5,8 @@ export { default as Text } from './primitives/Text/Text.vue';
 export { default as Heading } from './primitives/Heading/Heading.vue';
 export { default as Icon, type IconMotion } from './primitives/Icon/Icon.vue';
 export { default as VisuallyHidden } from './primitives/VisuallyHidden/VisuallyHidden.vue';
+/** Bare Lovince controls for custom-shaped UI (calendar days, list rows, the journal editor); style them with tokens. */
+export { LvButton as Pressable, LvTextarea as PlainTextarea } from '@lovince/ui-vue';
 
 // Icons — one set, addressed by meaning
 export { icons, type IconName } from './icons/registry';
@@ -17,6 +19,8 @@ export { default as Input } from './components/Input/Input.vue';
 export { default as Textarea } from './components/Textarea/Textarea.vue';
 export { default as Select } from './components/Select/Select.vue';
 export { default as Checkbox } from './components/Checkbox/Checkbox.vue';
+export { default as RadioGroup } from './components/RadioGroup/RadioGroup.vue';
+export { default as FilePicker } from './components/FilePicker/FilePicker.vue';
 export { default as Switch } from './components/Switch/Switch.vue';
 export { default as Badge } from './components/Badge/Badge.vue';
 export type { BadgeTone } from './components/Badge/tones';
@@ -41,6 +45,7 @@ export { default as ConfirmDialog } from './patterns/ConfirmDialog/ConfirmDialog
 export { default as PageHeader } from './patterns/PageHeader/PageHeader.vue';
 export { default as SectionHeader } from './patterns/SectionHeader/SectionHeader.vue';
 export { default as SearchField } from './patterns/SearchField/SearchField.vue';
+export { default as FacetFilter, type FacetOption } from './patterns/FacetFilter/FacetFilter.vue';
 
 // Composables
 export { provideSurfaceTone, useSurfaceTone, type SurfaceTone } from './composables/useSurfaceTone';

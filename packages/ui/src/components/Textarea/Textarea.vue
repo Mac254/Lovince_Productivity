@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LvTextarea } from '@lovince/ui-vue';
 import Field from '../Field/Field.vue';
 import { controlClasses } from '../Field/controlClasses';
 
@@ -9,14 +10,12 @@ const model = defineModel<string | null>({ default: '' });
 
 <template>
     <Field :id="id" v-slot="{ describedBy, invalid }" :label="label" :error="error" :hint="hint" :optional="optional">
-        <textarea
-            :id="id"
-            v-model="model"
+        <LvTextarea
+            :model-value="model ?? ''"
             v-bind="$attrs"
-            rows="3"
-            :aria-invalid="invalid || undefined"
             :aria-describedby="describedBy"
             :class="[controlClasses(invalid), 'min-h-24 resize-y py-3']"
+            @update:model-value="model = $event"
         />
     </Field>
 </template>

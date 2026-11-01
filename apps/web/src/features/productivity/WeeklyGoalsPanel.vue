@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Goal } from '@focus/types';
-import { Card, CardHeader, ProgressBar, Text } from '@focus/ui';
 
 defineProps<{ goals: Goal[] }>();
 </script>

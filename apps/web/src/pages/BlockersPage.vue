@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { api } from '@focus/api-client';
 import type { BlockerStatus } from '@focus/types';
-import { Button, Card, ChipGroup, EmptyState, ErrorState, PageHeader, Skeleton } from '@focus/ui';
-import { onMounted, ref, watch } from 'vue';
-import BlockerFormDialog from '@/features/blockers/BlockerFormDialog.vue';
-import BlockerList from '@/features/blockers/BlockerList.vue';
-import { useAsync } from '@/composables/useAsync';
-import { useDashboardStore } from '@/stores/dashboard';
+import { allFacet, withoutAll } from '@/lib/facets';
 
 type View = BlockerStatus | 'all';
 
 const dashboard = useDashboardStore();
 const view = ref<View>('open');
+const viewFacet = allFacet(view);
 const dialogOpen = ref(false);
 const views: { value: View; label: string }[] = [
     { value: 'open', label: 'Open' },
@@ -44,7 +40,9 @@ onMounted(run);
             </template>
         </PageHeader>
 
-        <ChipGroup v-model="view" label="Filter blockers" :options="views" />
+        <div class="flex flex-wrap gap-2">
+            <FacetFilter v-model="viewFacet" label="Status" :options="withoutAll(views)" />
+        </div>
 
         <ErrorState v-if="error" :message="error" @retry="run" />
         <Skeleton v-else-if="loading && !data" class="h-64" />

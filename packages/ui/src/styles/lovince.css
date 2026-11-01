@@ -1,0 +1,9 @@
+/*
+ * Lovince UI components ship no CSS; they report state as `data-*` attributes. These variants
+ * name the states so components style them without arbitrary selectors:
+ *   state-checked:  switch, checkbox      state-on:   toggle, toggle group item
+ *   state-open:     menu, dialog, popover  (`data-highlighted:` and `data-disabled:` work as is)
+ */
+@custom-variant state-checked (&[data-state='checked']);
+@custom-variant state-on (&[data-state='on']);
+@custom-variant state-open (&[data-state='open']);

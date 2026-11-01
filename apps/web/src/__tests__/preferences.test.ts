@@ -56,7 +56,9 @@ describe('settings', () => {
 
     it('takes the account settings at sign-in and sends changes made before it', async () => {
         localStorage.setItem('focus.preferences', JSON.stringify({ startPage: 'today' }));
-        api.settings.update.mockResolvedValue({ values: withChanges({ general: { start_page: 'today' }, appearance: { theme: 'light' } }) });
+        api.settings.update.mockResolvedValue({
+            values: withChanges({ general: { start_page: 'today' }, appearance: { theme: 'light' } }),
+        });
         const settings = useSettingsStore();
 
         settings.hydrate(withChanges({ appearance: { theme: 'light' } }));

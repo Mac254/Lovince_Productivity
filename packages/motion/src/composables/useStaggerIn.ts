@@ -1,6 +1,7 @@
-import { gsap } from 'gsap';
+import { createMotion, type MotionContext } from '@lovince/motion';
+import { createTimeline } from '@lovince/motion/gsap';
 import { onBeforeUnmount, watch, type Ref, type WatchSource } from 'vue';
-import { motion, prefersReducedMotion } from '../presets/motion';
+import { motion, motionConfig, prefersReducedMotion } from '../presets/motion';
 
 interface StaggerOptions {
     /** Children to animate, relative to the container. */
@@ -11,10 +12,11 @@ interface StaggerOptions {
 
 /**
  * Fades and lifts a container's children in once, using opacity and transform only.
- * Never blocks interaction; skipped entirely under reduced motion.
+ * A Lovince motion context owns the timeline, so unmounting mid-entrance reverts it cleanly.
+ * Never blocks interaction; skipped entirely under reduced motion (the device's or the app's).
  */
 export function useStaggerIn(container: Ref<HTMLElement | null>, { selector, when }: StaggerOptions): void {
-    let ctx: gsap.Context | null = null;
+    let context: MotionContext | null = null;
     let played = false;
 
     const stop = watch(
@@ -22,22 +24,25 @@ export function useStaggerIn(container: Ref<HTMLElement | null>, { selector, whe
         ([ready, el]) => {
             if (played || !ready || !el || prefersReducedMotion()) return;
             played = true;
-            ctx = gsap.context(() => {
-                gsap.from(selector, {
-                    autoAlpha: 0,
-                    y: motion.enter.distance,
-                    duration: motion.enter.duration,
-                    ease: motion.enter.ease,
-                    stagger: motion.stagger,
-                    clearProps: 'all',
-                });
-            }, el);
+            context = createMotion({ root: el, config: motionConfig });
+            createTimeline(
+                (timeline, scope) => {
+                    // From, not fromTo, and props cleared after: no transform lingers to trap menus in a stacking context.
+                    timeline.from(scope.select(selector), {
+                        autoAlpha: 0,
+                        y: motion.enter.distance,
+                        stagger: motion.stagger,
+                        clearProps: 'all',
+                    });
+                },
+                { context },
+            );
         },
         { flush: 'post', immediate: true },
     );
 
     onBeforeUnmount(() => {
         stop();
-        ctx?.revert();
+        context?.destroy();
     });
 }

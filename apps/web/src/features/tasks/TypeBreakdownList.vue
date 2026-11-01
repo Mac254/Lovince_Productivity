@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { TypeBreakdownRow } from '@focus/types';
-import { Text } from '@focus/ui';
-import ToneDot from '@/components/ToneDot.vue';
 import { taskCategoryLabels } from '@/lib/labels';
 
 /** Per-type counts as a compact list; each row opens the Tasks page filtered to that type. */

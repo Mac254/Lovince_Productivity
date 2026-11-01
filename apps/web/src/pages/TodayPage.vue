@@ -1,19 +1,7 @@
 <script setup lang="ts">
-import { Button, Card, CardHeader, ConfirmDialog, EmptyState, ErrorState, PageHeader, Skeleton, Text } from '@focus/ui';
-import { computed, ref } from 'vue';
-import BlockerFormDialog from '@/features/blockers/BlockerFormDialog.vue';
-import BlockerList from '@/features/blockers/BlockerList.vue';
-import PlanProgress from '@/features/dashboard/PlanProgress.vue';
-import StatCard from '@/features/dashboard/StatCard.vue';
-import TaskListPanel from '@/features/dashboard/TaskListPanel.vue';
-import WeeklyGoalsPanel from '@/features/productivity/WeeklyGoalsPanel.vue';
-import TaskFormDialog from '@/features/tasks/TaskFormDialog.vue';
-import TaskRow from '@/features/tasks/TaskRow.vue';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { formatLongDate } from '@/lib/dates';
 import { dayProgress } from '@/lib/progress';
-import { useDashboard } from '@/composables/useDashboard';
-import { useGoalsStore } from '@/stores/goals';
 
 const dashboard = useDashboard();
 const goals = useGoalsStore();

@@ -3,3 +3,7 @@ packages:
   - packages/*
 minimumReleaseAgeExclude:
   - eslint-plugin-vue@10.12.0
+  - '@lovince/ui-dom@0.2.0'
+  - '@lovince/ui-headless@0.2.0'
+  - '@lovince/ui-vue@0.2.0'
+  - '@lovince/motion@0.2.0'
