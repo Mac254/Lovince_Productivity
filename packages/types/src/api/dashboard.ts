@@ -3,6 +3,7 @@ import type { Goal } from '../models/goal';
 import type { Quote } from '../models/quote';
 import type { IsoDate, Task } from '../models/task';
 import type { TypeBreakdownRow } from './reports';
+import type { ReviewPrompt } from './reviews';
 
 export interface DashboardStats {
     due_today: number;
@@ -44,6 +45,7 @@ export interface Dashboard {
     date: IsoDate;
     week: { start: IsoDate; end: IsoDate };
     focus: FocusToday;
+    review: ReviewPrompt;
     stats: DashboardStats;
     today_tasks: Task[];
     planned_tasks: Task[];

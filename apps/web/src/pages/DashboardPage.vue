@@ -96,6 +96,21 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
         <ErrorState v-if="dashboard.error && !data" :message="dashboard.error" @retry="dashboard.load()" />
 
         <div v-if="data && stats && day" ref="content" class="flex flex-col gap-6">
+            <Card
+                v-if="data.review?.due && !data.review.done"
+                as="section"
+                data-stagger
+                aria-labelledby="review-heading"
+                class="group flex-row flex-wrap items-center justify-between gap-4"
+            >
+                <CardHeader
+                    title="Time for your weekly review"
+                    title-id="review-heading"
+                    icon="calendar-range"
+                    subtitle="Look back at the week, move what’s left and set next week’s focus."
+                />
+                <Button :to="{ name: 'review' }" icon-end="arrow-right">Start review</Button>
+            </Card>
             <section aria-label="Key numbers" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
                 <StatCard
                     data-stagger

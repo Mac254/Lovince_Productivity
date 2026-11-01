@@ -58,6 +58,7 @@ export const LIMITS = {
     wallpaperKb: 8192,
     wallpapers: 12,
     focusSessionMinutes: 720,
+    review: 5000,
 } as const;
 
 /** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */
@@ -84,6 +85,9 @@ export interface Settings {
         daily_goal: '0' | '60' | '120' | '180' | '240' | '300' | '360';
         sync: boolean;
         auto_break: boolean;
+    };
+    review: {
+        day: 'off' | 'friday' | 'saturday' | 'sunday';
     };
     journal: {
         font: 'mono' | 'sans';
@@ -115,6 +119,9 @@ export const SETTINGS_DEFAULTS: Settings = {
         daily_goal: '120',
         sync: true,
         auto_break: false,
+    },
+    review: {
+        day: 'friday',
     },
     journal: {
         font: 'mono',

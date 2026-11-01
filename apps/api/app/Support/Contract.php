@@ -54,6 +54,8 @@ final class Contract
 
     public const FOCUS_SESSION_MINUTES_MAX = 720;
 
+    public const REVIEW_MAX = 5000;
+
     /**
      * @return array<string, list<string>>
      */
@@ -94,6 +96,7 @@ final class Contract
             'wallpaperKb' => self::WALLPAPER_MAX_KB,
             'wallpapers' => self::WALLPAPER_LIMIT,
             'focusSessionMinutes' => self::FOCUS_SESSION_MINUTES_MAX,
+            'review' => self::REVIEW_MAX,
         ];
     }
 }

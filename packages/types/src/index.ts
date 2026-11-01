@@ -17,12 +17,7 @@ export type {
 export type { Wallpaper } from './models/wallpaper';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';
-export type {
-    SettingDescription,
-    SettingsChanges,
-    SettingsModuleDescription,
-    SettingsState,
-} from './models/settings';
+export type { SettingDescription, SettingsChanges, SettingsModuleDescription, SettingsState } from './models/settings';
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
 export type {
@@ -47,3 +42,12 @@ export type {
     TypeBreakdownRow,
 } from './api/reports';
 export type { FocusMetrics, MetricRange, Metrics } from './api/metrics';
+export type {
+    ReviewPrompt,
+    WeeklyReflection,
+    WeeklyReview,
+    WeeklyReviewDay,
+    WeeklyReviewGoal,
+    WeeklyReviewInput,
+    WeeklyReviewSummary,
+} from './api/reviews';

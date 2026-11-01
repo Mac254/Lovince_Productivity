@@ -9,6 +9,7 @@ import { metricEndpoints } from './endpoints/metrics';
 import { profileEndpoints } from './endpoints/profile';
 import { quoteEndpoints } from './endpoints/quotes';
 import { reportEndpoints } from './endpoints/reports';
+import { reviewEndpoints } from './endpoints/reviews';
 import { settingsEndpoints } from './endpoints/settings';
 import { wallpaperEndpoints } from './endpoints/wallpapers';
 import { taskEndpoints } from './endpoints/tasks';
@@ -25,6 +26,7 @@ export function createApi(http: AxiosInstance) {
         blockers: blockerEndpoints(http),
         journal: journalEndpoints(http),
         reports: reportEndpoints(http),
+        reviews: reviewEndpoints(http),
         metrics: metricEndpoints(http),
         profile: profileEndpoints(http),
         settings: settingsEndpoints(http),

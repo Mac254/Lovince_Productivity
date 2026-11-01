@@ -22,7 +22,8 @@ Users ← Settings ← Auth
 Users ← Goals ← Tasks ← Blockers ← Journal
 Users ← Quotes
 Tasks ← Clock
-Tasks, Goals, Blockers, Journal, Quotes, Clock ← Dashboard, Metrics, Reports (read models)
+Tasks, Goals, Blockers, Journal, Clock ← Reviews
+Tasks, Goals, Blockers, Journal, Quotes, Clock, Reviews ← Dashboard, Metrics, Reports (read models)
 ```
 
 Where the arrow would point back, the lower module offers a contract or an event instead: Goals' `GoalProgress` contract is implemented by Tasks, Tasks' `WorkLogChanged` event is handled by Reports, and relations to a higher module's records (`User::tasks`, `Goal::tasks`, `Task::blockers`) are added by that module with `resolveRelationUsing()`.

@@ -95,6 +95,12 @@ export const router = createRouter({
                     meta: { title: 'Report' },
                 },
                 {
+                    path: 'review/:week(\\d{4}-\\d{2}-\\d{2})?',
+                    name: 'review',
+                    component: () => import('@/pages/WeeklyReviewPage.vue'),
+                    meta: { title: 'Weekly review' },
+                },
+                {
                     path: 'journal',
                     name: 'journal',
                     component: () => import('@/pages/JournalPage.vue'),

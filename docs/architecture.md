@@ -47,7 +47,7 @@ export const LIMITS = { task: { title: 200, description: 5000 }, … } as const;
 
 ## Backend (`apps/api`)
 
-- A modular monolith: `app/Modules/<Module>` owns one business area (Auth, Users, Settings, Goals, Tasks, Blockers, Journal, Reports, Metrics, Dashboard, Quotes, Clock) with its routes, models, policies, migrations and tests. `ModuleServiceProvider` registers each module's provider once; `app/Modules/README.md` describes the conventions and the one-way dependencies between modules, and each module has its own README.
+- A modular monolith: `app/Modules/<Module>` owns one business area (Auth, Users, Settings, Goals, Tasks, Blockers, Journal, Reports, Metrics, Dashboard, Quotes, Clock, Reviews) with its routes, models, policies, migrations and tests. `ModuleServiceProvider` registers each module's provider once; `app/Modules/README.md` describes the conventions and the one-way dependencies between modules, and each module has its own README.
 - Controllers are thin: validate (Form Request) → authorize (Policy) → act → return an API Resource.
 - `Dashboard/Services/DashboardSummary` computes all dashboard numbers from persisted data.
 - `Goals/Actions/DeleteGoal` deletes the goal in a transaction in which the Tasks module detaches its tasks.

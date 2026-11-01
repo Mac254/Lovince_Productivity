@@ -11,6 +11,7 @@ use App\Modules\Goals\Http\Resources\GoalResource;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Quotes\Http\Resources\QuoteResource;
 use App\Modules\Quotes\Models\Quote;
+use App\Modules\Reviews\Services\ReviewPrompt;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Http\Resources\TaskResource;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class DashboardSummary
 {
-    public function __construct(private readonly FocusStats $focus) {}
+    public function __construct(private readonly FocusStats $focus, private readonly ReviewPrompt $review) {}
 
     private const LIST_LIMIT = 8;
 
@@ -57,6 +58,7 @@ class DashboardSummary
                 'end' => $weekEnd->toDateString(),
             ],
             'focus' => $this->focus->today($user),
+            'review' => $this->review->for($user),
             'stats' => [
                 'due_today' => $tasks()->open()->whereDate('due_date', $today)->count(),
                 'planned_today' => $planned()->count(),
