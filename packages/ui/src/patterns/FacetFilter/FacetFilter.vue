@@ -111,11 +111,21 @@ function clear(): void {
     animation: facet-in var(--duration-fast) var(--ease-out);
 }
 
+.facet[data-state='closed'] {
+    animation: facet-out var(--duration-instant) var(--ease-in) forwards;
+}
+
 @keyframes facet-in {
     from {
         opacity: 0;
         translate: 0 calc(var(--spacing) * -1);
         scale: 0.98;
+    }
+}
+
+@keyframes facet-out {
+    to {
+        opacity: 0;
     }
 }
 </style>

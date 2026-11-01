@@ -84,6 +84,7 @@ declare global {
   const useGoalsStore: typeof import('./stores/goals').useGoalsStore
   const useId: typeof import('vue').useId
   const useLink: typeof import('vue-router').useLink
+  const useLiquid: typeof import('@focus/motion').useLiquid
   const useModel: typeof import('vue').useModel
   const useOnline: typeof import('./composables/useOnline').useOnline
   const usePagedList: typeof import('@focus/ui').usePagedList
@@ -199,6 +200,7 @@ declare module 'vue' {
     readonly useGoalsStore: UnwrapRef<typeof import('./stores/goals')['useGoalsStore']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
+    readonly useLiquid: UnwrapRef<typeof import('@focus/motion')['useLiquid']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useOnline: UnwrapRef<typeof import('./composables/useOnline')['useOnline']>
     readonly usePagedList: UnwrapRef<typeof import('@focus/ui')['usePagedList']>

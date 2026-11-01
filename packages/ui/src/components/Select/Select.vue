@@ -93,10 +93,20 @@ function choose(key: string | string[]): void {
     animation: select-in var(--duration-fast) var(--ease-out);
 }
 
+.select-menu[data-state='closed'] {
+    animation: select-out var(--duration-instant) var(--ease-in) forwards;
+}
+
 @keyframes select-in {
     from {
         opacity: 0;
         scale: 0.98;
+    }
+}
+
+@keyframes select-out {
+    to {
+        opacity: 0;
     }
 }
 </style>

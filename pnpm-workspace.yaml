@@ -9,3 +9,7 @@ minimumReleaseAgeExclude:
   - '@lovince/ui-vue@0.2.0'
   - '@lovince/ui-vue@0.3.0'
   - '@lovince/motion@0.2.0'
+  - '@lovince/motion@0.3.0'
+  - '@lovince/tokens@0.2.0'
+  - '@lovince/ui-headless@0.4.0'
+  - '@lovince/ui-vue@0.4.0'

@@ -1,0 +1,5 @@
+@import '@lovince/motion/primitives.css';
+
+[data-liquid] {
+    --liquid-radius: var(--radius-md);
+}
