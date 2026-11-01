@@ -89,12 +89,14 @@ export interface Settings {
         estimates: boolean;
         complete_on_checklist: boolean;
         repeat_from: 'due' | 'completed';
+        daily_reminder: 'off' | '6' | '7' | '8' | '9' | '10' | '11';
     };
     planner: {
         enabled: boolean;
         day_start: '5' | '6' | '7' | '8' | '9' | '10';
         day_end: '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23';
         step: '15' | '30' | '60';
+        reminder: 'off' | '5' | '10' | '15';
     };
     clock: {
         wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | `custom:${number}`;
@@ -133,12 +135,14 @@ export const SETTINGS_DEFAULTS: Settings = {
         estimates: true,
         complete_on_checklist: false,
         repeat_from: 'due',
+        daily_reminder: 'off',
     },
     planner: {
         enabled: true,
         day_start: '8',
         day_end: '18',
         step: '30',
+        reminder: '5',
     },
     clock: {
         wallpaper: 'neon',

@@ -23,6 +23,13 @@ function onShortcut(event: KeyboardEvent): void {
 
 onMounted(() => window.addEventListener('keydown', onShortcut));
 onUnmounted(() => window.removeEventListener('keydown', onShortcut));
+useReminders();
+const online = useOnline(() => {
+    void timer.flush();
+    void dashboard.invalidate();
+    toast.success('Back online');
+});
+
 const firstName = computed(() => auth.user?.name.split(' ')[0] ?? '');
 
 async function signOut(): Promise<void> {
@@ -159,6 +166,15 @@ function onQuickTaskSaved(): void {
                 </DropdownMenu>
             </div>
         </header>
+
+        <div
+            v-if="!online"
+            role="status"
+            class="flex items-center justify-center gap-2 border-b border-border bg-surface-raised px-4 py-2"
+        >
+            <Icon name="warning" />
+            <Text role="label">You’re offline. Focus sessions are kept and saved when you reconnect.</Text>
+        </div>
 
         <main id="main" tabindex="-1" class="w-full px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
             <RouterView />

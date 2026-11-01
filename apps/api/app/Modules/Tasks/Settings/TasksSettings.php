@@ -32,6 +32,7 @@ class TasksSettings extends SettingsModule
                 'due' => 'Their due date',
                 'completed' => 'The day they’re done',
             ], 'due', 'When you finish a repeating task, the next one is due one interval after this date.'),
+            Setting::choice('daily_reminder', 'Daily reminder', ['off' => 'Off'] + collect(range(6, 11))->mapWithKeys(fn (int $hour) => [(string) $hour => sprintf('%02d:00', $hour)])->all(), 'off', 'A notification listing what’s due today, shown while Focus is open.'),
         ];
     }
 }
