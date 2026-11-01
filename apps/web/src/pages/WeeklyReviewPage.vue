@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import { LIMITS, type Task, type WeeklyReview } from '@focus/types';
+import { LIMITS, type Task, type WeeklyReview, type WeeklyReviewSummary } from '@focus/types';
 import { weekLabel, weekStartIso } from '@/features/reviews/week';
 import { shiftDate } from '@/lib/calendar';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
@@ -18,6 +18,7 @@ const saving = ref(false);
 const moving = ref<number | null>(null);
 const movingAll = ref(false);
 const draft = reactive({ wins: '', challenges: '', next_focus: '' });
+const past = ref<WeeklyReviewSummary[]>([]);
 
 const thisWeek = weekStartIso();
 const week = computed(() =>
@@ -56,6 +57,14 @@ async function load(): Promise<void> {
     }
 }
 
+async function loadPast(): Promise<void> {
+    try {
+        past.value = await api.reviews.list();
+    } catch {
+        past.value = [];
+    }
+}
+
 async function save(completed?: boolean): Promise<void> {
     saving.value = true;
     try {
@@ -63,7 +72,10 @@ async function save(completed?: boolean): Promise<void> {
         toast.success(
             completed ? 'Review done. Have a good week.' : completed === false ? 'Review reopened' : 'Review saved',
         );
-        if (completed !== undefined) void dashboard.load();
+        if (completed !== undefined) {
+            void dashboard.load();
+            void loadPast();
+        }
     } catch (e) {
         toast.error(errorMessage(e, 'Could not save the review.'));
     } finally {
@@ -105,6 +117,7 @@ function go(start: string): void {
 }
 
 watch(week, load, { immediate: true });
+void loadPast();
 
 const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
 </script>
@@ -343,6 +356,22 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                     <Button v-if="!done" icon-start="check" :loading="saving" @click="save(true)">Finish review</Button>
                     <Button v-else variant="ghost" :loading="saving" @click="save(false)">Reopen</Button>
                 </div>
+            </Card>
+
+            <Card v-if="past.length" as="section" aria-labelledby="past-heading" class="group">
+                <CardHeader title="Past reviews" title-id="past-heading" icon="history" subtitle="Weeks you finished" />
+                <ul class="flex flex-wrap gap-2">
+                    <li v-for="item in past" :key="item.week_start">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :to="{ name: 'review', params: { week: item.week_start } }"
+                            :aria-current="item.week_start === week ? 'page' : undefined"
+                        >
+                            {{ weekLabel(item.week_start, shiftDate(item.week_start, 6)) }}
+                        </Button>
+                    </li>
+                </ul>
             </Card>
         </template>
     </div>
