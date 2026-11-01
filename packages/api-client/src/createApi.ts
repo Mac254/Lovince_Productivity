@@ -19,6 +19,7 @@ import { taskEndpoints } from './endpoints/tasks';
 import { taskNoteEndpoints } from './endpoints/taskNotes';
 import { taskTypeEndpoints } from './endpoints/taskTypes';
 import { scheduleEndpoints } from './endpoints/schedules';
+import { suggestionEndpoints } from './endpoints/suggestions';
 import { timeBlockEndpoints } from './endpoints/timeBlocks';
 
 export function createApi(http: AxiosInstance) {
@@ -45,6 +46,7 @@ export function createApi(http: AxiosInstance) {
         checklist: checklistEndpoints(http),
         timeBlocks: timeBlockEndpoints(http),
         schedules: scheduleEndpoints(http),
+        suggestions: suggestionEndpoints(http),
     };
 }
 

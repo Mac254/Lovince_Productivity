@@ -8,6 +8,7 @@ const root = ref<HTMLElement | null>(null);
 const menuId = useId();
 
 const actions: { label: string; icon: IconName; to: RouteLocationRaw }[] = [
+    { label: 'Suggestions', icon: 'lightbulb', to: { name: 'suggestions' } },
     { label: 'New schedule', icon: 'calendar-clock', to: { name: 'schedules', query: { new: '1' } } },
     { label: "Today's journal", icon: 'journal', to: { name: 'journal' } },
 ];

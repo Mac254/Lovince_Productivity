@@ -79,6 +79,8 @@ declare module 'vue' {
     Skeleton: typeof import('@focus/ui')['Skeleton']
     StatCard: typeof import('./features/dashboard/StatCard.vue')['default']
     StatusBadge: typeof import('./features/tasks/StatusBadge.vue')['default']
+    SuggestionCard: typeof import('./features/suggestions/SuggestionCard.vue')['default']
+    SuggestionFormDialog: typeof import('./features/suggestions/SuggestionFormDialog.vue')['default']
     Switch: typeof import('@focus/ui')['Switch']
     Table: typeof import('@focus/ui')['Table']
     TableBody: typeof import('@focus/ui')['TableBody']

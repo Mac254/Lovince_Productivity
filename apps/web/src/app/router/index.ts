@@ -71,6 +71,12 @@ export const router = createRouter({
                     meta: { title: 'Schedules' },
                 },
                 {
+                    path: 'suggestions',
+                    name: 'suggestions',
+                    component: () => import('@/pages/SuggestionsPage.vue'),
+                    meta: { title: 'Suggestions' },
+                },
+                {
                     path: 'types',
                     name: 'types',
                     component: () => import('@/pages/TaskTypesPage.vue'),

@@ -41,6 +41,7 @@ import IconInfo from '~icons/solar/info-circle-linear';
 import IconIntegration from '~icons/solar/branching-paths-up-linear';
 import IconJournal from '~icons/solar/notebook-linear';
 import IconKey from '~icons/solar/key-linear';
+import IconLightbulb from '~icons/solar/lightbulb-minimalistic-linear';
 import IconLock from '~icons/solar/lock-keyhole-minimalistic-linear';
 import IconLogout from '~icons/solar/logout-3-linear';
 import IconMenu from '~icons/solar/hamburger-menu-linear';
@@ -109,6 +110,7 @@ export const icons = {
     integration: IconIntegration,
     journal: IconJournal,
     key: IconKey,
+    lightbulb: IconLightbulb,
     lock: IconLock,
     logout: IconLogout,
     menu: IconMenu,

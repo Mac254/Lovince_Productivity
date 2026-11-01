@@ -3,6 +3,7 @@ import {
     GOAL_STATUSES,
     GOAL_TONES,
     GOAL_TIMEFRAMES,
+    SUGGESTION_CATEGORIES,
     TASK_CATEGORIES,
     TASK_PRIORITIES,
     TASK_RECURRENCES,
@@ -11,12 +12,15 @@ import {
     type GoalStatus,
     type GoalTone,
     type GoalTimeframe,
+    type SuggestionCategory,
+    type SuggestionSource,
+    type SuggestionStatus,
     type TaskCategory,
     type TaskPriority,
     type TaskRecurrence,
     type TaskStatus,
 } from '@focus/types';
-import type { BadgeTone } from '@focus/ui';
+import type { BadgeTone, IconName } from '@focus/ui';
 
 export const taskStatusLabels: Record<TaskStatus, string> = {
     not_started: 'Not started',
@@ -92,6 +96,46 @@ export const taskRecurrenceLabels: Record<TaskRecurrence, string> = {
     monthly: 'Every month',
 };
 
+export const suggestionCategoryLabels: Record<SuggestionCategory, string> = {
+    focus: 'Focus',
+    growth: 'Growth',
+    health: 'Health',
+    wellbeing: 'Wellbeing',
+    social: 'Social',
+    fun: 'Fun',
+};
+
+export const suggestionCategoryTones: Record<SuggestionCategory, BadgeTone> = {
+    focus: 'info',
+    growth: 'accent',
+    health: 'success',
+    wellbeing: 'highlight',
+    social: 'warning',
+    fun: 'danger',
+};
+
+export const suggestionCategoryIcons: Record<SuggestionCategory, IconName> = {
+    focus: 'target',
+    growth: 'flame',
+    health: 'check-circle',
+    wellbeing: 'sun',
+    social: 'user',
+    fun: 'star',
+};
+
+export const suggestionStatusLabels: Record<SuggestionStatus, string> = {
+    new: 'New',
+    accepted: 'Accepted',
+    done: 'Done',
+    dismissed: 'Dismissed',
+};
+
+export const suggestionSourceLabels: Record<SuggestionSource, string> = {
+    insight: 'From your data',
+    library: 'Idea',
+    custom: 'Yours',
+};
+
 function toOptions<T extends string>(values: readonly T[], labels: Record<T, string>) {
     return values.map((value) => ({ value, label: labels[value] }));
 }
@@ -107,3 +151,4 @@ export const goalStatusOptions = toOptions(GOAL_STATUSES, goalStatusLabels);
 export const goalTimeframeOptions = toOptions(GOAL_TIMEFRAMES, goalTimeframeLabels);
 export const goalToneOptions = toOptions(GOAL_TONES, goalToneLabels);
 export const blockerStatusOptions = toOptions(BLOCKER_STATUSES, blockerStatusLabels);
+export const suggestionCategoryOptions = toOptions(SUGGESTION_CATEGORIES, suggestionCategoryLabels);
