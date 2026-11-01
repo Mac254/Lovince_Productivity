@@ -17,7 +17,12 @@ class RecordFocusSession
     public function handle(User $user, array $data): FocusSession
     {
         return DB::transaction(function () use ($user, $data) {
-            $startedAt = Carbon::parse($data['started_at']);
+            $startedAt = Carbon::parse($data['started_at'])->setTimezone(config('app.timezone'))->startOfSecond();
+
+            $existing = $user->focusSessions()->where('started_at', $startedAt)->with('task:id,title')->first();
+            if ($existing) {
+                return $existing;
+            }
 
             $session = $user->focusSessions()->make([
                 'started_on' => $data['started_on'],

@@ -128,4 +128,19 @@ class FocusSessionTest extends TestCase
             ->assertJsonPath('data.focus.goal_minutes', 60)
             ->assertJsonPath('data.focus.streak', 3);
     }
+
+    public function test_a_session_is_saved_once_and_in_the_app_timezone(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $start = now()->subHour()->startOfSecond();
+        $payload = $this->payload(['started_at' => $start->copy()->setTimezone('+03:00')->toIso8601String()]);
+
+        $this->postJson('/api/v1/focus-sessions', $payload)
+            ->assertCreated()
+            ->assertJsonPath('data.started_at', $start->toIso8601String());
+        $this->postJson('/api/v1/focus-sessions', $payload)->assertOk();
+
+        $this->assertDatabaseCount('focus_sessions', 1);
+    }
 }

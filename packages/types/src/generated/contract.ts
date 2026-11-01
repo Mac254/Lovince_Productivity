@@ -82,6 +82,7 @@ export interface Settings {
     timer: {
         chime: boolean;
         daily_goal: '0' | '60' | '120' | '180' | '240' | '300' | '360';
+        sync: boolean;
         auto_break: boolean;
     };
     journal: {
@@ -112,6 +113,7 @@ export const SETTINGS_DEFAULTS: Settings = {
     timer: {
         chime: true,
         daily_goal: '120',
+        sync: true,
         auto_break: false,
     },
     journal: {

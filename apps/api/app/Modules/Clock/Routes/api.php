@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Clock\Http\Controllers\FocusSessionController;
+use App\Modules\Clock\Http\Controllers\FocusTimerController;
 use App\Modules\Clock\Http\Controllers\WallpaperController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,5 +13,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     Route::get('focus-sessions', [FocusSessionController::class, 'index']);
     Route::post('focus-sessions', [FocusSessionController::class, 'store']);
+    Route::get('focus-timer', [FocusTimerController::class, 'show']);
+    Route::put('focus-timer', [FocusTimerController::class, 'update']);
+
     Route::delete('focus-sessions/{session}', [FocusSessionController::class, 'destroy'])->whereNumber('session');
 });

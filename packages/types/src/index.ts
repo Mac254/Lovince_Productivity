@@ -6,7 +6,14 @@ export type { Goal } from './models/goal';
 export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
 export type { JournalContext, JournalEntry } from './models/journal';
-export type { FocusDay, FocusHistory, FocusSession, FocusSessionInput } from './models/focusSession';
+export type {
+    FocusDay,
+    FocusHistory,
+    FocusSession,
+    FocusSessionInput,
+    FocusTimerState,
+    FocusTimerSync,
+} from './models/focusSession';
 export type { Wallpaper } from './models/wallpaper';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';

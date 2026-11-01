@@ -1,17 +1,27 @@
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useAuthStore } from '@/stores/auth';
 import { timerPresets, useTimerStore } from '@/stores/timer';
 
 vi.mock('@/lib/chime', () => ({ playChime: vi.fn() }));
 
-const { create, list } = vi.hoisted(() => ({
+const { create, list, getTimer, saveTimer } = vi.hoisted(() => ({
+    getTimer: vi.fn(),
+    saveTimer: vi.fn(),
     create: vi.fn().mockResolvedValue({}),
     list: vi.fn().mockResolvedValue({ data: [], meta: { minutes: 1, count: 1, goal_minutes: 120, streak: 1 } }),
 }));
 
 vi.mock('@focus/api-client', async (original) => {
     const actual = await original<typeof import('@focus/api-client')>();
-    return { ...actual, api: { ...actual.api, focusSessions: { create, list, remove: vi.fn() } } };
+    return {
+        ...actual,
+        api: {
+            ...actual.api,
+            focusSessions: { create, list, remove: vi.fn() },
+            focusTimer: { get: getTimer, save: saveTimer },
+        },
+    };
 });
 
 const MINUTE = 60_000;
@@ -132,5 +142,36 @@ describe('focus timer', () => {
         expect(timer.kind).toBe('break');
         expect(timer.status).toBe('running');
         expect(timer.display).toBe('04:59');
+    });
+
+    it('follows the timer from another device and shares its own changes', async () => {
+        getTimer.mockResolvedValue({
+            revision: 3,
+            server_time: Date.now(),
+            state: {
+                preset_id: 'deep',
+                kind: 'focus',
+                status: 'running',
+                duration_ms: 50 * MINUTE,
+                ends_at: Date.now() + 40 * MINUTE,
+                paused_remaining_ms: null,
+                started_at: Date.now() - 10 * MINUTE,
+                task: null,
+            },
+        });
+        saveTimer.mockResolvedValue({ revision: 4, server_time: Date.now(), state: null });
+        useAuthStore().user = { id: 1 } as never;
+
+        const timer = useTimerStore();
+        await vi.waitFor(() => expect(timer.status).toBe('running'));
+        expect(timer.display).toBe('40:00');
+        expect(saveTimer).not.toHaveBeenCalled();
+
+        timer.pause();
+        await vi.advanceTimersByTimeAsync(400);
+        expect(saveTimer).toHaveBeenCalledWith(
+            3,
+            expect.objectContaining({ status: 'paused', ends_at: null, started_at: expect.any(Number) }),
+        );
     });
 });

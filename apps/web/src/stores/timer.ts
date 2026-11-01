@@ -1,4 +1,4 @@
-import type { FocusSessionInput, FocusToday } from '@focus/types';
+import type { FocusSessionInput, FocusTimerState, FocusToday } from '@focus/types';
 import { api, isApiError } from '@focus/api-client';
 import { playChime } from '@/lib/chime';
 import { todayIso } from '@/lib/dates';
@@ -25,6 +25,8 @@ export const MAX_MINUTES = 180;
 const STORAGE_KEY = 'focus.timer';
 const MINUTE = 60_000;
 const MIN_RECORDED_MS = MINUTE;
+const SYNC_INTERVAL_MS = 20_000;
+const PUSH_DELAY_MS = 300;
 
 interface Persisted {
     presetId: string;
@@ -64,6 +66,8 @@ export const useTimerStore = defineStore('timer', () => {
     const settings = useSettingsStore();
     const sound = settings.bind('timer', 'chime');
     const autoBreak = settings.bind('timer', 'auto_break');
+    const syncOn = settings.bind('timer', 'sync');
+    const auth = useAuthStore();
     const today = ref<FocusToday | null>(null);
     const startedAt = ref<number | null>(saved.startedAt ?? null);
     const pending = ref<FocusSessionInput[]>(saved.pending ?? []);
@@ -280,6 +284,89 @@ export const useTimerStore = defineStore('timer', () => {
         { deep: true, flush: 'sync' },
     );
 
+    let revision = 0;
+    let applying = false;
+    let pushTimer: number | undefined;
+
+    function snapshot(): FocusTimerState {
+        return {
+            preset_id: presetId.value,
+            kind: kind.value,
+            status: status.value,
+            duration_ms: durationMs.value,
+            ends_at: endsAt.value,
+            paused_remaining_ms: pausedRemainingMs.value,
+            started_at: startedAt.value,
+            task: task.value,
+        };
+    }
+
+    function applyRemote(state: FocusTimerState): void {
+        applying = true;
+        presetId.value = state.preset_id;
+        kind.value = state.kind;
+        durationMs.value = state.duration_ms;
+        endsAt.value = state.ends_at;
+        pausedRemainingMs.value = state.paused_remaining_ms;
+        startedAt.value = state.started_at;
+        task.value = state.task;
+        status.value = state.status;
+        applying = false;
+        now.value = Date.now();
+        if (status.value !== 'running') stopTicker();
+        else if (endsAt.value && endsAt.value <= now.value) finish(false);
+        else startTicker();
+    }
+
+    function canSync(): boolean {
+        return syncOn.value && auth.isAuthenticated;
+    }
+
+    async function pull(): Promise<void> {
+        if (!canSync()) return;
+        try {
+            const remote = await api.focusTimer.get();
+            if (remote.state && remote.revision > revision) {
+                revision = remote.revision;
+                applyRemote(remote.state);
+            }
+        } catch {
+            return;
+        }
+    }
+
+    async function push(): Promise<void> {
+        if (!canSync()) return;
+        try {
+            revision = (await api.focusTimer.save(revision, snapshot())).revision;
+        } catch (error) {
+            if (isApiError(error) && error.status === 409) await pull();
+        }
+    }
+
+    watch([presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, startedAt], () => {
+        if (applying || !canSync()) return;
+        window.clearTimeout(pushTimer);
+        pushTimer = window.setTimeout(() => void push(), PUSH_DELAY_MS);
+    });
+
+    watch(
+        () => canSync(),
+        (on) => {
+            if (on) void pull();
+        },
+        { immediate: true },
+    );
+
+    if (typeof window !== 'undefined') {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') void pull();
+        });
+        window.setInterval(() => {
+            if (document.visibilityState === 'visible') void pull();
+        }, SYNC_INTERVAL_MS);
+    }
+
     // The tab title shows the countdown while a timer runs.
     watch([display, status, baseTitle], () => {
         if (typeof document === 'undefined') return;
@@ -300,6 +387,7 @@ export const useTimerStore = defineStore('timer', () => {
         today,
         loadToday,
         flush,
+        sync: pull,
         recorded,
         baseTitle,
         remainingMs,

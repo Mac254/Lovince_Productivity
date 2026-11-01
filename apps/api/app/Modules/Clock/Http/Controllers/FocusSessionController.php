@@ -56,7 +56,7 @@ class FocusSessionController extends Controller
     {
         $session = $record->handle($request->user(), $request->validated());
 
-        return FocusSessionResource::make($session)->response()->setStatusCode(201);
+        return FocusSessionResource::make($session)->response()->setStatusCode($session->wasRecentlyCreated ? 201 : 200);
     }
 
     public function destroy(FocusSession $session): Response

@@ -40,3 +40,20 @@ export interface FocusSessionInput {
     completed: boolean;
     task_id: number | null;
 }
+
+export interface FocusTimerState {
+    preset_id: string;
+    kind: 'focus' | 'break';
+    status: 'idle' | 'running' | 'paused' | 'done';
+    duration_ms: number;
+    ends_at: number | null;
+    paused_remaining_ms: number | null;
+    started_at: number | null;
+    task: { id: number; title: string } | null;
+}
+
+export interface FocusTimerSync {
+    state: FocusTimerState | null;
+    revision: number;
+    server_time: number;
+}

@@ -2,7 +2,7 @@ import type { AxiosInstance } from 'axios';
 import { authEndpoints } from './endpoints/auth';
 import { blockerEndpoints } from './endpoints/blockers';
 import { dashboardEndpoints } from './endpoints/dashboard';
-import { focusSessionEndpoints } from './endpoints/focusSessions';
+import { focusSessionEndpoints, focusTimerEndpoints } from './endpoints/focusSessions';
 import { goalEndpoints } from './endpoints/goals';
 import { journalEndpoints } from './endpoints/journal';
 import { metricEndpoints } from './endpoints/metrics';
@@ -30,6 +30,7 @@ export function createApi(http: AxiosInstance) {
         settings: settingsEndpoints(http),
         wallpapers: wallpaperEndpoints(http),
         focusSessions: focusSessionEndpoints(http),
+        focusTimer: focusTimerEndpoints(http),
         taskTypes: taskTypeEndpoints(http),
         taskNotes: taskNoteEndpoints(http),
     };

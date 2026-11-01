@@ -1,5 +1,13 @@
 import type { AxiosInstance } from 'axios';
-import type { FocusHistory, FocusSession, FocusSessionInput, IsoDate, Resource } from '@focus/types';
+import type {
+    FocusHistory,
+    FocusSession,
+    FocusSessionInput,
+    FocusTimerState,
+    FocusTimerSync,
+    IsoDate,
+    Resource,
+} from '@focus/types';
 import type { RequestOptions } from './types';
 
 export function focusSessionEndpoints(http: AxiosInstance) {
@@ -14,6 +22,19 @@ export function focusSessionEndpoints(http: AxiosInstance) {
         },
         async remove(id: number): Promise<void> {
             await http.delete(`/focus-sessions/${id}`);
+        },
+    };
+}
+
+export function focusTimerEndpoints(http: AxiosInstance) {
+    return {
+        async get(options: RequestOptions = {}): Promise<FocusTimerSync> {
+            const { data } = await http.get<Resource<FocusTimerSync>>('/focus-timer', options);
+            return data.data;
+        },
+        async save(revision: number, state: FocusTimerState): Promise<FocusTimerSync> {
+            const { data } = await http.put<Resource<FocusTimerSync>>('/focus-timer', { revision, state });
+            return data.data;
         },
     };
 }
