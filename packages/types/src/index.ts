@@ -1,7 +1,7 @@
 export * from './generated/contract';
 
 export type { AuthSession, Me, User } from './models/user';
-export type { GoalRef, IsoDate, IsoDateTime, Task } from './models/task';
+export type { GoalRef, IsoDate, IsoDateTime, Task, TaskCover } from './models/task';
 export type { Goal } from './models/goal';
 export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';

@@ -23,5 +23,15 @@ export function taskEndpoints(http: AxiosInstance) {
         async remove(id: number): Promise<void> {
             await http.delete(`/tasks/${id}`);
         },
+        async uploadCover(id: number, file: File): Promise<Task> {
+            const form = new FormData();
+            form.append('image', file);
+            const { data } = await http.post<Resource<Task>>(`/tasks/${id}/cover`, form, { timeout: 60_000 });
+            return data.data;
+        },
+        async removeCover(id: number): Promise<Task> {
+            const { data } = await http.delete<Resource<Task>>(`/tasks/${id}/cover`);
+            return data.data;
+        },
     };
 }

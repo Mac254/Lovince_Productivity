@@ -30,6 +30,11 @@ class TaskResource extends JsonResource
             'estimate_minutes' => $this->estimate_minutes,
             'recurrence' => $this->recurrence,
             'next_occurrence_id' => $this->next_occurrence_id,
+            'cover' => match (true) {
+                $this->cover_path !== null => ['type' => 'upload', 'url' => "/api/v1/tasks/{$this->id}/cover?v=".$this->updated_at?->timestamp],
+                $this->cover !== null => ['type' => 'gallery', 'key' => $this->cover],
+                default => null,
+            },
             'logged_minutes' => $this->when(
                 array_key_exists('notes_sum_minutes', $this->resource->getAttributes()),
                 fn () => (int) $this->notes_sum_minutes,

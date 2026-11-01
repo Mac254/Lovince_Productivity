@@ -31,6 +31,9 @@ export type TaskDueFilter = (typeof TASK_DUE_FILTERS)[number];
 export const TASK_SORTS = ['due_date', 'priority', 'created_at', 'updated_at', 'title'] as const;
 export type TaskSort = (typeof TASK_SORTS)[number];
 
+export const COVERS = ['focus-1', 'focus-2', 'growth-1', 'growth-2', 'health-1', 'health-2', 'wellbeing-1', 'wellbeing-2', 'social-1', 'social-2', 'fun-1', 'fun-2'] as const;
+export type Cover = (typeof COVERS)[number];
+
 export const BLOCKER_STATUSES = ['open', 'resolved'] as const;
 export type BlockerStatus = (typeof BLOCKER_STATUSES)[number];
 
@@ -70,6 +73,7 @@ export const LIMITS = {
     avatarKb: 2048,
     wallpaperKb: 8192,
     wallpapers: 12,
+    coverKb: 8192,
     focusSessionMinutes: 720,
     review: 5000,
     checklist: {

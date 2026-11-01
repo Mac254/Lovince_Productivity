@@ -19,9 +19,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 #[ObservedBy([ActivityObserver::class, TaskObserver::class])]
-#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover'])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
 {
@@ -30,6 +31,8 @@ class Task extends Model
 
     /** Relations every task response carries. */
     public const RELATIONS = ['goal:id,title,tone', 'type:id,name,tone'];
+
+    public const COVER_DISK = 'local';
 
     protected $attributes = [
         'status' => 'not_started',
@@ -47,12 +50,27 @@ class Task extends Model
                 $task->category = TaskCategory::General;
             }
 
+            if ($task->isDirty('cover') && $task->cover !== null && $task->cover_path !== null) {
+                $task->removeUploadedCover();
+                $task->cover_path = null;
+            }
+
             if ($task->status === TaskStatus::Completed) {
                 $task->completed_at ??= now();
             } else {
                 $task->completed_at = null;
             }
         });
+
+        static::deleted(fn (Task $task) => $task->removeUploadedCover());
+    }
+
+    public function removeUploadedCover(): void
+    {
+        $path = $this->getOriginal('cover_path') ?? $this->cover_path;
+        if ($path) {
+            Storage::disk(self::COVER_DISK)->delete($path);
+        }
     }
 
     protected function casts(): array

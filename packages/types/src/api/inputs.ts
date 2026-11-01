@@ -1,3 +1,4 @@
+import type { Cover } from '../generated/contract';
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Task } from '../models/task';
@@ -20,7 +21,7 @@ export type TaskInput = Partial<
         | 'goal_id'
         | 'task_type_id'
     >
->;
+> & { cover?: Cover | null };
 
 export type TaskNoteInput = Partial<Pick<TaskNote, 'body' | 'logged_on' | 'minutes'>>;
 

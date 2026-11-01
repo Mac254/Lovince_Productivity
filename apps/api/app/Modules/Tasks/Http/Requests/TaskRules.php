@@ -26,6 +26,7 @@ trait TaskRules
             'is_highlighted' => ['sometimes', 'boolean'],
             'estimate_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::TASK_ESTIMATE_MINUTES_MAX],
             'recurrence' => ['sometimes', 'nullable', Rule::enum(TaskRecurrence::class)],
+            'cover' => ['sometimes', 'nullable', Rule::in(Contract::COVERS)],
             'start_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'due_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'task_type_id' => [

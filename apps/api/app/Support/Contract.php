@@ -58,6 +58,13 @@ final class Contract
 
     public const WALLPAPER_MAX_KB = 8192;
 
+    public const COVER_MAX_KB = 8192;
+
+    public const COVERS = [
+        'focus-1', 'focus-2', 'growth-1', 'growth-2', 'health-1', 'health-2',
+        'wellbeing-1', 'wellbeing-2', 'social-1', 'social-2', 'fun-1', 'fun-2',
+    ];
+
     public const WALLPAPER_LIMIT = 12;
 
     public const FOCUS_SESSION_MINUTES_MAX = 720;
@@ -100,6 +107,7 @@ final class Contract
             'GoalTone' => $values(GoalTone::cases()),
             'TaskDueFilter' => IndexTaskRequest::DUE_FILTERS,
             'TaskSort' => IndexTaskRequest::SORTS,
+            'Cover' => self::COVERS,
             'BlockerStatus' => $values(BlockerStatus::cases()),
             'SuggestionCategory' => $values(SuggestionCategory::cases()),
             'SuggestionStatus' => $values(SuggestionStatus::cases()),
@@ -126,6 +134,7 @@ final class Contract
             'avatarKb' => self::AVATAR_MAX_KB,
             'wallpaperKb' => self::WALLPAPER_MAX_KB,
             'wallpapers' => self::WALLPAPER_LIMIT,
+            'coverKb' => self::COVER_MAX_KB,
             'focusSessionMinutes' => self::FOCUS_SESSION_MINUTES_MAX,
             'review' => self::REVIEW_MAX,
             'checklist' => ['title' => self::CHECKLIST_ITEM_MAX, 'max' => self::CHECKLIST_LIMIT],

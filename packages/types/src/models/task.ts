@@ -1,5 +1,7 @@
-import type { GoalTone, TaskCategory, TaskPriority, TaskRecurrence, TaskStatus } from '../generated/contract';
+import type { Cover, GoalTone, TaskCategory, TaskPriority, TaskRecurrence, TaskStatus } from '../generated/contract';
 import type { TaskTypeRef } from './taskType';
+
+export type TaskCover = { type: 'gallery'; key: Cover } | { type: 'upload'; url: string };
 
 /** A calendar date in `YYYY-MM-DD` form. */
 export type IsoDate = string;
@@ -24,6 +26,7 @@ export interface Task {
     estimate_minutes: number | null;
     recurrence: TaskRecurrence | null;
     next_occurrence_id: number | null;
+    cover: TaskCover | null;
     logged_minutes?: number;
     checklist?: { done: number; total: number };
     start_date: IsoDate | null;
