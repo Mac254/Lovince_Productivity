@@ -14,7 +14,7 @@ import {
     type TaskStatus,
 } from '@focus/types';
 import type { LocationQuery } from 'vue-router';
-import { allFacet, withoutAll } from '@/lib/facets';
+import { groupByDue } from '@/features/tasks/dueGroups';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityOptions } from '@/lib/labels';
 import { fromKind, kindOptions, type TaskKind } from '@/lib/taskKind';
@@ -74,8 +74,11 @@ const sortLabels: Record<TaskSort, string> = {
 const dueOptions = TASK_DUE_FILTERS.map((value) => ({ value, label: dueLabels[value] }));
 /** No sort chosen is the API's smart order (open first). */
 const sortOptions = TASK_SORTS.map((value) => ({ value, label: sortLabels[value] }));
-const statusOptions = withoutAll(statusChips);
-const statusFacet = allFacet(toRef(filters, 'status'));
+const view = ref<'cards' | 'list'>(route.query.view === 'list' ? 'list' : 'cards');
+const viewOptions = [
+    { value: 'cards' as const, label: 'Cards' },
+    { value: 'list' as const, label: 'List' },
+];
 const typeOptions = computed(() => kindOptions(taskTypes.types));
 const typeFacet = computed<TaskKind | ''>({
     get: () => {
@@ -140,20 +143,31 @@ watch(
         const withoutPage = (f: typeof next) => JSON.stringify({ ...f, page: 0 });
         if (next.page === prev.page && withoutPage(next) !== withoutPage(prev)) filters.page = 1;
 
-        const urlQuery = Object.fromEntries(
+        syncQuery();
+
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(run, next.search !== prev.search ? 300 : 0);
+    },
+);
+watch(view, syncQuery);
+
+function syncQuery(): void {
+    const urlQuery = Object.fromEntries(
             Object.entries(filters)
                 .filter(
                     ([key, value]) =>
                         value !== '' && !(key === 'page' && value === 1) && !(key === 'status' && value === 'open'),
                 )
                 .map(([key, value]) => [key, String(value)]),
-        );
-        void router.replace({ query: urlQuery });
+    );
+    void router.replace({ query: view.value === 'list' ? { ...urlQuery, view: 'list' } : urlQuery });
+}
 
-        window.clearTimeout(searchTimer);
-        searchTimer = window.setTimeout(run, next.search !== prev.search ? 300 : 0);
-    },
-);
+const sections = computed(() => {
+    const tasks = data.value?.data ?? [];
+    if (filters.sort) return [{ key: 'all', title: '', icon: 'tasks' as const, tasks }];
+    return groupByDue(tasks);
+});
 
 const refresh = async () => {
     goals.reset();
@@ -177,76 +191,99 @@ onMounted(() => {
         <PageHeader
             title="Tasks"
             title-id="page-title"
-            description="Everything you’ve planned, filterable by status, priority, type and goal."
+            description="Everything you’ve planned, grouped by when it’s due."
         >
             <template #actions>
                 <Button variant="outline" icon-start="tag" :to="{ name: 'types' }">Types</Button>
-                <Button
-                    variant="secondary"
-                    icon-start="add"
-                    @click="create(filters.goal_id ? { goal_id: filters.goal_id } : {})"
+                <Button icon-start="add" @click="create(filters.goal_id ? { goal_id: filters.goal_id } : {})"
                     >New task</Button
                 >
             </template>
         </PageHeader>
 
-        <section aria-label="Filters" class="flex flex-col gap-3">
-            <SearchField
-                id="task-search"
-                v-model="filters.search"
-                label="Search tasks"
-                placeholder="Search titles and descriptions"
-                :maxlength="LIMITS.search"
-                class="lg:w-96"
-            />
+        <section aria-label="Filters" class="flex flex-col gap-4 border-b border-border pb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <ChipGroup v-model="filters.status" label="Status" :options="statusChips" />
+                <ChipGroup v-model="view" label="View" :options="viewOptions" />
+            </div>
             <div class="flex flex-wrap items-center gap-2">
-                <FacetFilter v-model="statusFacet" label="Status" :options="statusOptions" />
+                <SearchField
+                    id="task-search"
+                    v-model="filters.search"
+                    label="Search tasks"
+                    placeholder="Search tasks"
+                    :maxlength="LIMITS.search"
+                    class="w-full sm:w-96"
+                />
                 <FacetFilter v-model="filters.priority" label="Priority" :options="taskPriorityOptions" />
                 <FacetFilter v-model="typeFacet" label="Type" :options="typeOptions" />
                 <FacetFilter v-model="filters.due" label="Due" :options="dueOptions" />
                 <FacetFilter v-model="filters.goal_id" label="Goal" :options="goalOptions" />
-                <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
                 <Button v-if="hasFilters" variant="ghost" size="sm" icon-start="close" @click="clearFilters"
-                    >Clear filters</Button
+                    >Clear</Button
                 >
+                <div class="ml-auto flex items-center gap-3">
+                    <Text role="label" tone="muted" tabular aria-live="polite">
+                        <template v-if="data && !loading"
+                            >{{ data.meta.total }} {{ data.meta.total === 1 ? 'task' : 'tasks' }}</template
+                        >
+                        <template v-else-if="loading">Loading…</template>
+                    </Text>
+                    <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
+                </div>
             </div>
         </section>
 
-        <Text role="label" tone="muted" aria-live="polite">
-            <template v-if="data && !loading"
-                >{{ data.meta.total }} {{ data.meta.total === 1 ? 'task' : 'tasks' }}</template
-            >
-            <template v-else-if="loading">Loading tasks…</template>
-        </Text>
-
         <ErrorState v-if="error" :message="error" @retry="run" />
 
-        <div
-            v-else-if="loading && !data"
-            class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5"
-            aria-hidden="true"
-        >
-            <Skeleton v-for="n in 8" :key="n" class="h-56" />
+        <div v-else-if="loading && !data" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+            <Skeleton v-for="n in 6" :key="n" class="h-52" />
         </div>
 
         <template v-else-if="data">
             <div
                 v-if="data.data.length"
-                :class="[
-                    'grid gap-4 transition-opacity duration-(--duration-fast) sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5',
-                    loading && 'opacity-60',
-                ]"
+                :class="['flex flex-col gap-8 transition-opacity duration-(--duration-fast)', loading && 'opacity-60']"
             >
-                <TaskCard
-                    v-for="task in data.data"
-                    :key="task.id"
-                    :task="task"
-                    @edit="edit"
-                    @toggle="actions.toggleComplete"
-                    @star="actions.toggleHighlight"
-                    @set-status="actions.setStatus"
-                    @delete="askDelete"
-                />
+                <section
+                    v-for="section in sections"
+                    :key="section.key"
+                    :aria-labelledby="section.title ? `group-${section.key}` : undefined"
+                    :aria-label="section.title ? undefined : 'Tasks'"
+                    class="flex flex-col gap-3"
+                >
+                    <header v-if="section.title" class="flex items-center gap-2">
+                        <Icon
+                            :name="section.icon"
+                            :class="section.key === 'overdue' ? 'text-danger-fg' : 'text-fg-muted'"
+                        />
+                        <Text :id="`group-${section.key}`" as="h2" role="label" weight="bold">{{ section.title }}</Text>
+                        <Text as="span" role="caption" tone="muted" tabular>{{ section.tasks.length }}</Text>
+                    </header>
+                    <div v-if="view === 'cards'" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <TaskCard
+                            v-for="task in section.tasks"
+                            :key="task.id"
+                            :task="task"
+                            @edit="edit"
+                            @toggle="actions.toggleComplete"
+                            @star="actions.toggleHighlight"
+                            @set-status="actions.setStatus"
+                            @delete="askDelete"
+                        />
+                    </div>
+                    <Card v-else as="div" padding="none" class="p-2">
+                        <ul class="flex flex-col">
+                            <TaskRow
+                                v-for="task in section.tasks"
+                                :key="task.id"
+                                :task="task"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                            />
+                        </ul>
+                    </Card>
+                </section>
             </div>
             <EmptyState
                 v-else
