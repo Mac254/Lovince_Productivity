@@ -333,13 +333,23 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                 </SettingsSection>
             </template>
             <template #preferences>
-                <SettingsSection id="general" title="General" icon="dashboard" description="Saved on this device.">
+                <SettingsSection
+                    id="general"
+                    title="General"
+                    icon="dashboard"
+                    description="Synced across your devices."
+                >
                     <SettingRow label="Open Focus on" description="Where you land when you open Focus or sign in.">
                         <ChipGroup v-model="preferences.prefs.startPage" label="Open Focus on" :options="startPages" />
                     </SettingRow>
                 </SettingsSection>
 
-                <SettingsSection id="appearance" title="Appearance" icon="palette" description="Saved on this device.">
+                <SettingsSection
+                    id="appearance"
+                    title="Appearance"
+                    icon="palette"
+                    description="Synced across your devices."
+                >
                     <SettingRow
                         label="Theme"
                         :description="
@@ -378,7 +388,12 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     </SettingRow>
                 </SettingsSection>
 
-                <SettingsSection id="clock" title="Clock & timer" icon="clock" description="Saved on this device.">
+                <SettingsSection
+                    id="clock"
+                    title="Clock & timer"
+                    icon="clock"
+                    description="Synced across your devices."
+                >
                     <SettingRow label="Time format">
                         <ChipGroup v-model="timeFormat" label="Time format" :options="timeFormats" />
                     </SettingRow>

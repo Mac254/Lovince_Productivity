@@ -134,7 +134,7 @@ export const router = createRouter({
             meta: { title: 'Not found' },
         },
     ],
-    scrollBehavior: () => ({ top: 0 }),
+    scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
 });
 
 const PUBLIC_ROUTES = new Set(['not-found', 'unavailable']);

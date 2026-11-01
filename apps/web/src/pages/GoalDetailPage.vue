@@ -168,17 +168,21 @@ watch(id, load, { immediate: true });
 
             <Tabs v-model="tab" label="Goal tasks" :tabs="tabs">
                 <template v-for="group in groups" :key="group.key" #[group.key]>
-                    <ul v-if="group.items.length" class="-mx-2 flex flex-col">
-                        <TaskRow
-                            v-for="task in tabTasks.visible"
-                            :key="task.id"
-                            :task="task"
-                            @toggle="actions.toggleComplete"
-                            @star="actions.toggleHighlight"
-                        />
-                    </ul>
-                    <Text v-else role="label" tone="muted" class="py-2">No {{ group.title.toLowerCase() }} tasks.</Text>
-                    <Pagination v-model:page="tabTasks.page" :last-page="tabTasks.lastPage" />
+                    <Card as="div" class="gap-3">
+                        <ul v-if="group.items.length" class="-mx-2 flex flex-col">
+                            <TaskRow
+                                v-for="task in tabTasks.visible"
+                                :key="task.id"
+                                :task="task"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                            />
+                        </ul>
+                        <Text v-else role="label" tone="muted" class="py-2"
+                            >No {{ group.title.toLowerCase() }} tasks.</Text
+                        >
+                        <Pagination v-model:page="tabTasks.page" :last-page="tabTasks.lastPage" />
+                    </Card>
                 </template>
             </Tabs>
         </template>
