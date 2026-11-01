@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ActivityHeatmap: typeof import('./features/metrics/ActivityHeatmap.vue')['default']
+    Alert: typeof import('@focus/ui')['Alert']
     Avatar: typeof import('@focus/ui')['Avatar']
     Badge: typeof import('@focus/ui')['Badge']
     BlockerFormDialog: typeof import('./features/blockers/BlockerFormDialog.vue')['default']

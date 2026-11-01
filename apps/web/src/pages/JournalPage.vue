@@ -215,9 +215,9 @@ onBeforeUnmount(() => {
                                 @click="go(shiftDate(date, -1))"
                             />
                             <div class="min-w-0 px-1">
-                                <h2 id="entry-heading" class="truncate font-display text-title font-semibold">
+                                <Heading id="entry-heading" role="title" class="truncate">
                                     {{ isToday ? 'Today' : formatDate(date, { weekday: 'long' }) }}
-                                </h2>
+                                </Heading>
                                 <Text role="caption" tone="muted" class="font-mono">{{ date }}</Text>
                             </div>
                             <IconButton
@@ -269,9 +269,9 @@ onBeforeUnmount(() => {
                             motion="nudge-back"
                             @click="month = addMonths(month, -1)"
                         />
-                        <h2 id="calendar-heading" class="font-display text-lead font-semibold">
+                        <Heading id="calendar-heading" role="lead">
                             {{ formatDate(`${month}-01`, { month: 'long', year: 'numeric' }) }}
-                        </h2>
+                        </Heading>
                         <IconButton
                             icon="chevron-right"
                             label="Next month"
@@ -302,9 +302,9 @@ onBeforeUnmount(() => {
 
                 <Card as="section" aria-labelledby="entries-heading" class="gap-4">
                     <div class="flex items-baseline justify-between gap-2">
-                        <h2 id="entries-heading" class="font-display text-lead font-semibold">
+                        <Heading id="entries-heading" role="lead">
                             {{ search.trim() ? 'Search results' : `Entries in ${monthName}` }}
-                        </h2>
+                        </Heading>
                         <Text as="span" role="caption" tone="muted" tabular aria-live="polite">
                             {{ search.trim() ? results.length : monthEntries.length }}
                             {{ (search.trim() ? results.length : monthEntries.length) === 1 ? 'entry' : 'entries' }}

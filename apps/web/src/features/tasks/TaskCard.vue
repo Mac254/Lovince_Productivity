@@ -68,14 +68,14 @@ const menu = computed<MenuItem[]>(() => [
             </div>
         </div>
 
-        <h3 class="font-display text-title font-medium tracking-tight">
+        <Heading :level="3" role="title">
             <RouterLink
                 :to="{ name: 'task-detail', params: { id: task.id } }"
                 :class="['underline-offset-4 hover:underline', closed && 'line-through decoration-2']"
             >
                 {{ task.title }}
             </RouterLink>
-        </h3>
+        </Heading>
         <Text v-if="task.description" role="label" tone="muted" class="line-clamp-2">{{ task.description }}</Text>
 
         <dl class="flex flex-wrap gap-x-4 gap-y-2 text-label">

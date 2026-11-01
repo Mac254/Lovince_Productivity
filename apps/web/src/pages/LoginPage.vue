@@ -54,13 +54,7 @@ async function submit(): Promise<void> {
                 <Heading id="login-title" :level="1" role="heading">Welcome back</Heading>
                 <Text tone="muted" class="mt-1">Sign in to your private workspace.</Text>
 
-                <p
-                    v-if="formError"
-                    role="alert"
-                    class="mt-6 rounded-md bg-highlight px-4 py-3 text-label font-semibold text-highlight-ink"
-                >
-                    {{ formError }}
-                </p>
+                <Alert v-if="formError" tone="danger" class="mt-6">{{ formError }}</Alert>
 
                 <form class="mt-8 flex flex-col gap-6" novalidate @submit.prevent="submit">
                     <Input

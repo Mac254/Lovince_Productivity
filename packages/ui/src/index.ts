@@ -49,6 +49,7 @@ export type { MenuItem } from './components/DropdownMenu/types';
 export type { ButtonSize, ButtonVariant } from './components/Button/variants';
 
 // Patterns — product problems solved once
+export { default as Alert } from './patterns/Alert/Alert.vue';
 export { default as EmptyState } from './patterns/EmptyState/EmptyState.vue';
 export { default as ErrorState } from './patterns/ErrorState/ErrorState.vue';
 export { default as ConfirmDialog } from './patterns/ConfirmDialog/ConfirmDialog.vue';

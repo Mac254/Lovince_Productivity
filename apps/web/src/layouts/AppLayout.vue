@@ -167,14 +167,9 @@ function onQuickTaskSaved(): void {
             </div>
         </header>
 
-        <div
-            v-if="!online"
-            role="status"
-            class="flex items-center justify-center gap-2 border-b border-border bg-surface-raised px-4 py-2"
-        >
-            <Icon name="offline" />
-            <Text role="label">You’re offline. Focus sessions are kept and saved when you reconnect.</Text>
-        </div>
+        <Alert v-if="!online" tone="warning" icon="offline" banner>
+            You’re offline. Focus sessions are kept and saved when you reconnect.
+        </Alert>
 
         <main id="main" tabindex="-1" class="w-full px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
             <RouterView />

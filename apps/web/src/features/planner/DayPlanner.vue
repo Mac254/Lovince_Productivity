@@ -89,7 +89,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     aria-hidden="true"
                     class="pointer-events-none h-14 border-t border-border"
                 />
-                <button
+                <Pressable
                     v-for="block in blocks"
                     :key="block.id"
                     type="button"
@@ -110,7 +110,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     <span v-if="block.minutes >= 45" class="truncate text-caption text-fg-muted tabular"
                         >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes) }}</span
                     >
-                </button>
+                </Pressable>
                 <div
                     v-if="showNow"
                     aria-hidden="true"

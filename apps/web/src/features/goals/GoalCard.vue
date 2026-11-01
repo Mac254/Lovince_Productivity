@@ -38,13 +38,13 @@ const taskSummary = computed(() => {
             <DropdownMenu :items="menu" :label="`Actions for “${goal.title}”`" size="sm" />
         </div>
 
-        <h3 class="font-display text-title font-medium tracking-tight">
+        <Heading :level="3" role="title">
             <RouterLink
                 :to="{ name: 'goal-detail', params: { id: goal.id } }"
                 class="underline-offset-4 hover:underline"
                 >{{ goal.title }}</RouterLink
             >
-        </h3>
+        </Heading>
         <Text v-if="goal.description" role="label" tone="muted" class="line-clamp-2">{{ goal.description }}</Text>
         <Text role="label" tone="muted" tabular class="flex items-center gap-2">
             <Icon name="calendar-range" />
