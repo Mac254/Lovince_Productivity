@@ -16,7 +16,7 @@ const pexels: Record<Cover, number> = {
     'fun-2': 13010353,
 };
 
-export const coverUrl = (key: Cover): string => `/covers/${key}.jpg`;
+export const coverUrl = (key: Cover): string => `${import.meta.env.BASE_URL}covers/${key}.jpg`;
 
 export const coverCredit = (key: Cover): string => `https://www.pexels.com/photo/${pexels[key]}/`;
 
