@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '@focus/types';
+import { groupByDue } from '@/features/tasks/dueGroups';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { formatLongDate } from '@/lib/dates';
 import { dayProgress } from '@/lib/progress';
@@ -17,6 +18,31 @@ const blockerDialog = ref(false);
 const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) : null));
 const settings = useSettingsStore();
 const plannerOn = computed(() => settings.values.planner.enabled);
+const planGroups = computed(() => {
+    const groups = groupByDue(dashboard.data?.planned_tasks ?? []);
+    const of = (...keys: string[]) =>
+        groups.filter((group) => keys.includes(group.key)).flatMap((group) => group.tasks);
+    return [
+        {
+            key: 'today',
+            title: 'Due today',
+            icon: 'calendar-check' as const,
+            tone: 'default' as const,
+            tasks: of('today'),
+        },
+        { key: 'overdue', title: 'Overdue', icon: 'warning' as const, tone: 'danger' as const, tasks: of('overdue') },
+        {
+            key: 'starred',
+            title: 'Starred for today',
+            icon: 'star' as const,
+            tone: 'default' as const,
+            tasks: of('week', 'later', 'none'),
+        },
+    ].filter((group) => group.tasks.length);
+});
+const planSummary = computed(() =>
+    planGroups.value.map((group) => `${group.tasks.length} ${group.title.toLowerCase()}`).join(' · '),
+);
 const plannable = computed<Task[]>(() => {
     const data = dashboard.data;
     if (!data) return [];
@@ -81,17 +107,39 @@ const plannable = computed<Task[]>(() => {
                             title="Today’s plan"
                             title-id="plan-heading"
                             icon="calendar-check"
-                            :subtitle="`${day.remaining} remaining · due today and starred`"
+                            :subtitle="planSummary || `${day.remaining} remaining`"
                         />
-                        <ul v-if="dashboard.data.planned_tasks.length" class="-mx-2 flex flex-col">
-                            <TaskRow
-                                v-for="task in dashboard.data.planned_tasks"
-                                :key="task.id"
-                                :task="task"
-                                @toggle="actions.toggleComplete"
-                                @star="actions.toggleHighlight"
-                            />
-                        </ul>
+                        <div v-if="planGroups.length" class="flex flex-col gap-6">
+                            <section
+                                v-for="group in planGroups"
+                                :key="group.key"
+                                :aria-labelledby="`plan-${group.key}`"
+                                class="flex flex-col gap-1"
+                            >
+                                <div class="flex items-center gap-2 border-b border-border pb-2">
+                                    <Icon
+                                        :name="group.icon"
+                                        size="sm"
+                                        :class="group.tone === 'danger' ? 'text-danger-fg' : 'text-highlight-fg'"
+                                    />
+                                    <Text :id="`plan-${group.key}`" as="h3" role="label" weight="semibold" uppercase>{{
+                                        group.title
+                                    }}</Text>
+                                    <Badge :tone="group.tone === 'danger' ? 'danger' : 'neutral'" class="ml-auto">{{
+                                        group.tasks.length
+                                    }}</Badge>
+                                </div>
+                                <ul class="-mx-2 flex flex-col">
+                                    <TaskRow
+                                        v-for="task in group.tasks"
+                                        :key="task.id"
+                                        :task="task"
+                                        @toggle="actions.toggleComplete"
+                                        @star="actions.toggleHighlight"
+                                    />
+                                </ul>
+                            </section>
+                        </div>
                         <EmptyState
                             v-else
                             icon="sun"
