@@ -2,16 +2,15 @@
 
 namespace App\Modules\Journal\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Journal\Http\Requests\JournalRequest;
 use App\Modules\Journal\Http\Resources\JournalEntryResource;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Journal\Services\DayContext;
+use App\Shared\Http\Controllers\Controller;
 use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 
 /**
@@ -78,13 +77,6 @@ class JournalController extends Controller
     public function context(Request $request, string $date, DayContext $context): JsonResponse
     {
         return response()->json(['data' => $context->for($request->user(), Carbon::createFromFormat('!Y-m-d', $this->day($date)))]);
-    }
-
-    public function destroy(Request $request, string $date): Response
-    {
-        $this->entry($request, $this->day($date))?->delete();
-
-        return response()->noContent();
     }
 
     private function entry(Request $request, string $day): ?JournalEntry

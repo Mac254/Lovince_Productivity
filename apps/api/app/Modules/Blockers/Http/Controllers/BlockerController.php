@@ -2,11 +2,11 @@
 
 namespace App\Modules\Blockers\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Http\Requests\BlockerRequest;
 use App\Modules\Blockers\Http\Resources\BlockerResource;
 use App\Modules\Blockers\Models\Blocker;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

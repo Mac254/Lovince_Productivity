@@ -2,8 +2,8 @@
 
 namespace App\Modules\Users\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Users\Http\Resources\UserResource;
+use App\Shared\Http\Controllers\Controller;
 use App\Support\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

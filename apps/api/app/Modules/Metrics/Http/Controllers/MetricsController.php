@@ -2,8 +2,8 @@
 
 namespace App\Modules\Metrics\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Metrics\Services\MetricsService;
+use App\Shared\Http\Controllers\Controller;
 use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

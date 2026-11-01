@@ -8,5 +8,4 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('journal/{date}/context', [JournalController::class, 'context']);
     Route::get('journal/{date}', [JournalController::class, 'show']);
     Route::put('journal/{date}', [JournalController::class, 'update']);
-    Route::delete('journal/{date}', [JournalController::class, 'destroy']);
 });

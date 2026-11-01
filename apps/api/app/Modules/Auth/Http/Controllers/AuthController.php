@@ -2,11 +2,11 @@
 
 namespace App\Modules\Auth\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Auth\Http\Requests\LoginRequest;
 use App\Modules\Auth\Services\AuthSession;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Users\Http\Resources\UserResource;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

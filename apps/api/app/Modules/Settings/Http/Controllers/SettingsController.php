@@ -2,10 +2,10 @@
 
 namespace App\Modules\Settings\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Settings\Http\Requests\UpdateSettingsRequest;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Users\Models\User;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

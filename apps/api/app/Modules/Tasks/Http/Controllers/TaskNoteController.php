@@ -2,11 +2,11 @@
 
 namespace App\Modules\Tasks\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Tasks\Http\Requests\TaskNoteRequest;
 use App\Modules\Tasks\Http\Resources\TaskNoteResource;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Tasks\Models\TaskNote;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;

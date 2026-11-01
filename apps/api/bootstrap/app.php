@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Middleware\LogApiRequests;
-use App\Http\Middleware\SecurityHeaders;
 use App\Modules\Auth\Http\Middleware\RenewRememberedLogin;
+use App\Shared\Http\Middleware\LogApiRequests;
+use App\Shared\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;

@@ -2,13 +2,13 @@
 
 namespace App\Modules\Tasks\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Http\Requests\IndexTaskRequest;
 use App\Modules\Tasks\Http\Requests\StoreTaskRequest;
 use App\Modules\Tasks\Http\Requests\UpdateTaskRequest;
 use App\Modules\Tasks\Http\Resources\TaskResource;
 use App\Modules\Tasks\Models\Task;
+use App\Shared\Http\Controllers\Controller;
 use App\Support\Contract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;

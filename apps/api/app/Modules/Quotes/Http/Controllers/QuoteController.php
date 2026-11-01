@@ -2,9 +2,9 @@
 
 namespace App\Modules\Quotes\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Quotes\Http\Resources\QuoteResource;
 use App\Modules\Quotes\Models\Quote;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

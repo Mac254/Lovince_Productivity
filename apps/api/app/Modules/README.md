@@ -20,10 +20,11 @@ Modules depend on each other in one direction only:
 ```
 Users ← Settings ← Auth
 Users ← Goals ← Tasks ← Blockers ← Journal
-Users ← Quotes, Clock
+Users ← Quotes
+Tasks ← Clock
 Tasks, Goals, Blockers, Journal, Quotes ← Dashboard, Metrics, Reports (read models)
 ```
 
 Where the arrow would point back, the lower module offers a contract or an event instead: Goals' `GoalProgress` contract is implemented by Tasks, Tasks' `WorkLogChanged` event is handled by Reports, and relations to a higher module's records (`User::tasks`, `Goal::tasks`, `Task::blockers`) are added by that module with `resolveRelationUsing()`.
 
-Outside the modules: `app/Shared` holds infrastructure any module may use and depends on no module; `app/Support/Contract.php` gathers the enums and limits shared with the TypeScript apps (`pnpm types`); `app/Http` keeps the base controller and app-wide middleware; `database/migrations` keeps the framework tables and one migration that spans several modules; `tests/Feature` keeps app-wide and cross-module tests.
+Outside the modules: `app/Shared` holds what any module may use and depends on no module (the base controller, app-wide middleware, `ModuleProvider`, the settings base classes, `ActivityObserver` and `OwnerPolicy`, which lets only a record's owner view, change or delete it and answers 404 to everyone else); `app/Support/Contract.php` gathers the enums and limits shared with the TypeScript apps (`pnpm types`); `database/migrations` keeps the framework tables and one migration that spans several modules; `tests/Feature` keeps app-wide and cross-module tests.

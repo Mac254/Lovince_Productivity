@@ -2,10 +2,10 @@
 
 namespace App\Modules\Tasks\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Tasks\Http\Requests\TaskTypeRequest;
 use App\Modules\Tasks\Http\Resources\TaskTypeResource;
 use App\Modules\Tasks\Models\TaskType;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

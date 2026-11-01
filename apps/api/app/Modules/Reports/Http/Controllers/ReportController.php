@@ -2,10 +2,10 @@
 
 namespace App\Modules\Reports\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Reports\Http\Resources\DailyReportResource;
 use App\Modules\Reports\Models\DailyReport;
 use App\Modules\Reports\Services\DailyReportGenerator;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

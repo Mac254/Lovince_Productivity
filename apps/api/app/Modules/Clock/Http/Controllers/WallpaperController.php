@@ -2,9 +2,9 @@
 
 namespace App\Modules\Clock\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Clock\Http\Resources\WallpaperResource;
 use App\Modules\Clock\Models\Wallpaper;
+use App\Shared\Http\Controllers\Controller;
 use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

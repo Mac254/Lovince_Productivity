@@ -2,8 +2,8 @@
 
 namespace App\Modules\Dashboard\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Dashboard\Services\DashboardSummary;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

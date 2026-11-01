@@ -2,7 +2,6 @@
 
 namespace App\Modules\Goals\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Modules\Goals\Actions\DeleteGoal;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
@@ -10,6 +9,7 @@ use App\Modules\Goals\Http\Requests\StoreGoalRequest;
 use App\Modules\Goals\Http\Requests\UpdateGoalRequest;
 use App\Modules\Goals\Http\Resources\GoalResource;
 use App\Modules\Goals\Models\Goal;
+use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
