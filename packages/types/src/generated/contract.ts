@@ -72,6 +72,10 @@ export const LIMITS = {
         minutesMin: 5,
         minutesMax: 720,
     },
+    schedule: {
+        name: 80,
+        items: 40,
+    },
 } as const;
 
 /** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */

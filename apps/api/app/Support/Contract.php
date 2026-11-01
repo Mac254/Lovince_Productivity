@@ -71,6 +71,10 @@ final class Contract
 
     public const TIME_BLOCK_MINUTES_MAX = 720;
 
+    public const SCHEDULE_NAME_MAX = 80;
+
+    public const SCHEDULE_ITEM_LIMIT = 40;
+
     /**
      * @return array<string, list<string>>
      */
@@ -116,6 +120,7 @@ final class Contract
             'review' => self::REVIEW_MAX,
             'checklist' => ['title' => self::CHECKLIST_ITEM_MAX, 'max' => self::CHECKLIST_LIMIT],
             'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
+            'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT],
         ];
     }
 }

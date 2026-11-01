@@ -16,6 +16,7 @@ export type {
 } from './models/focusSession';
 export type { Wallpaper } from './models/wallpaper';
 export type { TimeBlock, TimeBlockInput } from './models/timeBlock';
+export type { Schedule, ScheduleInput, ScheduleItem } from './models/schedule';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';
 export type { ChecklistItem, ChecklistItemInput } from './models/checklist';

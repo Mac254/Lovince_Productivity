@@ -2,7 +2,9 @@
 
 namespace App\Modules\Planner\Providers;
 
+use App\Modules\Planner\Models\Schedule;
 use App\Modules\Planner\Models\TimeBlock;
+use App\Modules\Planner\Policies\SchedulePolicy;
 use App\Modules\Planner\Policies\TimeBlockPolicy;
 use App\Modules\Users\Models\User;
 use App\Shared\Support\ModuleProvider;
@@ -11,6 +13,7 @@ class PlannerServiceProvider extends ModuleProvider
 {
     protected array $policies = [
         TimeBlock::class => TimeBlockPolicy::class,
+        Schedule::class => SchedulePolicy::class,
     ];
 
     public function boot(): void
@@ -18,5 +21,6 @@ class PlannerServiceProvider extends ModuleProvider
         parent::boot();
 
         User::resolveRelationUsing('timeBlocks', fn (User $user) => $user->hasMany(TimeBlock::class));
+        User::resolveRelationUsing('schedules', fn (User $user) => $user->hasMany(Schedule::class));
     }
 }
