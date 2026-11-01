@@ -151,6 +151,11 @@ onMounted(run);
                 />
             </section>
 
+            <Card v-if="data.insights.length" as="section" aria-labelledby="insights-heading" class="group">
+                <CardHeader title="Insights" title-id="insights-heading" icon="flame" />
+                <InsightList :insights="data.insights" />
+            </Card>
+
             <Card as="section" aria-labelledby="trend-heading" class="group">
                 <CardHeader
                     title="Daily trend"

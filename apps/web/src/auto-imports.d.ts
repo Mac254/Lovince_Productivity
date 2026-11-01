@@ -85,7 +85,9 @@ declare global {
   const useId: typeof import('vue').useId
   const useLink: typeof import('vue-router').useLink
   const useModel: typeof import('vue').useModel
+  const useOnline: typeof import('./composables/useOnline').useOnline
   const usePreferencesStore: typeof import('./stores/preferences').usePreferencesStore
+  const useReminders: typeof import('./composables/useReminders').useReminders
   const useRoute: typeof import('vue-router').useRoute
   const useRouter: typeof import('vue-router').useRouter
   const useSettingsStore: typeof import('./stores/settings').useSettingsStore
@@ -196,7 +198,9 @@ declare module 'vue' {
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
+    readonly useOnline: UnwrapRef<typeof import('./composables/useOnline')['useOnline']>
     readonly usePreferencesStore: UnwrapRef<typeof import('./stores/preferences')['usePreferencesStore']>
+    readonly useReminders: UnwrapRef<typeof import('./composables/useReminders')['useReminders']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSettingsStore: UnwrapRef<typeof import('./stores/settings')['useSettingsStore']>

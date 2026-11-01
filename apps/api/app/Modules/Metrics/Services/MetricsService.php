@@ -24,7 +24,7 @@ use Illuminate\Support\Collection;
  */
 class MetricsService
 {
-    public function __construct(private readonly FocusStats $focus) {}
+    public function __construct(private readonly FocusStats $focus, private readonly Insights $insights) {}
 
     /**
      * @return array<string, mixed>
@@ -71,7 +71,7 @@ class MetricsService
         $focusInRange = $focus->filter(fn (FocusSession $f) => $f->started_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
         $focusByDay = FocusStats::minutesByDay($focusInRange);
 
-        return [
+        $metrics = [
             'range' => ['days' => $days, 'start' => $start->toDateString(), 'end' => $end->toDateString()],
             'totals' => [
                 'completed' => $completedInRange->count(),
@@ -126,6 +126,8 @@ class MetricsService
                     'total' => (int) $g->eligible_tasks_count,
                 ])->all(),
         ];
+
+        return $metrics + ['insights' => $this->insights->for($metrics)];
     }
 
     /**
@@ -185,10 +187,10 @@ class MetricsService
 
     /**
      * Activity per day for the last 26 full weeks plus this week, Monday first, independent of the range:
-     * tasks completed plus work log entries, so steady work on a long task still shows.
+     * tasks completed, work log entries and each 25 minutes of focus, so steady work on a long task still shows.
      *
      * @param  Collection<int, Task>  $tasks
-     * @return list<array{date: string, count: int, completed: int, logged: int}>
+     * @return list<array{date: string, count: int, completed: int, logged: int, focus_minutes: int}>
      */
     private function heatmap(User $user, Collection $tasks): array
     {
@@ -200,15 +202,18 @@ class MetricsService
             ->whereDate('logged_on', '>=', $first)
             ->get(['logged_on'])
             ->countBy(fn (TaskNote $n) => $n->logged_on->toDateString());
+        $focus = FocusStats::minutesByDay($this->focus->between($user, $first, today()->endOfDay()));
 
         $days = (int) $first->diffInDays(today()) + 1;
 
-        return collect(range(0, $days - 1))->map(function (int $offset) use ($first, $completed, $logged) {
+        return collect(range(0, $days - 1))->map(function (int $offset) use ($first, $completed, $logged, $focus) {
             $date = $first->copy()->addDays($offset)->toDateString();
             $done = $completed[$date] ?? 0;
             $notes = $logged[$date] ?? 0;
 
-            return ['date' => $date, 'count' => $done + $notes, 'completed' => $done, 'logged' => $notes];
+            $minutes = $focus[$date] ?? 0;
+
+            return ['date' => $date, 'count' => $done + $notes + intdiv($minutes, 25), 'completed' => $done, 'logged' => $notes, 'focus_minutes' => $minutes];
         })->all();
     }
 

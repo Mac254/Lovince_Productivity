@@ -2,11 +2,11 @@
 import type { Metrics } from '@focus/types';
 import type { ApexOptions } from 'apexcharts';
 import VueApexCharts from 'vue3-apexcharts';
-import { formatDate, todayIso } from '@/lib/dates';
+import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
 import { useChartTheme } from './useChartTheme';
 
 /**
- * Activity per day over the last six months (tasks completed plus work logged): weeks across, weekdays down (Monday first).
+ * Activity per day over the last six months (tasks completed, work logged and focus time): weeks across, weekdays down (Monday first).
  * One hue, light to dark; days still to come are left empty.
  */
 const props = defineProps<{ days: Metrics['heatmap'] }>();
@@ -45,6 +45,7 @@ const series = computed(() =>
                 date: day?.date ?? '',
                 completed: day?.completed ?? 0,
                 logged: day?.logged ?? 0,
+                focus: day?.focus_minutes ?? 0,
             };
         }),
     })).reverse(),
@@ -94,6 +95,7 @@ const options = computed<ApexOptions>(() => ({
                 point.logged
                     ? `<strong>${point.logged}</strong> work ${point.logged === 1 ? 'entry' : 'entries'} logged`
                     : '',
+                point.focus ? `<strong>${formatMinutes(point.focus)}</strong> focused` : '',
             ].filter(Boolean);
             return `<div class="apex-tip">${parts.join('<br>') || 'No activity'}<br><span>${label}</span></div>`;
         },

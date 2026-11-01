@@ -172,7 +172,7 @@ function onQuickTaskSaved(): void {
             role="status"
             class="flex items-center justify-center gap-2 border-b border-border bg-surface-raised px-4 py-2"
         >
-            <Icon name="warning" />
+            <Icon name="offline" />
             <Text role="label">You’re offline. Focus sessions are kept and saved when you reconnect.</Text>
         </div>
 

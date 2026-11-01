@@ -17,6 +17,12 @@ export interface FocusMetrics {
     by_hour: number[];
 }
 
+export interface MetricInsight {
+    key: string;
+    tone: 'positive' | 'neutral' | 'warning';
+    text: string;
+}
+
 export interface Metrics {
     range: { days: MetricRange; start: IsoDate; end: IsoDate };
     totals: {
@@ -44,7 +50,8 @@ export interface Metrics {
     daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number; focus: number }[];
     focus: FocusMetrics;
     /** `count` is `completed` tasks plus `logged` work log entries for the day. */
-    heatmap: { date: IsoDate; count: number; completed: number; logged: number }[];
+    heatmap: { date: IsoDate; count: number; completed: number; logged: number; focus_minutes: number }[];
+    insights: MetricInsight[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];
     by_category: { key: TaskCategory; completed: number; open: number }[];
     by_type: TypeBreakdownRow[];

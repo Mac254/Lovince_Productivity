@@ -45,6 +45,7 @@ declare module 'vue' {
     IconButton: typeof import('@focus/ui')['IconButton']
     InlineCreate: typeof import('./components/InlineCreate.vue')['default']
     Input: typeof import('@focus/ui')['Input']
+    InsightList: typeof import('./features/metrics/InsightList.vue')['default']
     JournalCalendar: typeof import('./features/journal/JournalCalendar.vue')['default']
     JournalEditor: typeof import('./features/journal/JournalEditor.vue')['default']
     JournalEntryList: typeof import('./features/journal/JournalEntryList.vue')['default']
