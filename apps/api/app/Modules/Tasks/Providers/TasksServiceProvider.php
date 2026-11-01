@@ -5,9 +5,11 @@ namespace App\Modules\Tasks\Providers;
 use App\Modules\Goals\Contracts\GoalProgress;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Tasks\Listeners\DetachTasksFromGoal;
+use App\Modules\Tasks\Models\ChecklistItem;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Tasks\Models\TaskNote;
 use App\Modules\Tasks\Models\TaskType;
+use App\Modules\Tasks\Policies\ChecklistItemPolicy;
 use App\Modules\Tasks\Policies\TaskNotePolicy;
 use App\Modules\Tasks\Policies\TaskPolicy;
 use App\Modules\Tasks\Policies\TaskTypePolicy;
@@ -21,6 +23,7 @@ class TasksServiceProvider extends ModuleProvider
         Task::class => TaskPolicy::class,
         TaskNote::class => TaskNotePolicy::class,
         TaskType::class => TaskTypePolicy::class,
+        ChecklistItem::class => ChecklistItemPolicy::class,
     ];
 
     public function register(): void

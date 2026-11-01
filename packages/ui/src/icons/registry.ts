@@ -17,6 +17,7 @@ import IconCheck from '~icons/solar/check-linear';
 import IconCheckCircle from '~icons/solar/check-circle-linear';
 import IconChecklist from '~icons/solar/checklist-minimalistic-linear';
 import IconChevronDown from '~icons/solar/alt-arrow-down-linear';
+import IconChevronUp from '~icons/solar/alt-arrow-up-linear';
 import IconChevronLeft from '~icons/solar/alt-arrow-left-linear';
 import IconChevronRight from '~icons/solar/alt-arrow-right-linear';
 import IconCircleDashed from '~icons/solar/circle-dashed-linear';
@@ -83,6 +84,7 @@ export const icons = {
     'check-circle': IconCheckCircle,
     checklist: IconChecklist,
     'chevron-down': IconChevronDown,
+    'chevron-up': IconChevronUp,
     'chevron-left': IconChevronLeft,
     'chevron-right': IconChevronRight,
     'circle-dashed': IconCircleDashed,

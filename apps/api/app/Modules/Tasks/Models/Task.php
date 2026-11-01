@@ -104,6 +104,35 @@ class Task extends Model
     }
 
     /**
+     * @return HasMany<ChecklistItem, $this>
+     */
+    public function checklistItems(): HasMany
+    {
+        return $this->hasMany(ChecklistItem::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithChecklistCounts(Builder $query): void
+    {
+        $query->withCount(self::checklistCounts());
+    }
+
+    public function loadChecklistCounts(): static
+    {
+        return $this->loadCount(self::checklistCounts());
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    private static function checklistCounts(): array
+    {
+        return ['checklistItems as checklist_total', 'checklistItems as checklist_done' => fn (Builder $q) => $q->where('done', true)];
+    }
+
+    /**
      * @param  Builder<self>  $query
      */
     public function scopeOpen(Builder $query): void

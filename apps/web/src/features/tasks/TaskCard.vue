@@ -92,6 +92,18 @@ const menu = computed<MenuItem[]>(() => [
                     {{ done ? 'Done' : dueLabel(task.due_date) }}
                 </Text>
                 <Icon v-if="task.recurrence && !done" name="retry" :label="taskRecurrenceLabels[task.recurrence]" />
+                <Text
+                    v-if="task.checklist?.total"
+                    as="span"
+                    role="label"
+                    tone="muted"
+                    tabular
+                    class="inline-flex items-center gap-1"
+                    ><Icon
+                        name="checklist"
+                        :label="`Checklist: ${task.checklist.done} of ${task.checklist.total} done`"
+                    />{{ task.checklist.done }}/{{ task.checklist.total }}</Text
+                >
             </div>
             <div v-if="task.goal" class="flex min-w-0 items-center gap-2">
                 <dt class="sr-only">Goal</dt>

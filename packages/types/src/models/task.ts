@@ -25,6 +25,7 @@ export interface Task {
     recurrence: TaskRecurrence | null;
     next_occurrence_id: number | null;
     logged_minutes?: number;
+    checklist?: { done: number; total: number };
     start_date: IsoDate | null;
     due_date: IsoDate | null;
     completed_at: IsoDateTime | null;

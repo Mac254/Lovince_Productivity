@@ -72,6 +72,7 @@ declare module 'vue' {
     StatusBadge: typeof import('./features/tasks/StatusBadge.vue')['default']
     Switch: typeof import('@focus/ui')['Switch']
     TaskCard: typeof import('./features/tasks/TaskCard.vue')['default']
+    TaskChecklist: typeof import('./features/tasks/TaskChecklist.vue')['default']
     TaskFormDialog: typeof import('./features/tasks/TaskFormDialog.vue')['default']
     TaskListPanel: typeof import('./features/dashboard/TaskListPanel.vue')['default']
     TaskNoteDialog: typeof import('./features/tasks/TaskNoteDialog.vue')['default']

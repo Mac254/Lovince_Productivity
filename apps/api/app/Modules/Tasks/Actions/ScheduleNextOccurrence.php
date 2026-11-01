@@ -27,7 +27,7 @@ class ScheduleNextOccurrence
 
         $lead = $task->start_date && $task->due_date ? $task->start_date->diffInDays($task->due_date) : null;
 
-        $next = $task->replicate(['status', 'completed_at', 'next_occurrence_id', 'is_highlighted', 'notes_sum_minutes']);
+        $next = $task->replicate(['status', 'completed_at', 'next_occurrence_id', 'is_highlighted', 'notes_sum_minutes', 'checklist_total', 'checklist_done']);
         $next->fill([
             'status' => TaskStatus::NotStarted,
             'is_highlighted' => false,
@@ -35,6 +35,11 @@ class ScheduleNextOccurrence
             'start_date' => $lead === null ? null : $due->copy()->subDays((int) $lead)->toDateString(),
         ]);
         $next->save();
+
+        $task->checklistItems()->get()->each(fn ($item) => $next->checklistItems()->make([
+            'title' => $item->title,
+            'position' => $item->position,
+        ])->user()->associate($task->user_id)->save());
 
         $task->forceFill(['next_occurrence_id' => $next->id])->saveQuietly();
 

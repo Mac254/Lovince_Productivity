@@ -26,6 +26,7 @@ class TasksSettings extends SettingsModule
     {
         return [
             Setting::toggle('estimates', 'Time estimates', true, 'Estimate tasks and compare the estimate with the time logged.'),
+            Setting::toggle('complete_on_checklist', 'Finish tasks with their checklist', false, 'Mark a task done when you tick the last item on its checklist.'),
             Setting::choice('repeat_from', 'Repeat tasks from', [
                 'due' => 'Their due date',
                 'completed' => 'The day they’re done',

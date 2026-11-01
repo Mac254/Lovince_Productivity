@@ -34,6 +34,10 @@ class TaskResource extends JsonResource
                 array_key_exists('notes_sum_minutes', $this->resource->getAttributes()),
                 fn () => (int) $this->notes_sum_minutes,
             ),
+            'checklist' => $this->when(
+                array_key_exists('checklist_total', $this->resource->getAttributes()),
+                fn () => ['done' => (int) $this->checklist_done, 'total' => (int) $this->checklist_total],
+            ),
             'start_date' => $this->start_date?->toDateString(),
             'due_date' => $this->due_date?->toDateString(),
             'completed_at' => $this->completed_at?->toIso8601String(),

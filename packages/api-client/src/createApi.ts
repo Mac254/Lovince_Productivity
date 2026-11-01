@@ -1,6 +1,7 @@
 import type { AxiosInstance } from 'axios';
 import { authEndpoints } from './endpoints/auth';
 import { blockerEndpoints } from './endpoints/blockers';
+import { checklistEndpoints } from './endpoints/checklist';
 import { dashboardEndpoints } from './endpoints/dashboard';
 import { focusSessionEndpoints, focusTimerEndpoints } from './endpoints/focusSessions';
 import { goalEndpoints } from './endpoints/goals';
@@ -36,6 +37,7 @@ export function createApi(http: AxiosInstance) {
         focusTimer: focusTimerEndpoints(http),
         taskTypes: taskTypeEndpoints(http),
         taskNotes: taskNoteEndpoints(http),
+        checklist: checklistEndpoints(http),
         timeBlocks: timeBlockEndpoints(http),
     };
 }

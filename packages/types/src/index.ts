@@ -18,6 +18,7 @@ export type { Wallpaper } from './models/wallpaper';
 export type { TimeBlock, TimeBlockInput } from './models/timeBlock';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';
+export type { ChecklistItem, ChecklistItemInput } from './models/checklist';
 export type { SettingDescription, SettingsChanges, SettingsModuleDescription, SettingsState } from './models/settings';
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';

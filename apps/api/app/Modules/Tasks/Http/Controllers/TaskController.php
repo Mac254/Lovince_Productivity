@@ -28,6 +28,7 @@ class TaskController extends Controller
             ->whereBelongsTo($request->user())
             ->with(Task::RELATIONS)
             ->withSum('notes', 'minutes')
+            ->withChecklistCounts()
             ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->where(
                 fn (Builder $q) => $q
                     ->where('title', 'like', "%{$search}%")
@@ -60,21 +61,21 @@ class TaskController extends Controller
     {
         $task = $request->user()->tasks()->create($request->validated());
 
-        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes'))->response()->setStatusCode(201);
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes')->loadChecklistCounts())->response()->setStatusCode(201);
     }
 
     public function show(Task $task): TaskResource
     {
         Gate::authorize('view', $task);
 
-        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes'));
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes')->loadChecklistCounts());
     }
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
         $task->update($request->validated());
 
-        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes'));
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes')->loadChecklistCounts());
     }
 
     public function destroy(Task $task): Response

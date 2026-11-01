@@ -57,6 +57,10 @@ final class Contract
 
     public const REVIEW_MAX = 5000;
 
+    public const CHECKLIST_ITEM_MAX = 200;
+
+    public const CHECKLIST_LIMIT = 50;
+
     public const TIME_BLOCK_TITLE_MAX = 120;
 
     public const TIME_BLOCK_MINUTES_MIN = 5;
@@ -105,6 +109,7 @@ final class Contract
             'wallpapers' => self::WALLPAPER_LIMIT,
             'focusSessionMinutes' => self::FOCUS_SESSION_MINUTES_MAX,
             'review' => self::REVIEW_MAX,
+            'checklist' => ['title' => self::CHECKLIST_ITEM_MAX, 'max' => self::CHECKLIST_LIMIT],
             'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
         ];
     }

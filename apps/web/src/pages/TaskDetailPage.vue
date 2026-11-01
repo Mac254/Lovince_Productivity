@@ -41,6 +41,16 @@ async function load(): Promise<void> {
     }
 }
 
+async function refreshTask(): Promise<void> {
+    try {
+        const loaded = await api.tasks.get(id.value);
+        if (task.value?.status !== loaded.status) void dashboard.invalidate();
+        task.value = loaded;
+    } catch {
+        return;
+    }
+}
+
 const changed = () => {
     void dashboard.invalidate();
     return load();
@@ -148,6 +158,8 @@ watch(id, load, { immediate: true });
                             </Pressable></Text
                         >
                     </Card>
+
+                    <TaskChecklist :task-id="task.id" @changed="refreshTask" />
 
                     <TaskWorkLog
                         :task-id="task.id"

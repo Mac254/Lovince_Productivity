@@ -46,6 +46,9 @@ const done = computed(() => props.task.status === 'completed');
                     done ? 'Done' : dueLabel(task.due_date)
                 }}</span>
                 <Icon v-if="task.recurrence && !done" name="retry" :label="taskRecurrenceLabels[task.recurrence]" />
+                <span v-if="task.checklist?.total" class="inline-flex items-center gap-1 tabular"
+                    ><Icon name="checklist" />{{ task.checklist.done }}/{{ task.checklist.total }}</span
+                >
             </p>
         </div>
         <span class="hidden shrink-0 @md:inline-flex"><PriorityDots :priority="task.priority" /></span>

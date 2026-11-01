@@ -62,6 +62,10 @@ export const LIMITS = {
     wallpapers: 12,
     focusSessionMinutes: 720,
     review: 5000,
+    checklist: {
+        title: 200,
+        max: 50,
+    },
     timeBlock: {
         title: 120,
         minutesMin: 5,
@@ -81,6 +85,7 @@ export interface Settings {
     };
     tasks: {
         estimates: boolean;
+        complete_on_checklist: boolean;
         repeat_from: 'due' | 'completed';
     };
     planner: {
@@ -122,6 +127,7 @@ export const SETTINGS_DEFAULTS: Settings = {
     },
     tasks: {
         estimates: true,
+        complete_on_checklist: false,
         repeat_from: 'due',
     },
     planner: {
