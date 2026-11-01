@@ -3,3 +3,7 @@
 [data-liquid] {
     --liquid-radius: var(--radius-md);
 }
+
+[data-kinetic='marker'] {
+    --kinetic-marker: color-mix(in oklab, var(--color-highlight) 35%, transparent);
+}

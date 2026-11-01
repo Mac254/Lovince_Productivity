@@ -7,3 +7,48 @@
 @custom-variant state-checked (&[data-state='checked']);
 @custom-variant state-on (&[data-state='on']);
 @custom-variant state-open (&[data-state='open']);
+
+@layer base {
+    [data-text-wrap='balance'] {
+        text-wrap: balance;
+    }
+
+    [data-text-wrap='pretty'] {
+        text-wrap: pretty;
+    }
+
+    [data-text-wrap='nowrap'] {
+        white-space: nowrap;
+    }
+
+    [data-text-wrap='break'] {
+        overflow-wrap: anywhere;
+    }
+
+    [data-truncate] {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    [data-line-clamp] {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: var(--lovince-line-clamp);
+        line-clamp: var(--lovince-line-clamp);
+    }
+
+    [data-uppercase] {
+        text-transform: uppercase;
+    }
+
+    [data-italic] {
+        font-style: italic;
+    }
+
+    [data-underline] {
+        text-decoration-line: underline;
+        text-underline-offset: 0.2em;
+    }
+}
