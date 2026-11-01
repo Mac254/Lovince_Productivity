@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Task, TaskStatus } from '@focus/types';
 import type { MenuItem } from '@focus/ui';
+import { taskCoverUrl } from '@/features/covers/covers';
 import { dueLabel } from '@/lib/dates';
 import { taskRecurrenceLabels } from '@/lib/labels';
 import { toneBorder } from '@/lib/tones';
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 const router = useRouter();
 const done = computed(() => props.task.status === 'completed');
 const closed = computed(() => done.value || props.task.status === 'cancelled');
+const cover = computed(() => taskCoverUrl(props.task.cover));
 
 const menu = computed<MenuItem[]>(() => [
     {
@@ -41,6 +43,14 @@ const menu = computed<MenuItem[]>(() => [
             task.goal?.tone && !featured ? toneBorder[task.goal.tone] : 'border-transparent',
         ]"
     >
+        <div v-if="cover" class="-mx-4 -mt-4 overflow-hidden rounded-t-lg sm:-mx-6 sm:-mt-6">
+            <img
+                :src="cover"
+                alt=""
+                loading="lazy"
+                :class="['h-32 w-full object-cover', closed && 'opacity-60 grayscale']"
+            />
+        </div>
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
                 <TaskTypeBadge :task="task" />

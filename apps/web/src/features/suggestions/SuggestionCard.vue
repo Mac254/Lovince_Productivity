@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Suggestion, SuggestionStatus } from '@focus/types';
+import { categoryCover, coverUrl } from '@/features/covers/covers';
 import { formatDate } from '@/lib/dates';
 import {
     suggestionCategoryIcons,
@@ -18,6 +19,7 @@ const uid = useId();
 const busy = ref(false);
 const deleting = ref(false);
 
+const cover = computed(() => coverUrl(categoryCover(props.suggestion.category, props.suggestion.id)));
 const isOpen = computed(() => props.suggestion.status === 'new');
 const primary = computed(() => {
     const action = props.suggestion.action;
@@ -76,6 +78,14 @@ const remove = () =>
 
 <template>
     <Card as="article" :aria-labelledby="`${uid}-title`" class="h-full gap-4">
+        <div class="-mx-4 -mt-4 overflow-hidden rounded-t-lg sm:-mx-6 sm:-mt-6">
+            <img
+                :src="cover"
+                alt=""
+                loading="lazy"
+                :class="['h-32 w-full object-cover', !isOpen && 'opacity-70 grayscale']"
+            />
+        </div>
         <div class="flex items-start justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2">
                 <Badge

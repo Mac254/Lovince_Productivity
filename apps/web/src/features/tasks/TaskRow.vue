@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '@focus/types';
+import { taskCoverUrl } from '@/features/covers/covers';
 import { dueLabel } from '@/lib/dates';
 import { taskRecurrenceLabels } from '@/lib/labels';
 
@@ -8,6 +9,7 @@ const props = defineProps<{ task: Task }>();
 const emit = defineEmits<{ toggle: [task: Task]; star: [task: Task] }>();
 
 const done = computed(() => props.task.status === 'completed');
+const cover = computed(() => taskCoverUrl(props.task.cover));
 </script>
 
 <template>
@@ -28,6 +30,13 @@ const done = computed(() => props.task.status === 'completed');
         >
             <Icon name="check" motion="pop" />
         </Pressable>
+        <img
+            v-if="cover"
+            :src="cover"
+            alt=""
+            loading="lazy"
+            :class="['hidden h-8 w-12 shrink-0 rounded-sm object-cover @sm:block', done && 'opacity-60 grayscale']"
+        />
         <div class="min-w-0 flex-1">
             <RouterLink
                 :to="{ name: 'task-detail', params: { id: task.id } }"

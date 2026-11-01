@@ -31,6 +31,7 @@ export { default as Dialog } from './components/Dialog/Dialog.vue';
 export { default as Sheet } from './components/Sheet/Sheet.vue';
 export { default as DropdownMenu } from './components/DropdownMenu/DropdownMenu.vue';
 export { default as ChipGroup } from './components/ChipGroup/ChipGroup.vue';
+export { default as ImageChoiceGroup } from './components/ImageChoiceGroup/ImageChoiceGroup.vue';
 export { default as ProgressBar } from './components/ProgressBar/ProgressBar.vue';
 export { default as Skeleton } from './components/Skeleton/Skeleton.vue';
 export { default as Avatar } from './components/Avatar/Avatar.vue';

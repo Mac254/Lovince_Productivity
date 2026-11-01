@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Blocker, Task, TaskStatus } from '@focus/types';
+import { taskCoverUrl } from '@/features/covers/covers';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { dueLabel, formatDate } from '@/lib/dates';
 import { taskStatusOptions } from '@/lib/labels';
@@ -140,6 +141,12 @@ watch(id, load, { immediate: true });
         </div>
 
         <template v-else-if="task">
+            <img
+                v-if="task.cover"
+                :src="taskCoverUrl(task.cover)!"
+                alt=""
+                class="h-48 w-full rounded-lg object-cover sm:h-64"
+            />
             <div class="grid gap-6 lg:grid-cols-3">
                 <div class="flex flex-col gap-6 lg:col-span-2">
                     <Card as="section" aria-labelledby="description-heading" class="group">

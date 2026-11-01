@@ -13,6 +13,7 @@ import {
 import { goalTimeframeOptions, taskPriorityOptions, taskRecurrenceOptions, taskStatusOptions } from '@/lib/labels';
 import { parseDuration } from '@/lib/dates';
 import { fromKind, kindOf, kindOptions, type TaskKind } from '@/lib/taskKind';
+import type { CoverChoice } from '@/features/covers/CoverPicker.vue';
 
 const props = defineProps<{ task?: Task | null; defaults?: TaskInput }>();
 const open = defineModel<boolean>('open', { required: true });
@@ -41,6 +42,12 @@ const form = reactive({
 });
 const errors = ref<Record<string, string>>({});
 const saving = ref(false);
+const cover = ref<CoverChoice>(null);
+const hasCover = ref(false);
+
+watch(hasCover, (on) => {
+    if (on && !cover.value) cover.value = { type: 'gallery', key: 'focus-1' };
+});
 
 const estimateMinutes = computed(() => parseDuration(form.estimate));
 const isEdit = computed(() => !!props.task);
@@ -69,7 +76,7 @@ async function createGoal(title: string): Promise<number> {
 
 watch(open, (value) => {
     if (!value) return;
-    const source: TaskInput = props.task ?? props.defaults ?? {};
+    const source: Omit<TaskInput, 'cover'> = props.task ?? props.defaults ?? {};
     Object.assign(form, {
         title: source.title ?? '',
         description: source.description ?? '',
@@ -84,6 +91,8 @@ watch(open, (value) => {
         is_highlighted: source.is_highlighted ?? false,
     });
     errors.value = {};
+    cover.value = props.task?.cover ?? null;
+    hasCover.value = !!cover.value;
     openCount.value++;
     goals.load().catch(() => toast.error('Could not load goals for the goal picker.'));
     taskTypes.load().catch(() => toast.error('Could not load your task types.'));
@@ -104,6 +113,16 @@ function validate(): boolean {
     return Object.keys(next).length === 0;
 }
 
+async function syncCover(task: Task, choice: CoverChoice): Promise<Task> {
+    try {
+        if (choice?.type === 'upload' && choice.file) return await api.tasks.uploadCover(task.id, choice.file);
+        if (!choice && task.cover?.type === 'upload') return await api.tasks.removeCover(task.id);
+    } catch (e) {
+        toast.error(errorMessage(e, 'The task was saved, but its cover photo could not be updated.'));
+    }
+    return task;
+}
+
 async function submit(): Promise<void> {
     if (!validate()) return;
     saving.value = true;
@@ -120,11 +139,14 @@ async function submit(): Promise<void> {
         goal_id: form.goal_id === '' ? null : form.goal_id,
         is_highlighted: form.is_highlighted,
     };
+    const choice = hasCover.value ? cover.value : null;
+    if (choice?.type === 'gallery') payload.cover = choice.key;
+    else if (!choice && props.task?.cover?.type === 'gallery') payload.cover = null;
     try {
         const saved = props.task ? await api.tasks.update(props.task.id, payload) : await api.tasks.create(payload);
         toast.success(isEdit.value ? 'Task updated' : 'Task created');
         open.value = false;
-        emit('saved', saved);
+        emit('saved', await syncCover(saved, choice));
     } catch (e) {
         if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
         else toast.error(errorMessage(e, 'Could not save the task.'));
@@ -243,6 +265,24 @@ async function submit(): Promise<void> {
                     hint="How long you expect it to take"
                     optional
                     :error="errors.estimate_minutes"
+                />
+            </div>
+            <div class="flex flex-col gap-4 rounded-lg border border-border p-4">
+                <div class="flex items-center justify-between gap-4">
+                    <span class="flex flex-col">
+                        <Text :id="fid('cover-label')" as="span" role="label" weight="semibold">Cover photo</Text>
+                        <Text :id="fid('cover-hint')" as="span" role="caption" tone="muted"
+                            >Shows on the task card and its page.</Text
+                        >
+                    </span>
+                    <Switch v-model="hasCover" :labelledby="fid('cover-label')" :describedby="fid('cover-hint')" />
+                </div>
+                <CoverPicker
+                    v-if="hasCover"
+                    v-model="cover"
+                    label="Cover photo"
+                    :error="errors.cover"
+                    @invalid="toast.error($event)"
                 />
             </div>
             <Checkbox
