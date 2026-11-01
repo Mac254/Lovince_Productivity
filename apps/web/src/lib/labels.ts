@@ -109,7 +109,7 @@ export const suggestionCategoryTones: Record<SuggestionCategory, BadgeTone> = {
     focus: 'info',
     growth: 'accent',
     health: 'success',
-    wellbeing: 'highlight',
+    wellbeing: 'neutral',
     social: 'warning',
     fun: 'danger',
 };

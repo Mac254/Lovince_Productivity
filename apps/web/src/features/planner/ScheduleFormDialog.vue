@@ -164,7 +164,7 @@ async function submit(): Promise<void> {
         description="Group your routine by part of the day. Changes apply the next time you plan a day with it."
     >
         <form :id="fid('form')" class="grid gap-8 lg:grid-cols-3" novalidate @submit.prevent="submit">
-            <aside class="flex flex-col gap-6 lg:border-r lg:border-border lg:pr-8">
+            <aside class="flex flex-col gap-6 lg:sticky lg:top-0 lg:self-start lg:border-r lg:border-border lg:pr-8">
                 <Input
                     :id="fid('name')"
                     v-model="name"
@@ -239,7 +239,7 @@ async function submit(): Promise<void> {
                                     :error="errors[`items.${index}.title`]"
                                 />
                             </div>
-                            <div class="w-32">
+                            <div class="w-36">
                                 <Input
                                     :id="fid(`start-${row.key}`)"
                                     v-model="row.start"
@@ -249,7 +249,7 @@ async function submit(): Promise<void> {
                                     @change="regroup(row)"
                                 />
                             </div>
-                            <div class="w-32">
+                            <div class="w-36">
                                 <Select
                                     :id="fid(`minutes-${row.key}`)"
                                     v-model="row.minutes"
@@ -258,26 +258,30 @@ async function submit(): Promise<void> {
                                     :error="errors[`items.${index}.minutes`]"
                                 />
                             </div>
+                        </div>
+                        <div class="flex flex-wrap items-end gap-3">
+                            <div class="min-w-48 flex-1">
+                                <Select
+                                    :id="fid(`type-${row.key}`)"
+                                    v-model="row.type"
+                                    label="Type"
+                                    :options="typeOptions"
+                                />
+                            </div>
+                            <div class="min-w-48 flex-1">
+                                <Select
+                                    :id="fid(`goal-${row.key}`)"
+                                    v-model="row.goal"
+                                    label="Goal"
+                                    :options="goalOptions"
+                                />
+                            </div>
                             <IconButton
                                 icon="trash"
                                 :label="`Remove ${row.title || 'activity'}`"
                                 variant="ghost"
                                 :disabled="rows.length === 1"
                                 @click="removeRow(index)"
-                            />
-                        </div>
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <Select
-                                :id="fid(`type-${row.key}`)"
-                                v-model="row.type"
-                                label="Type"
-                                :options="typeOptions"
-                            />
-                            <Select
-                                :id="fid(`goal-${row.key}`)"
-                                v-model="row.goal"
-                                label="Goal"
-                                :options="goalOptions"
                             />
                         </div>
                     </li>
