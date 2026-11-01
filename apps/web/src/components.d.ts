@@ -37,6 +37,7 @@ declare module 'vue' {
     ErrorState: typeof import('@focus/ui')['ErrorState']
     FacetFilter: typeof import('@focus/ui')['FacetFilter']
     FilePicker: typeof import('@focus/ui')['FilePicker']
+    FloatingActions: typeof import('./components/FloatingActions.vue')['default']
     FocusHistory: typeof import('./features/clock/FocusHistory.vue')['default']
     FocusSummary: typeof import('./features/metrics/FocusSummary.vue')['default']
     FocusTimer: typeof import('./features/clock/FocusTimer.vue')['default']
