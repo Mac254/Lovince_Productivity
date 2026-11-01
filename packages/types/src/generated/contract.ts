@@ -84,6 +84,7 @@ export interface Settings {
         reduce_motion: boolean;
     };
     tasks: {
+        quick_add: boolean;
         estimates: boolean;
         complete_on_checklist: boolean;
         repeat_from: 'due' | 'completed';
@@ -126,6 +127,7 @@ export const SETTINGS_DEFAULTS: Settings = {
         reduce_motion: false,
     },
     tasks: {
+        quick_add: true,
         estimates: true,
         complete_on_checklist: false,
         repeat_from: 'due',

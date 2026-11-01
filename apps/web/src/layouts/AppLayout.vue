@@ -12,6 +12,17 @@ const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'd
 
 const drawerOpen = ref(false);
 const quickTaskOpen = ref(false);
+const paletteOpen = ref(false);
+const shortcut = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform) ? '⌘K' : 'Ctrl+K';
+
+function onShortcut(event: KeyboardEvent): void {
+    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return;
+    event.preventDefault();
+    paletteOpen.value = !paletteOpen.value;
+}
+
+onMounted(() => window.addEventListener('keydown', onShortcut));
+onUnmounted(() => window.removeEventListener('keydown', onShortcut));
 const firstName = computed(() => auth.user?.name.split(' ')[0] ?? '');
 
 async function signOut(): Promise<void> {
@@ -86,6 +97,13 @@ function onQuickTaskSaved(): void {
                     </p>
                 </div>
                 <IconButton
+                    icon="search"
+                    :label="`Quick add and commands (${shortcut})`"
+                    variant="ghost"
+                    motion="pop"
+                    @click="paletteOpen = true"
+                />
+                <IconButton
                     :icon="nextTheme === 'light' ? 'sun' : 'moon'"
                     :label="`Switch to ${nextTheme} theme`"
                     variant="ghost"
@@ -153,5 +171,6 @@ function onQuickTaskSaved(): void {
         </div>
     </Dialog>
 
+    <CommandPalette v-model:open="paletteOpen" @new-task="quickTaskOpen = true" @created="onQuickTaskSaved" />
     <TaskFormDialog v-model:open="quickTaskOpen" :defaults="{ due_date: todayIso() }" @saved="onQuickTaskSaved" />
 </template>

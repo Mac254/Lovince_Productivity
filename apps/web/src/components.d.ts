@@ -23,6 +23,7 @@ declare module 'vue' {
     CardHeader: typeof import('@focus/ui')['CardHeader']
     Checkbox: typeof import('@focus/ui')['Checkbox']
     ChipGroup: typeof import('@focus/ui')['ChipGroup']
+    CommandPalette: typeof import('./features/palette/CommandPalette.vue')['default']
     ConfirmDialog: typeof import('@focus/ui')['ConfirmDialog']
     DailyTrendChart: typeof import('./features/metrics/DailyTrendChart.vue')['default']
     DayContext: typeof import('./features/journal/DayContext.vue')['default']
