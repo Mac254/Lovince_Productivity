@@ -10,6 +10,7 @@ import {
     type TaskStatus,
 } from '@focus/types';
 import { goalTimeframeOptions, taskPriorityOptions, taskStatusOptions } from '@/lib/labels';
+import { parseDuration } from '@/lib/dates';
 import { fromKind, kindOf, kindOptions, type TaskKind } from '@/lib/taskKind';
 
 const props = defineProps<{ task?: Task | null; defaults?: TaskInput }>();
@@ -22,6 +23,7 @@ const uid = useId();
 const fid = (name: string) => `${uid}-${name}`;
 const taskTypes = useTaskTypesStore();
 const toast = useToast();
+const settings = useSettingsStore();
 
 const form = reactive({
     title: '',
@@ -31,12 +33,14 @@ const form = reactive({
     kind: 'category:general' as TaskKind,
     start_date: '' as string | null,
     due_date: '' as string | null,
+    estimate: '',
     goal_id: '' as number | '' | null,
     is_highlighted: false,
 });
 const errors = ref<Record<string, string>>({});
 const saving = ref(false);
 
+const estimateMinutes = computed(() => parseDuration(form.estimate));
 const isEdit = computed(() => !!props.task);
 const goalOptions = computed(() => [
     { value: '' as const, label: 'No goal' },
@@ -72,6 +76,7 @@ watch(open, (value) => {
         kind: kindOf({ category: source.category ?? 'general', task_type_id: source.task_type_id ?? null }),
         start_date: source.start_date ?? '',
         due_date: source.due_date ?? '',
+        estimate: source.estimate_minutes ? String(source.estimate_minutes) : '',
         goal_id: source.goal_id ?? '',
         is_highlighted: source.is_highlighted ?? false,
     });
@@ -84,6 +89,11 @@ watch(open, (value) => {
 function validate(): boolean {
     const next: Record<string, string> = {};
     if (!form.title.trim()) next.title = 'Give the task a title.';
+    if (form.estimate.trim() && estimateMinutes.value === null) {
+        next.estimate_minutes = 'Use minutes or hours, like 45m, 1.5h or 2h 30m.';
+    } else if ((estimateMinutes.value ?? 0) > LIMITS.task.estimateMinutes) {
+        next.estimate_minutes = `Keep it under ${LIMITS.task.estimateMinutes / 60} hours.`;
+    }
     if (form.start_date && form.due_date && form.due_date < form.start_date) {
         next.due_date = 'The due date must be on or after the start date.';
     }
@@ -102,6 +112,7 @@ async function submit(): Promise<void> {
         ...fromKind(form.kind),
         start_date: form.start_date || null,
         due_date: form.due_date || null,
+        ...(settings.values.tasks.estimates ? { estimate_minutes: estimateMinutes.value } : {}),
         goal_id: form.goal_id === '' ? null : form.goal_id,
         is_highlighted: form.is_highlighted,
     };
@@ -212,6 +223,16 @@ async function submit(): Promise<void> {
                     label="Due date"
                     optional
                     :error="errors.due_date"
+                />
+                <Input
+                    v-if="settings.values.tasks.estimates"
+                    :id="fid('estimate')"
+                    v-model="form.estimate"
+                    label="Estimate"
+                    placeholder="e.g. 90m or 2h"
+                    hint="How long you expect it to take"
+                    optional
+                    :error="errors.estimate_minutes"
                 />
             </div>
             <Checkbox

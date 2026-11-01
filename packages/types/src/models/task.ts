@@ -21,6 +21,8 @@ export interface Task {
     priority: TaskPriority;
     category: TaskCategory;
     is_highlighted: boolean;
+    estimate_minutes: number | null;
+    logged_minutes?: number;
     start_date: IsoDate | null;
     due_date: IsoDate | null;
     completed_at: IsoDateTime | null;

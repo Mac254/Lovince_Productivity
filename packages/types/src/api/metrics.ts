@@ -35,6 +35,10 @@ export interface Metrics {
         entries_logged: number;
         minutes_logged: number;
         minutes_logged_previous: number;
+        estimated_tasks: number;
+        estimated_minutes: number;
+        estimated_logged_minutes: number;
+        estimate_accuracy: number | null;
     };
     /** `logged` counts work log entries for the day; `minutes` is the time recorded on them. */
     daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number; focus: number }[];

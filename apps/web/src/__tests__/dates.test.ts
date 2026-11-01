@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysUntil, dueLabel, formatMinutes, isoWeek, todayIso } from '@/lib/dates';
+import { daysUntil, dueLabel, formatMinutes, isoWeek, parseDuration, todayIso } from '@/lib/dates';
 
 describe('dates', () => {
     const today = '2026-10-28';
@@ -32,5 +32,17 @@ describe('dates', () => {
         expect(isoWeek(new Date(2026, 9, 27))).toBe(44);
         expect(isoWeek(new Date(2027, 0, 1))).toBe(53);
         expect(isoWeek(new Date(2025, 11, 29))).toBe(1);
+    });
+
+    it('parses durations written in minutes and hours', () => {
+        expect(parseDuration('45')).toBe(45);
+        expect(parseDuration('45m')).toBe(45);
+        expect(parseDuration('2h')).toBe(120);
+        expect(parseDuration('1.5h')).toBe(90);
+        expect(parseDuration('2h 30m')).toBe(150);
+        expect(parseDuration('1 hour 5 min')).toBe(65);
+        expect(parseDuration('')).toBeNull();
+        expect(parseDuration('soon')).toBeNull();
+        expect(parseDuration('0')).toBeNull();
     });
 });

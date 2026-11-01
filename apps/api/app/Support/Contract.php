@@ -42,6 +42,8 @@ final class Contract
     /** Twelve hours: the most one log entry can claim. */
     public const TASK_NOTE_MINUTES_MAX = 720;
 
+    public const TASK_ESTIMATE_MINUTES_MAX = 6000;
+
     public const TASK_TYPE_NAME_MAX = 40;
 
     public const TASK_TYPE_LIMIT = 30;
@@ -79,7 +81,7 @@ final class Contract
     public static function limits(): array
     {
         return [
-            'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
+            'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX],
             'goal' => ['title' => self::GOAL_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'search' => self::SEARCH_MAX,
             'perPage' => self::PER_PAGE_MAX,

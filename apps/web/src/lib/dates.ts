@@ -88,3 +88,13 @@ export function formatMinutes(minutes: number | null | undefined): string {
     const rest = minutes % 60;
     return [hours ? `${hours}h` : '', rest ? `${rest}m` : ''].filter(Boolean).join(' ');
 }
+
+export function parseDuration(text: string): number | null {
+    const value = text.trim().toLowerCase();
+    if (!value) return null;
+    if (/^\d+$/.test(value)) return Number(value) || null;
+    const match = /^(?:(\d+(?:\.\d+)?)\s*h(?:ours?|rs?)?)?\s*(?:(\d+)\s*m(?:in(?:ute)?s?)?)?$/.exec(value);
+    if (!match || (!match[1] && !match[2])) return null;
+    const minutes = Math.round(Number(match[1] ?? 0) * 60) + Number(match[2] ?? 0);
+    return minutes || null;
+}

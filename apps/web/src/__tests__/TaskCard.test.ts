@@ -12,6 +12,7 @@ const task: Task = {
     priority: 'urgent',
     category: 'integration',
     is_highlighted: false,
+    estimate_minutes: null,
     start_date: null,
     due_date: '2020-01-01',
     completed_at: null,

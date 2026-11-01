@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([ActivityObserver::class, TaskObserver::class])]
-#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes'])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
 {
@@ -61,6 +61,7 @@ class Task extends Model
             'priority' => TaskPriority::class,
             'category' => TaskCategory::class,
             'is_highlighted' => 'boolean',
+            'estimate_minutes' => 'integer',
             'start_date' => 'date',
             'due_date' => 'date',
             'completed_at' => 'datetime',

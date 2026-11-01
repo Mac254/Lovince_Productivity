@@ -27,6 +27,7 @@ class TaskController extends Controller
         $query = Task::query()
             ->whereBelongsTo($request->user())
             ->with(Task::RELATIONS)
+            ->withSum('notes', 'minutes')
             ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->where(
                 fn (Builder $q) => $q
                     ->where('title', 'like', "%{$search}%")
@@ -59,21 +60,21 @@ class TaskController extends Controller
     {
         $task = $request->user()->tasks()->create($request->validated());
 
-        return TaskResource::make($task->load(Task::RELATIONS))->response()->setStatusCode(201);
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes'))->response()->setStatusCode(201);
     }
 
     public function show(Task $task): TaskResource
     {
         Gate::authorize('view', $task);
 
-        return TaskResource::make($task->load(Task::RELATIONS));
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
         $task->update($request->validated());
 
-        return TaskResource::make($task->load(Task::RELATIONS));
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes'));
     }
 
     public function destroy(Task $task): Response

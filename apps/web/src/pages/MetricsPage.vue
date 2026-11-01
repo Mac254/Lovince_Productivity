@@ -62,6 +62,12 @@ const timeHint = computed(() => {
     const change = Math.round(((minutes - previous) / previous) * 100);
     return `${count}${exact} · ${change >= 0 ? '+' : ''}${change}% vs previous`;
 });
+const settings = useSettingsStore();
+const estimateHint = computed(() => {
+    const totals = data.value?.totals;
+    if (!totals?.estimated_tasks) return 'No completed tasks with an estimate in this period';
+    return `${formatMinutes(totals.estimated_logged_minutes) || '0m'} logged against ${formatMinutes(totals.estimated_minutes)} estimated on ${totals.estimated_tasks} completed ${totals.estimated_tasks === 1 ? 'task' : 'tasks'}`;
+});
 const showTable = ref(false);
 
 watch(range, run);
@@ -104,6 +110,15 @@ onMounted(run);
                     :value="timeLogged.value"
                     :suffix="timeLogged.suffix"
                     :hint="timeHint"
+                />
+                <StatCard
+                    v-if="settings.values.tasks.estimates"
+                    class="sm:col-span-2 lg:col-span-6"
+                    label="Estimate accuracy"
+                    icon="target"
+                    :value="data.totals.estimate_accuracy"
+                    suffix="%"
+                    :hint="estimateHint"
                 />
                 <StatCard
                     class="lg:col-span-2"

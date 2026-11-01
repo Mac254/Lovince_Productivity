@@ -35,6 +35,7 @@ export const LIMITS = {
     task: {
         title: 200,
         description: 5000,
+        estimateMinutes: 6000,
     },
     goal: {
         title: 160,
@@ -69,6 +70,9 @@ export interface Settings {
         theme: 'dark' | 'light' | 'system';
         reduce_motion: boolean;
     };
+    tasks: {
+        estimates: boolean;
+    };
     clock: {
         wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | `custom:${number}`;
         time_format: '24h' | '12h';
@@ -95,6 +99,9 @@ export const SETTINGS_DEFAULTS: Settings = {
     appearance: {
         theme: 'dark',
         reduce_motion: false,
+    },
+    tasks: {
+        estimates: true,
     },
     clock: {
         wallpaper: 'neon',

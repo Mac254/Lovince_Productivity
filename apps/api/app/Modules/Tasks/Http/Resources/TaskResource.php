@@ -27,6 +27,11 @@ class TaskResource extends JsonResource
             'priority' => $this->priority,
             'category' => $this->category,
             'is_highlighted' => (bool) $this->is_highlighted,
+            'estimate_minutes' => $this->estimate_minutes,
+            'logged_minutes' => $this->when(
+                array_key_exists('notes_sum_minutes', $this->resource->getAttributes()),
+                fn () => (int) $this->notes_sum_minutes,
+            ),
             'start_date' => $this->start_date?->toDateString(),
             'due_date' => $this->due_date?->toDateString(),
             'completed_at' => $this->completed_at?->toIso8601String(),

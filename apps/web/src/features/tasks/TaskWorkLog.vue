@@ -4,9 +4,10 @@ import type { TaskNote } from '@focus/types';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
 
 /** A task's work log: what was done, when, and how long it took. Newest day first. */
-const props = defineProps<{ taskId: number; taskTitle: string }>();
+const props = defineProps<{ taskId: number; taskTitle: string; estimateMinutes?: number | null }>();
 
 const toast = useToast();
+const settings = useSettingsStore();
 const dashboard = useDashboardStore();
 const notes = ref<TaskNote[]>([]);
 const loading = ref(true);
@@ -25,6 +26,18 @@ const days = computed(() => {
         items,
         minutes: items.reduce((sum, n) => sum + (n.minutes ?? 0), 0),
     }));
+});
+const estimate = computed(() => {
+    const target = props.estimateMinutes ?? 0;
+    if (!settings.values.tasks.estimates || !target) return null;
+    const share = Math.round((totalMinutes.value / target) * 100);
+    const left = target - totalMinutes.value;
+    return {
+        share,
+        text: `${formatMinutes(totalMinutes.value) || '0m'} of ${formatMinutes(target)} estimate`,
+        hint: left > 0 ? `${formatMinutes(left)} left` : left === 0 ? 'On estimate' : `${formatMinutes(-left)} over`,
+        over: left < 0,
+    };
 });
 const subtitle = computed(() => {
     const count = `${notes.value.length} ${notes.value.length === 1 ? 'entry' : 'entries'}`;
@@ -75,6 +88,16 @@ watch(() => props.taskId, load, { immediate: true });
         <CardHeader title="Work log" title-id="worklog-heading" icon="history" :subtitle="subtitle">
             <Button size="sm" icon-start="add" @click="open(null)">Log work</Button>
         </CardHeader>
+
+        <div v-if="estimate && !loading" class="flex flex-col gap-2">
+            <div class="flex items-baseline justify-between gap-3">
+                <Text as="span" role="label" weight="semibold">{{ estimate.text }}</Text>
+                <Text as="span" role="caption" :tone="estimate.over ? 'danger' : 'muted'" tabular>{{
+                    estimate.hint
+                }}</Text>
+            </div>
+            <ProgressBar :value="estimate.share" label="Time logged against the estimate" />
+        </div>
 
         <Skeleton v-if="loading" class="h-24" />
         <ol v-else-if="days.length" class="flex flex-col gap-6">

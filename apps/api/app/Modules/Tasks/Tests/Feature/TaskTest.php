@@ -145,4 +145,27 @@ class TaskTest extends TestCase
             ->assertJsonCount(10, 'data')
             ->assertJsonPath('meta.total', 30);
     }
+
+    public function test_estimates_are_saved_and_compared_with_time_logged(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $id = $this->postJson('/api/v1/tasks', ['title' => 'Draft the plan', 'estimate_minutes' => 120])
+            ->assertCreated()
+            ->assertJsonPath('data.estimate_minutes', 120)
+            ->assertJsonPath('data.logged_minutes', 0)
+            ->json('data.id');
+
+        $this->postJson("/api/v1/tasks/{$id}/notes", ['body' => 'Outline', 'minutes' => 90])->assertCreated();
+        $this->getJson("/api/v1/tasks/{$id}")->assertJsonPath('data.logged_minutes', 90);
+        $this->getJson('/api/v1/tasks')->assertJsonPath('data.0.logged_minutes', 90);
+
+        $this->patchJson("/api/v1/tasks/{$id}", ['status' => 'completed'])->assertOk();
+        $this->getJson('/api/v1/metrics?days=7')
+            ->assertJsonPath('data.totals.estimated_tasks', 1)
+            ->assertJsonPath('data.totals.estimate_accuracy', 75);
+
+        $this->patchJson("/api/v1/tasks/{$id}", ['estimate_minutes' => 0])->assertJsonValidationErrors('estimate_minutes');
+    }
 }

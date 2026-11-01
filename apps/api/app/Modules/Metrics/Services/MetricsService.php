@@ -63,6 +63,10 @@ class MetricsService
         $blockers = Blocker::query()->whereBelongsTo($user)->get();
         $resolved = $blockers->filter(fn (Blocker $b) => $b->status === BlockerStatus::Resolved && $b->resolved_at?->between($start, $end));
 
+        $estimated = $completedInRange->filter(fn (Task $t) => $t->estimate_minutes !== null);
+        $estimatedLogged = $estimated->isEmpty() ? 0 : (int) TaskNote::query()->whereIn('task_id', $estimated->modelKeys())->sum('minutes');
+        $estimatedTotal = (int) $estimated->sum('estimate_minutes');
+
         $focus = $this->focus->between($user, $previousStart, $end);
         $focusInRange = $focus->filter(fn (FocusSession $f) => $f->started_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
         $focusByDay = FocusStats::minutesByDay($focusInRange);
@@ -85,6 +89,10 @@ class MetricsService
                 'entries_logged' => $notesInRange->count(),
                 'minutes_logged' => (int) $notesInRange->sum('minutes'),
                 'minutes_logged_previous' => $minutesPrevious,
+                'estimated_tasks' => $estimated->count(),
+                'estimated_minutes' => $estimatedTotal,
+                'estimated_logged_minutes' => $estimatedLogged,
+                'estimate_accuracy' => $estimatedTotal > 0 ? (int) round($estimatedLogged / $estimatedTotal * 100) : null,
             ],
             'daily' => array_map(
                 fn (array $day) => $day + ['focus' => $focusByDay[$day['date']] ?? 0],

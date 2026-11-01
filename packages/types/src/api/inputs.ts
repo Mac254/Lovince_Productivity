@@ -15,6 +15,7 @@ export type TaskInput = Partial<
         | 'is_highlighted'
         | 'start_date'
         | 'due_date'
+        | 'estimate_minutes'
         | 'goal_id'
         | 'task_type_id'
     >
