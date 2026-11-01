@@ -109,18 +109,16 @@ async function submit(): Promise<void> {
                     :options="goalStatusOptions"
                     :error="errors.status"
                 />
-                <Input
+                <DatePicker
                     id="goal-start"
                     v-model="form.start_date"
-                    type="date"
                     label="Start date"
                     optional
                     :error="errors.start_date"
                 />
-                <Input
+                <DatePicker
                     id="goal-target"
                     v-model="form.target_date"
-                    type="date"
                     label="Target date"
                     optional
                     :error="errors.target_date"

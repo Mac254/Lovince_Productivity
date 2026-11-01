@@ -27,6 +27,7 @@ declare module 'vue' {
     CommandPalette: typeof import('./features/palette/CommandPalette.vue')['default']
     ConfirmDialog: typeof import('@focus/ui')['ConfirmDialog']
     DailyTrendChart: typeof import('./features/metrics/DailyTrendChart.vue')['default']
+    DatePicker: typeof import('@focus/ui')['DatePicker']
     DayContext: typeof import('./features/journal/DayContext.vue')['default']
     DayPlanner: typeof import('./features/planner/DayPlanner.vue')['default']
     DayRail: typeof import('./features/clock/DayRail.vue')['default']

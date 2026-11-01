@@ -212,18 +212,16 @@ async function submit(): Promise<void> {
                         />
                     </InlineCreate>
                 </div>
-                <Input
+                <DatePicker
                     :id="fid('start')"
                     v-model="form.start_date"
-                    type="date"
                     label="Start date"
                     optional
                     :error="errors.start_date"
                 />
-                <Input
+                <DatePicker
                     :id="fid('due')"
                     v-model="form.due_date"
-                    type="date"
                     label="Due date"
                     optional
                     :error="errors.due_date"

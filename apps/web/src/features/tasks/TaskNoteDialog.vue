@@ -76,10 +76,9 @@ function onKeydown(event: KeyboardEvent): void {
                 autofocus
             />
             <div class="grid grid-cols-2 gap-4">
-                <Input
+                <DatePicker
                     :id="fid('day')"
                     v-model="form.logged_on"
-                    type="date"
                     label="Day"
                     :max="todayIso()"
                     :error="errors.logged_on"
