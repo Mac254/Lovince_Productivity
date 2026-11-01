@@ -26,6 +26,15 @@ class TimerSettings extends SettingsModule
     {
         return [
             Setting::toggle('chime', 'Timer chime', true, 'Plays when a focus session or break ends.'),
+            Setting::choice('daily_goal', 'Daily focus goal', [
+                '0' => 'No goal',
+                '60' => '1 hour',
+                '120' => '2 hours',
+                '180' => '3 hours',
+                '240' => '4 hours',
+                '300' => '5 hours',
+                '360' => '6 hours',
+            ], '120', 'Focus time to aim for each day, shown on the clock and dashboard.'),
             Setting::toggle('auto_break', 'Start breaks automatically', false, 'A 5-minute break begins when a focus session ends.'),
         ];
     }

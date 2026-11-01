@@ -4,6 +4,7 @@ namespace App\Modules\Dashboard\Services;
 
 use App\Modules\Blockers\Http\Resources\BlockerResource;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Http\Resources\GoalResource;
@@ -23,6 +24,8 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class DashboardSummary
 {
+    public function __construct(private readonly FocusStats $focus) {}
+
     private const LIST_LIMIT = 8;
 
     /**
@@ -53,6 +56,7 @@ class DashboardSummary
                 'start' => $weekStart->toDateString(),
                 'end' => $weekEnd->toDateString(),
             ],
+            'focus' => $this->focus->today($user),
             'stats' => [
                 'due_today' => $tasks()->open()->whereDate('due_date', $today)->count(),
                 'planned_today' => $planned()->count(),

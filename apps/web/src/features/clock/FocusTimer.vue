@@ -2,6 +2,7 @@
 import { api } from '@focus/api-client';
 import type { Task } from '@focus/types';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
+import { formatMinutes } from '@/lib/dates';
 
 const timer = useTimerStore();
 const dashboard = useDashboardStore();
@@ -13,6 +14,15 @@ const notificationsAllowed = ref(typeof Notification !== 'undefined' && Notifica
 const canNotify = typeof Notification !== 'undefined' && Notification.permission !== 'denied';
 
 const actions = useTaskActions(() => void dashboard.invalidate());
+
+const todayLine = computed(() => {
+    const today = timer.today;
+    if (!today) return 'Focus time today';
+    const time = formatMinutes(today.minutes) || '0m';
+    const goal = today.goal_minutes ? ` of ${formatMinutes(today.goal_minutes)}` : '';
+    const streak = today.streak > 1 ? ` · ${today.streak}-day streak` : '';
+    return `${time}${goal} today${streak}`;
+});
 
 const statusLine = computed(() => {
     if (timer.status === 'done') return timer.kind === 'focus' ? 'Session complete' : 'Break over';
@@ -100,6 +110,7 @@ watch(
 
 onMounted(() => {
     void loadTasks();
+    void timer.flush().then(() => timer.loadToday());
     resize();
     window.addEventListener('resize', resize);
     document.addEventListener('keydown', onKey);
@@ -227,7 +238,7 @@ onBeforeUnmount(() => {
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-label sm:col-span-2">
                 <span class="flex items-center gap-2 font-semibold text-highlight">
                     <Icon name="flame" />
-                    {{ timer.sessions.count }} {{ timer.sessions.count === 1 ? 'session' : 'sessions' }} today
+                    {{ todayLine }}
                 </span>
                 <Checkbox id="timer-chime" v-model="timer.sound" label="Chime" surface="chrome" />
                 <Pressable

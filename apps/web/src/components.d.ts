@@ -34,6 +34,8 @@ declare module 'vue' {
     FacetFilter: typeof import('@focus/ui')['FacetFilter']
     FilePicker: typeof import('@focus/ui')['FilePicker']
     FocusHistory: typeof import('./features/clock/FocusHistory.vue')['default']
+    FocusSummary: typeof import('./features/metrics/FocusSummary.vue')['default']
+    FocusSummary: typeof import('./features/metrics/FocusSummary.vue')['default']
     FocusTimer: typeof import('./features/clock/FocusTimer.vue')['default']
     GoalCard: typeof import('./features/goals/GoalCard.vue')['default']
     GoalFormDialog: typeof import('./features/goals/GoalFormDialog.vue')['default']

@@ -26,6 +26,13 @@ export interface DashboardStats {
     weekly_completion_rate: number | null;
 }
 
+export interface FocusToday {
+    minutes: number;
+    sessions: number;
+    goal_minutes: number;
+    streak: number;
+}
+
 export interface IntegrationSummary {
     development_completed: number;
     development_open: number;
@@ -36,6 +43,7 @@ export interface IntegrationSummary {
 export interface Dashboard {
     date: IsoDate;
     week: { start: IsoDate; end: IsoDate };
+    focus: FocusToday;
     stats: DashboardStats;
     today_tasks: Task[];
     planned_tasks: Task[];

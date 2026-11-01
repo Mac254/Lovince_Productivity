@@ -1,4 +1,4 @@
-import type { FocusSessionInput } from '@focus/types';
+import type { FocusSessionInput, FocusToday } from '@focus/types';
 import { api, isApiError } from '@focus/api-client';
 import { playChime } from '@/lib/chime';
 import { todayIso } from '@/lib/dates';
@@ -34,7 +34,6 @@ interface Persisted {
     pausedRemainingMs: number | null;
     status: TimerStatus;
     task: { id: number; title: string } | null;
-    sessions: { date: string; count: number };
     startedAt: number | null;
     pending: FocusSessionInput[];
 }
@@ -65,7 +64,7 @@ export const useTimerStore = defineStore('timer', () => {
     const settings = useSettingsStore();
     const sound = settings.bind('timer', 'chime');
     const autoBreak = settings.bind('timer', 'auto_break');
-    const sessions = ref(saved.sessions?.date === todayIso() ? saved.sessions : { date: todayIso(), count: 0 });
+    const today = ref<FocusToday | null>(null);
     const startedAt = ref<number | null>(saved.startedAt ?? null);
     const pending = ref<FocusSessionInput[]>(saved.pending ?? []);
     const recorded = ref(0);
@@ -169,10 +168,6 @@ export const useTimerStore = defineStore('timer', () => {
         pausedRemainingMs.value = null;
         status.value = 'done';
         record(durationMs.value, true);
-        if (kind.value === 'focus') {
-            if (sessions.value.date !== todayIso()) sessions.value = { date: todayIso(), count: 0 };
-            sessions.value = { ...sessions.value, count: sessions.value.count + 1 };
-        }
         if (!announce) return;
         if (sound.value) playChime();
         notify();
@@ -222,12 +217,14 @@ export const useTimerStore = defineStore('timer', () => {
     async function flush(): Promise<void> {
         if (flushing) return;
         flushing = true;
+        const sent = pending.value.length > 0;
         try {
             while (pending.value.length) {
                 await api.focusSessions.create(pending.value[0]!);
                 pending.value = pending.value.slice(1);
                 recorded.value++;
             }
+            if (sent) await loadToday();
         } catch (error) {
             if (isApiError(error) && error.kind === 'validation') pending.value = pending.value.slice(1);
         } finally {
@@ -235,11 +232,23 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
+    async function loadToday(): Promise<void> {
+        try {
+            const { meta } = await api.focusSessions.list(todayIso());
+            today.value = {
+                minutes: meta.minutes,
+                sessions: meta.count,
+                goal_minutes: meta.goal_minutes,
+                streak: meta.streak,
+            };
+        } catch {
+            today.value ??= null;
+        }
+    }
+
     function setTask(value: Persisted['task']): void {
         task.value = value;
     }
-
-    void flush();
 
     // Resume after a reload: a run that ended while away counts, quietly.
     if (status.value === 'running') {
@@ -248,7 +257,7 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     watch(
-        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sessions, startedAt, pending],
+        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, startedAt, pending],
         () => {
             try {
                 const state: Persisted = {
@@ -259,7 +268,6 @@ export const useTimerStore = defineStore('timer', () => {
                     pausedRemainingMs: pausedRemainingMs.value,
                     status: status.value,
                     task: task.value,
-                    sessions: sessions.value,
                     startedAt: startedAt.value,
                     pending: pending.value,
                 };
@@ -289,7 +297,9 @@ export const useTimerStore = defineStore('timer', () => {
         task,
         sound,
         autoBreak,
-        sessions,
+        today,
+        loadToday,
+        flush,
         recorded,
         baseTitle,
         remainingMs,

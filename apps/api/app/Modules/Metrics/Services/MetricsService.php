@@ -4,6 +4,8 @@ namespace App\Modules\Metrics\Services;
 
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Clock\Models\FocusSession;
+use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Tasks\Enums\TaskCategory;
@@ -22,6 +24,8 @@ use Illuminate\Support\Collection;
  */
 class MetricsService
 {
+    public function __construct(private readonly FocusStats $focus) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -59,6 +63,10 @@ class MetricsService
         $blockers = Blocker::query()->whereBelongsTo($user)->get();
         $resolved = $blockers->filter(fn (Blocker $b) => $b->status === BlockerStatus::Resolved && $b->resolved_at?->between($start, $end));
 
+        $focus = $this->focus->between($user, $previousStart, $end);
+        $focusInRange = $focus->filter(fn (FocusSession $f) => $f->started_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
+        $focusByDay = FocusStats::minutesByDay($focusInRange);
+
         return [
             'range' => ['days' => $days, 'start' => $start->toDateString(), 'end' => $end->toDateString()],
             'totals' => [
@@ -78,7 +86,11 @@ class MetricsService
                 'minutes_logged' => (int) $notesInRange->sum('minutes'),
                 'minutes_logged_previous' => $minutesPrevious,
             ],
-            'daily' => $this->daily($start, $days, $createdInRange, $completedInRange, $notesInRange),
+            'daily' => array_map(
+                fn (array $day) => $day + ['focus' => $focusByDay[$day['date']] ?? 0],
+                $this->daily($start, $days, $createdInRange, $completedInRange, $notesInRange),
+            ),
+            'focus' => $this->focusSummary($user, $focusInRange, $focus->diff($focusInRange), $days),
             'heatmap' => $this->heatmap($user, $tasks),
             'by_priority' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => [
                 'key' => $p->value,
@@ -105,6 +117,36 @@ class MetricsService
                     'completed' => (int) $g->completed_tasks_count,
                     'total' => (int) $g->eligible_tasks_count,
                 ])->all(),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, FocusSession>  $sessions
+     * @param  Collection<int, FocusSession>  $previous
+     * @return array<string, mixed>
+     */
+    private function focusSummary(User $user, Collection $sessions, Collection $previous, int $days): array
+    {
+        $byHour = array_fill(0, 24, 0);
+        foreach ($sessions as $session) {
+            $byHour[(int) $session->started_at->format('G')] += $session->focused_seconds;
+        }
+        $byHour = array_map(fn (int $seconds) => (int) round($seconds / 60), $byHour);
+        $minutes = FocusStats::minutes($sessions);
+        $goal = $this->focus->goalMinutes($user);
+        $byDay = FocusStats::minutesByDay($sessions);
+
+        return [
+            'minutes' => $minutes,
+            'minutes_previous' => FocusStats::minutes($previous),
+            'sessions' => $sessions->count(),
+            'completed' => $sessions->where('completed', true)->count(),
+            'per_day' => (int) round($minutes / $days),
+            'streak' => $this->focus->streak($user),
+            'goal_minutes' => $goal,
+            'goal_days' => $goal > 0 ? count(array_filter($byDay, fn (int $m) => $m >= $goal)) : 0,
+            'best_hour' => max($byHour) > 0 ? array_search(max($byHour), $byHour, true) : null,
+            'by_hour' => $byHour,
         ];
     }
 

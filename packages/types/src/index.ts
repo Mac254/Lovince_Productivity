@@ -28,7 +28,7 @@ export type {
     TaskTypeInput,
 } from './api/inputs';
 export type { BlockerFilters, GoalFilters, TaskFilters } from './api/filters';
-export type { Dashboard, DashboardStats, IntegrationSummary } from './api/dashboard';
+export type { Dashboard, DashboardStats, FocusToday, IntegrationSummary } from './api/dashboard';
 export type {
     DailyReport,
     DailyReportSummary,
@@ -39,4 +39,4 @@ export type {
     ReportWorkLogEntry,
     TypeBreakdownRow,
 } from './api/reports';
-export type { MetricRange, Metrics } from './api/metrics';
+export type { FocusMetrics, MetricRange, Metrics } from './api/metrics';

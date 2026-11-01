@@ -4,6 +4,16 @@ import { timerPresets, useTimerStore } from '@/stores/timer';
 
 vi.mock('@/lib/chime', () => ({ playChime: vi.fn() }));
 
+const { create, list } = vi.hoisted(() => ({
+    create: vi.fn().mockResolvedValue({}),
+    list: vi.fn().mockResolvedValue({ data: [], meta: { minutes: 1, count: 1, goal_minutes: 120, streak: 1 } }),
+}));
+
+vi.mock('@focus/api-client', async (original) => {
+    const actual = await original<typeof import('@focus/api-client')>();
+    return { ...actual, api: { ...actual.api, focusSessions: { create, list, remove: vi.fn() } } };
+});
+
 const MINUTE = 60_000;
 
 describe('focus timer', () => {
@@ -11,6 +21,7 @@ describe('focus timer', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date('2026-10-28T09:00:00'));
         localStorage.clear();
+        create.mockClear();
         setActivePinia(createPinia());
     });
 
@@ -45,18 +56,44 @@ describe('focus timer', () => {
         expect(timer.display).toBe('15:00');
     });
 
-    it('finishes, counts focus sessions, and not breaks', () => {
+    it('records finished focus sessions, and not breaks', () => {
         const timer = useTimerStore();
         timer.setCustom(1);
         timer.start();
         vi.advanceTimersByTime(MINUTE + 500);
         expect(timer.status).toBe('done');
-        expect(timer.sessions.count).toBe(1);
+        expect(create).toHaveBeenCalledTimes(1);
+        expect(create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                planned_minutes: 1,
+                focused_seconds: 60,
+                completed: true,
+                started_on: '2026-10-28',
+            }),
+        );
 
         timer.choose(timerPresets.find((p) => p.kind === 'break')!);
         timer.start();
         vi.advanceTimersByTime(20 * MINUTE);
-        expect(timer.sessions.count).toBe(1);
+        expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('records a session stopped early after a minute, but not a shorter one', () => {
+        const timer = useTimerStore();
+        timer.setCustom(25);
+        timer.start();
+        vi.advanceTimersByTime(30_000);
+        timer.reset();
+        expect(create).not.toHaveBeenCalled();
+
+        timer.start();
+        vi.advanceTimersByTime(10 * MINUTE);
+        timer.pause();
+        vi.advanceTimersByTime(5 * MINUTE);
+        timer.start();
+        vi.advanceTimersByTime(2 * MINUTE);
+        timer.reset();
+        expect(create).toHaveBeenCalledWith(expect.objectContaining({ focused_seconds: 720, completed: false }));
     });
 
     it('clamps custom lengths to 1–180 minutes', () => {
@@ -82,7 +119,7 @@ describe('focus timer', () => {
         setActivePinia(createPinia());
         const later = useTimerStore();
         expect(later.status).toBe('done');
-        expect(later.sessions.count).toBe(1);
+        expect(create).toHaveBeenCalledWith(expect.objectContaining({ focused_seconds: 600, completed: true }));
     });
 
     it('starts a short break when a focus session ends, if asked to', () => {

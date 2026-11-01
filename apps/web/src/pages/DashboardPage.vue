@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Goal, Task } from '@focus/types';
+import { focusSummary } from '@/features/clock/focusSummary';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { taskPriorityRank } from '@/lib/labels';
 import { dayProgress } from '@/lib/progress';
@@ -54,6 +55,7 @@ const focusOptions: { value: Focus; label: string }[] = [
 
 const data = computed(() => dashboard.data);
 const stats = computed(() => dashboard.data?.stats);
+const focusToday = computed(() => focusSummary(dashboard.data?.focus));
 
 const focusTasks = computed<Task[]>(() => {
     if (!data.value) return [];
@@ -94,7 +96,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
         <ErrorState v-if="dashboard.error && !data" :message="dashboard.error" @retry="dashboard.load()" />
 
         <div v-if="data && stats && day" ref="content" class="flex flex-col gap-6">
-            <section aria-label="Key numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section aria-label="Key numbers" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
                 <StatCard
                     data-stagger
                     label="Open tasks"
@@ -119,6 +121,15 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     :value="stats.weekly_completion_rate"
                     suffix="%"
                     :hint="`${stats.week_due_completed} of ${stats.week_due_total} tasks`"
+                />
+                <StatCard
+                    data-stagger
+                    label="Focus today"
+                    icon="clock"
+                    :value="focusToday.value"
+                    :suffix="focusToday.suffix"
+                    :hint="focusToday.hint"
+                    :progress="focusToday.progress"
                 />
                 <StatCard
                     data-stagger

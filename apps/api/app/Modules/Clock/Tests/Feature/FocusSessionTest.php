@@ -97,4 +97,35 @@ class FocusSessionTest extends TestCase
     {
         $this->getJson('/api/v1/focus-sessions')->assertUnauthorized();
     }
+
+    public function test_streak_goal_metrics_and_dashboard_include_focus_time(): void
+    {
+        $user = User::factory()->create(['settings' => ['timer' => ['daily_goal' => '60']]]);
+        foreach ([0, 1, 2, 4] as $back) {
+            FocusSession::factory()->for($user)->create([
+                'started_on' => today()->subDays($back)->toDateString(),
+                'started_at' => today()->subDays($back)->setTime(9, 30),
+                'focused_seconds' => 3600,
+            ]);
+        }
+        $this->actingAs($user);
+
+        $this->getJson('/api/v1/focus-sessions')
+            ->assertJsonPath('meta.goal_minutes', 60)
+            ->assertJsonPath('meta.streak', 3);
+
+        $this->getJson('/api/v1/metrics?days=7')
+            ->assertOk()
+            ->assertJsonPath('data.focus.minutes', 240)
+            ->assertJsonPath('data.focus.sessions', 4)
+            ->assertJsonPath('data.focus.goal_days', 4)
+            ->assertJsonPath('data.focus.best_hour', 9)
+            ->assertJsonPath('data.daily.6.focus', 60);
+
+        $this->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.focus.minutes', 60)
+            ->assertJsonPath('data.focus.goal_minutes', 60)
+            ->assertJsonPath('data.focus.streak', 3);
+    }
 }

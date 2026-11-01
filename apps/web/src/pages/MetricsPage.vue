@@ -43,7 +43,9 @@ const typeTime = computed(() => {
     const most = Math.max(1, ...rows.map((row) => row.minutes));
     return rows.map((row) => ({ ...row, share: (row.minutes / most) * 100 }));
 });
-const hasActivity = computed(() => !!data.value && data.value.daily.some((d) => d.completed || d.created || d.logged));
+const hasActivity = computed(
+    () => !!data.value && data.value.daily.some((d) => d.completed || d.created || d.logged || d.focus),
+);
 
 /** Under two hours reads best in minutes; beyond that, whole hours. */
 const timeLogged = computed(() => {
@@ -161,7 +163,7 @@ onMounted(run);
                 <div v-else class="max-h-80 overflow-auto">
                     <table class="w-full text-label">
                         <caption class="sr-only">
-                            Tasks created and completed, and work logged, per day
+                            Tasks created and completed, work logged and focus time, per day
                         </caption>
                         <thead class="sticky top-0 bg-surface text-left text-fg-muted">
                             <tr>
@@ -170,6 +172,7 @@ onMounted(run);
                                 <th scope="col" class="py-2 text-right font-semibold">Completed</th>
                                 <th scope="col" class="py-2 text-right font-semibold">Work logged</th>
                                 <th scope="col" class="py-2 text-right font-semibold">Time</th>
+                                <th scope="col" class="py-2 text-right font-semibold">Focus</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
@@ -181,10 +184,21 @@ onMounted(run);
                                 <td class="py-2 text-right font-semibold tabular">{{ row.completed }}</td>
                                 <td class="py-2 text-right tabular">{{ row.logged }}</td>
                                 <td class="py-2 text-right tabular">{{ formatMinutes(row.minutes) || '—' }}</td>
+                                <td class="py-2 text-right tabular">{{ formatMinutes(row.focus) || '—' }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+            </Card>
+
+            <Card as="section" aria-labelledby="focus-heading" class="group">
+                <CardHeader
+                    title="Focus time"
+                    title-id="focus-heading"
+                    icon="clock"
+                    subtitle="Focus sessions from the clock, finished or stopped after a minute"
+                />
+                <FocusSummary :focus="data.focus" :days="data.range.days" />
             </Card>
 
             <Card as="section" aria-labelledby="heatmap-heading" class="group">

@@ -26,6 +26,8 @@ export interface FocusHistory {
         minutes: number;
         count: number;
         completed: number;
+        goal_minutes: number;
+        streak: number;
         week: FocusDay[];
     };
 }

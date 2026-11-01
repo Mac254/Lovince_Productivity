@@ -11,6 +11,7 @@ const props = withDefaults(
         suffix?: string;
         hint?: string;
         emphasis?: boolean;
+        progress?: number;
     }>(),
     { motion: 'pop' },
 );
@@ -42,6 +43,13 @@ const display = computed(() => (props.value === null ? '—' : `${animated.value
             <p v-if="hint" class="mt-1 text-label" :class="emphasis ? 'text-highlight-ink' : 'text-fg-muted'">
                 {{ hint }}
             </p>
+            <ProgressBar
+                v-if="progress !== undefined"
+                :value="progress"
+                :label="`${label} progress`"
+                tone="highlight"
+                class="mt-3"
+            />
         </div>
     </Card>
 </template>

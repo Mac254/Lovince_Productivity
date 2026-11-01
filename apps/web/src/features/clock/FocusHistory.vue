@@ -2,6 +2,7 @@
 import { api, errorMessage } from '@focus/api-client';
 import type { FocusSession } from '@focus/types';
 import { useAsync } from '@/composables/useAsync';
+import { goalProgress, streakLabel } from '@/features/clock/focusSummary';
 import { formatMinutes, parseDate, todayIso } from '@/lib/dates';
 
 const open = defineModel<boolean>('open', { required: true });
@@ -17,6 +18,11 @@ const sessions = computed(() => history.data.value?.data ?? []);
 const isToday = computed(() => date.value === todayIso());
 const peak = computed(() => Math.max(1, ...(meta.value?.week.map((day) => day.minutes) ?? [])));
 const weekMinutes = computed(() => meta.value?.week.reduce((sum, day) => sum + day.minutes, 0) ?? 0);
+const goal = computed(() => {
+    const target = meta.value?.goal_minutes ?? 0;
+    const progress = goalProgress(meta.value?.minutes ?? 0, target);
+    return progress === undefined ? null : { target, progress };
+});
 const activeDays = computed(() => meta.value?.week.filter((day) => day.minutes > 0).length ?? 0);
 
 const dayTitle = computed(() =>
@@ -84,7 +90,7 @@ watch(
                     Last 7 days
                 </h2>
                 <p class="text-label tabular text-chrome-fg-muted">
-                    {{ total(weekMinutes) }} · {{ activeDays }}/7 days
+                    {{ total(weekMinutes) }} · {{ activeDays }}/7 days · {{ streakLabel(meta?.streak ?? 0) }}
                 </p>
             </div>
             <ol class="grid h-28 grid-cols-7 items-end gap-2">
@@ -151,6 +157,25 @@ watch(
                 </div>
             </dl>
 
+            <div v-if="goal" class="flex flex-col gap-2">
+                <div class="flex items-baseline justify-between gap-3 text-label">
+                    <span class="font-semibold">Daily goal</span>
+                    <span class="text-chrome-fg-muted tabular">
+                        {{ total(meta?.minutes) }} of {{ total(goal.target) }} · {{ goal.progress }}%
+                    </span>
+                </div>
+                <div
+                    class="h-2 overflow-hidden rounded-full bg-chrome-hover"
+                    role="progressbar"
+                    :aria-valuenow="goal.progress"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Daily focus goal"
+                >
+                    <div class="goal-fill h-full rounded-full bg-highlight" :style="{ width: `${goal.progress}%` }" />
+                </div>
+            </div>
+
             <ErrorState v-if="history.error.value" :message="history.error.value" @retry="history.run()" />
             <div v-else-if="history.loading.value && !history.data.value" class="flex flex-col gap-2">
                 <Skeleton v-for="n in 3" :key="n" class="h-14 rounded-md" />
@@ -198,6 +223,10 @@ watch(
 </template>
 
 <style scoped>
+.goal-fill {
+    transition: width var(--duration-slow) var(--ease-out);
+}
+
 .bar {
     transition: height var(--duration-normal) var(--ease-out);
 }

@@ -4,6 +4,19 @@ import type { ReportGoal, TypeBreakdownRow } from './reports';
 
 export type MetricRange = 7 | 30 | 90;
 
+export interface FocusMetrics {
+    minutes: number;
+    minutes_previous: number;
+    sessions: number;
+    completed: number;
+    per_day: number;
+    streak: number;
+    goal_minutes: number;
+    goal_days: number;
+    best_hour: number | null;
+    by_hour: number[];
+}
+
 export interface Metrics {
     range: { days: MetricRange; start: IsoDate; end: IsoDate };
     totals: {
@@ -24,7 +37,8 @@ export interface Metrics {
         minutes_logged_previous: number;
     };
     /** `logged` counts work log entries for the day; `minutes` is the time recorded on them. */
-    daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number }[];
+    daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number; focus: number }[];
+    focus: FocusMetrics;
     /** `count` is `completed` tasks plus `logged` work log entries for the day. */
     heatmap: { date: IsoDate; count: number; completed: number; logged: number }[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];
