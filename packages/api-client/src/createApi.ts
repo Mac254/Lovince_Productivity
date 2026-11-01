@@ -15,6 +15,7 @@ import { wallpaperEndpoints } from './endpoints/wallpapers';
 import { taskEndpoints } from './endpoints/tasks';
 import { taskNoteEndpoints } from './endpoints/taskNotes';
 import { taskTypeEndpoints } from './endpoints/taskTypes';
+import { timeBlockEndpoints } from './endpoints/timeBlocks';
 
 export function createApi(http: AxiosInstance) {
     return {
@@ -35,6 +36,7 @@ export function createApi(http: AxiosInstance) {
         focusTimer: focusTimerEndpoints(http),
         taskTypes: taskTypeEndpoints(http),
         taskNotes: taskNoteEndpoints(http),
+        timeBlocks: timeBlockEndpoints(http),
     };
 }
 

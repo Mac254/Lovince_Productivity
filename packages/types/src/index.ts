@@ -15,6 +15,7 @@ export type {
     FocusTimerSync,
 } from './models/focusSession';
 export type { Wallpaper } from './models/wallpaper';
+export type { TimeBlock, TimeBlockInput } from './models/timeBlock';
 export type { TaskType, TaskTypeRef } from './models/taskType';
 export type { TaskNote } from './models/taskNote';
 export type { SettingDescription, SettingsChanges, SettingsModuleDescription, SettingsState } from './models/settings';

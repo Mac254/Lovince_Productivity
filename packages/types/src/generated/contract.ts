@@ -59,6 +59,11 @@ export const LIMITS = {
     wallpapers: 12,
     focusSessionMinutes: 720,
     review: 5000,
+    timeBlock: {
+        title: 120,
+        minutesMin: 5,
+        minutesMax: 720,
+    },
 } as const;
 
 /** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */
@@ -73,6 +78,12 @@ export interface Settings {
     };
     tasks: {
         estimates: boolean;
+    };
+    planner: {
+        enabled: boolean;
+        day_start: '5' | '6' | '7' | '8' | '9' | '10';
+        day_end: '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23';
+        step: '15' | '30' | '60';
     };
     clock: {
         wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | `custom:${number}`;
@@ -107,6 +118,12 @@ export const SETTINGS_DEFAULTS: Settings = {
     },
     tasks: {
         estimates: true,
+    },
+    planner: {
+        enabled: true,
+        day_start: '8',
+        day_end: '18',
+        step: '30',
     },
     clock: {
         wallpaper: 'neon',

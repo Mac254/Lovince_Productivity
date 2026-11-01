@@ -22,6 +22,7 @@ Users ← Settings ← Auth
 Users ← Goals ← Tasks ← Blockers ← Journal
 Users ← Quotes
 Tasks ← Clock
+Tasks ← Planner
 Tasks, Goals, Blockers, Journal, Clock ← Reviews
 Tasks, Goals, Blockers, Journal, Quotes, Clock, Reviews ← Dashboard, Metrics, Reports (read models)
 ```

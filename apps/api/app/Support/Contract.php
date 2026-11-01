@@ -56,6 +56,12 @@ final class Contract
 
     public const REVIEW_MAX = 5000;
 
+    public const TIME_BLOCK_TITLE_MAX = 120;
+
+    public const TIME_BLOCK_MINUTES_MIN = 5;
+
+    public const TIME_BLOCK_MINUTES_MAX = 720;
+
     /**
      * @return array<string, list<string>>
      */
@@ -97,6 +103,7 @@ final class Contract
             'wallpapers' => self::WALLPAPER_LIMIT,
             'focusSessionMinutes' => self::FOCUS_SESSION_MINUTES_MAX,
             'review' => self::REVIEW_MAX,
+            'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
         ];
     }
 }

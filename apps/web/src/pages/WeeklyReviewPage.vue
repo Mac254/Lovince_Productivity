@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import type { Task, WeeklyReview } from '@focus/types';
+import { LIMITS, type Task, type WeeklyReview } from '@focus/types';
 import { weekLabel, weekStartIso } from '@/features/reviews/week';
 import { shiftDate } from '@/lib/calendar';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
@@ -314,20 +314,26 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                     "
                 />
                 <div class="grid gap-4 lg:grid-cols-3">
-                    <Textarea id="review-wins" v-model="draft.wins" label="What went well" optional :maxlength="5000" />
+                    <Textarea
+                        id="review-wins"
+                        v-model="draft.wins"
+                        label="What went well"
+                        optional
+                        :maxlength="LIMITS.review"
+                    />
                     <Textarea
                         id="review-challenges"
                         v-model="draft.challenges"
                         label="What got in the way"
                         optional
-                        :maxlength="5000"
+                        :maxlength="LIMITS.review"
                     />
                     <Textarea
                         id="review-next"
                         v-model="draft.next_focus"
                         label="Next week’s focus"
                         optional
-                        :maxlength="5000"
+                        :maxlength="LIMITS.review"
                     />
                 </div>
                 <div class="flex flex-wrap justify-end gap-2">

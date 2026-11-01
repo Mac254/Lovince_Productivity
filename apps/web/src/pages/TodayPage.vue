@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Task } from '@focus/types';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { formatLongDate } from '@/lib/dates';
 import { dayProgress } from '@/lib/progress';
@@ -14,6 +15,16 @@ const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, 
 const blockerDialog = ref(false);
 
 const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) : null));
+const settings = useSettingsStore();
+const plannerOn = computed(() => settings.values.planner.enabled);
+const plannable = computed<Task[]>(() => {
+    const data = dashboard.data;
+    if (!data) return [];
+    const seen = new Set<number>();
+    return [...data.planned_tasks, ...data.overdue_tasks, ...data.today_tasks].filter(
+        (task) => task.status !== 'completed' && task.status !== 'cancelled' && !seen.has(task.id) && seen.add(task.id),
+    );
+});
 </script>
 
 <template>
@@ -63,48 +74,51 @@ const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) :
                 <PlanProgress v-if="day.total" :day="day" />
             </Card>
 
-            <div class="grid gap-6 xl:grid-cols-2">
-                <Card as="section" aria-labelledby="plan-heading" class="group">
-                    <CardHeader
-                        title="Today’s plan"
-                        title-id="plan-heading"
-                        icon="calendar-check"
-                        :subtitle="`${day.remaining} remaining · due today and starred`"
-                    />
-                    <ul v-if="dashboard.data.planned_tasks.length" class="-mx-2 flex flex-col">
-                        <TaskRow
-                            v-for="task in dashboard.data.planned_tasks"
-                            :key="task.id"
-                            :task="task"
-                            @toggle="actions.toggleComplete"
-                            @star="actions.toggleHighlight"
+            <div class="grid gap-6" :class="plannerOn ? 'xl:grid-cols-3' : ''">
+                <div class="grid gap-6" :class="plannerOn ? 'content-start xl:col-span-2' : 'xl:grid-cols-2'">
+                    <Card as="section" aria-labelledby="plan-heading" class="group">
+                        <CardHeader
+                            title="Today’s plan"
+                            title-id="plan-heading"
+                            icon="calendar-check"
+                            :subtitle="`${day.remaining} remaining · due today and starred`"
                         />
-                    </ul>
-                    <EmptyState
-                        v-else
-                        icon="sun"
-                        title="Clear for today"
-                        message="Star a task to add it to today’s plan."
-                    />
-                </Card>
-                <Card as="section" aria-labelledby="overdue-heading" class="group">
-                    <CardHeader
-                        title="Overdue"
-                        title-id="overdue-heading"
-                        icon="warning"
-                        :subtitle="`${dashboard.data.stats.overdue} from earlier days`"
-                    />
-                    <ul v-if="dashboard.data.overdue_tasks.length" class="-mx-2 flex flex-col">
-                        <TaskRow
-                            v-for="task in dashboard.data.overdue_tasks"
-                            :key="task.id"
-                            :task="task"
-                            @toggle="actions.toggleComplete"
-                            @star="actions.toggleHighlight"
+                        <ul v-if="dashboard.data.planned_tasks.length" class="-mx-2 flex flex-col">
+                            <TaskRow
+                                v-for="task in dashboard.data.planned_tasks"
+                                :key="task.id"
+                                :task="task"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                            />
+                        </ul>
+                        <EmptyState
+                            v-else
+                            icon="sun"
+                            title="Clear for today"
+                            message="Star a task to add it to today’s plan."
                         />
-                    </ul>
-                    <Text v-else role="label" tone="muted" class="py-4">You’re all caught up.</Text>
-                </Card>
+                    </Card>
+                    <Card as="section" aria-labelledby="overdue-heading" class="group">
+                        <CardHeader
+                            title="Overdue"
+                            title-id="overdue-heading"
+                            icon="warning"
+                            :subtitle="`${dashboard.data.stats.overdue} from earlier days`"
+                        />
+                        <ul v-if="dashboard.data.overdue_tasks.length" class="-mx-2 flex flex-col">
+                            <TaskRow
+                                v-for="task in dashboard.data.overdue_tasks"
+                                :key="task.id"
+                                :task="task"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                            />
+                        </ul>
+                        <Text v-else role="label" tone="muted" class="py-4">You’re all caught up.</Text>
+                    </Card>
+                </div>
+                <DayPlanner v-if="plannerOn" :date="dashboard.data.date" :tasks="plannable" />
             </div>
 
             <div class="grid gap-6 lg:grid-cols-3">
