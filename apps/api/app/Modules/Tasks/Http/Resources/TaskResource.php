@@ -28,6 +28,8 @@ class TaskResource extends JsonResource
             'category' => $this->category,
             'is_highlighted' => (bool) $this->is_highlighted,
             'estimate_minutes' => $this->estimate_minutes,
+            'recurrence' => $this->recurrence,
+            'next_occurrence_id' => $this->next_occurrence_id,
             'logged_minutes' => $this->when(
                 array_key_exists('notes_sum_minutes', $this->resource->getAttributes()),
                 fn () => (int) $this->notes_sum_minutes,

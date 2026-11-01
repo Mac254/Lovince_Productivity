@@ -16,6 +16,7 @@ export type TaskInput = Partial<
         | 'start_date'
         | 'due_date'
         | 'estimate_minutes'
+        | 'recurrence'
         | 'goal_id'
         | 'task_type_id'
     >

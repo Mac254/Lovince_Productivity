@@ -4,6 +4,7 @@ namespace App\Modules\Tasks\Http\Requests;
 
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
+use App\Modules\Tasks\Enums\TaskRecurrence;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Support\Contract;
 use Illuminate\Validation\Rule;
@@ -24,6 +25,7 @@ trait TaskRules
             'category' => ['sometimes', Rule::enum(TaskCategory::class)],
             'is_highlighted' => ['sometimes', 'boolean'],
             'estimate_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::TASK_ESTIMATE_MINUTES_MAX],
+            'recurrence' => ['sometimes', 'nullable', Rule::enum(TaskRecurrence::class)],
             'start_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'due_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'task_type_id' => [

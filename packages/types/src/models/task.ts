@@ -1,4 +1,4 @@
-import type { GoalTone, TaskCategory, TaskPriority, TaskStatus } from '../generated/contract';
+import type { GoalTone, TaskCategory, TaskPriority, TaskRecurrence, TaskStatus } from '../generated/contract';
 import type { TaskTypeRef } from './taskType';
 
 /** A calendar date in `YYYY-MM-DD` form. */
@@ -22,6 +22,8 @@ export interface Task {
     category: TaskCategory;
     is_highlighted: boolean;
     estimate_minutes: number | null;
+    recurrence: TaskRecurrence | null;
+    next_occurrence_id: number | null;
     logged_minutes?: number;
     start_date: IsoDate | null;
     due_date: IsoDate | null;

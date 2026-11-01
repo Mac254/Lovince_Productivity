@@ -8,6 +8,7 @@ use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
+use App\Modules\Tasks\Enums\TaskRecurrence;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Http\Requests\IndexTaskRequest;
 
@@ -74,6 +75,7 @@ final class Contract
             'OpenTaskStatus' => TaskStatus::openValues(),
             'TaskPriority' => $values(TaskPriority::cases()),
             'TaskCategory' => $values(TaskCategory::cases()),
+            'TaskRecurrence' => $values(TaskRecurrence::cases()),
             'GoalStatus' => $values(GoalStatus::cases()),
             'GoalTimeframe' => $values(GoalTimeframe::cases()),
             'GoalTone' => $values(GoalTone::cases()),

@@ -26,6 +26,10 @@ class TasksSettings extends SettingsModule
     {
         return [
             Setting::toggle('estimates', 'Time estimates', true, 'Estimate tasks and compare the estimate with the time logged.'),
+            Setting::choice('repeat_from', 'Repeat tasks from', [
+                'due' => 'Their due date',
+                'completed' => 'The day they’re done',
+            ], 'due', 'When you finish a repeating task, the next one is due one interval after this date.'),
         ];
     }
 }

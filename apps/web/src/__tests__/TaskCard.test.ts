@@ -13,6 +13,8 @@ const task: Task = {
     category: 'integration',
     is_highlighted: false,
     estimate_minutes: null,
+    recurrence: null,
+    next_occurrence_id: null,
     start_date: null,
     due_date: '2020-01-01',
     completed_at: null,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Task } from '@focus/types';
 import { dueLabel } from '@/lib/dates';
+import { taskRecurrenceLabels } from '@/lib/labels';
 
 /** Compact list row: complete, open, star. Used inside dashboard and detail cards. */
 const props = defineProps<{ task: Task }>();
@@ -44,6 +45,7 @@ const done = computed(() => props.task.status === 'completed');
                 <span :class="['tabular', task.is_overdue && 'font-bold text-danger-fg']">{{
                     done ? 'Done' : dueLabel(task.due_date)
                 }}</span>
+                <Icon v-if="task.recurrence && !done" name="retry" :label="taskRecurrenceLabels[task.recurrence]" />
             </p>
         </div>
         <span class="hidden shrink-0 @md:inline-flex"><PriorityDots :priority="task.priority" /></span>

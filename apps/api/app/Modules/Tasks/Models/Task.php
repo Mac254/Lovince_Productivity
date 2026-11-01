@@ -6,6 +6,7 @@ use App\Modules\Goals\Models\Goal;
 use App\Modules\Tasks\Database\Factories\TaskFactory;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
+use App\Modules\Tasks\Enums\TaskRecurrence;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Observers\TaskObserver;
 use App\Modules\Users\Models\User;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([ActivityObserver::class, TaskObserver::class])]
-#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence'])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
 {
@@ -62,6 +63,8 @@ class Task extends Model
             'category' => TaskCategory::class,
             'is_highlighted' => 'boolean',
             'estimate_minutes' => 'integer',
+            'recurrence' => TaskRecurrence::class,
+            'next_occurrence_id' => 'integer',
             'start_date' => 'date',
             'due_date' => 'date',
             'completed_at' => 'datetime',

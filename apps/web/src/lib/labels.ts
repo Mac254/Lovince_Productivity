@@ -5,6 +5,7 @@ import {
     GOAL_TIMEFRAMES,
     TASK_CATEGORIES,
     TASK_PRIORITIES,
+    TASK_RECURRENCES,
     TASK_STATUSES,
     type BlockerStatus,
     type GoalStatus,
@@ -12,6 +13,7 @@ import {
     type GoalTimeframe,
     type TaskCategory,
     type TaskPriority,
+    type TaskRecurrence,
     type TaskStatus,
 } from '@focus/types';
 import type { BadgeTone } from '@focus/ui';
@@ -83,12 +85,23 @@ export const blockerStatusLabels: Record<BlockerStatus, string> = {
     resolved: 'Resolved',
 };
 
+export const taskRecurrenceLabels: Record<TaskRecurrence, string> = {
+    daily: 'Every day',
+    weekdays: 'Every weekday',
+    weekly: 'Every week',
+    monthly: 'Every month',
+};
+
 function toOptions<T extends string>(values: readonly T[], labels: Record<T, string>) {
     return values.map((value) => ({ value, label: labels[value] }));
 }
 
 export const taskStatusOptions = toOptions(TASK_STATUSES, taskStatusLabels);
 export const taskPriorityOptions = toOptions(TASK_PRIORITIES, taskPriorityLabels);
+export const taskRecurrenceOptions = [
+    { value: '' as const, label: 'Doesn’t repeat' },
+    ...toOptions(TASK_RECURRENCES, taskRecurrenceLabels),
+];
 export const taskCategoryOptions = toOptions(TASK_CATEGORIES, taskCategoryLabels);
 export const goalStatusOptions = toOptions(GOAL_STATUSES, goalStatusLabels);
 export const goalTimeframeOptions = toOptions(GOAL_TIMEFRAMES, goalTimeframeLabels);

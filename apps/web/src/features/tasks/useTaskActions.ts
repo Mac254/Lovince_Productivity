@@ -6,10 +6,11 @@ export function useTaskActions(onChange: () => void) {
 
     async function setStatus(task: Task, status: TaskStatus): Promise<void> {
         try {
-            await api.tasks.update(task.id, { status });
+            const saved = await api.tasks.update(task.id, { status });
+            const repeats = status === 'completed' && saved.next_occurrence_id && !task.next_occurrence_id;
             toast.success(
                 status === 'completed'
-                    ? `Completed “${task.title}”`
+                    ? `Completed “${task.title}”${repeats ? '. The next one is scheduled.' : ''}`
                     : status === 'cancelled'
                       ? `Cancelled “${task.title}”`
                       : `Reopened “${task.title}”`,

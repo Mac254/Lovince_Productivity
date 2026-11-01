@@ -2,6 +2,8 @@
 
 namespace App\Modules\Tasks\Observers;
 
+use App\Modules\Tasks\Actions\ScheduleNextOccurrence;
+use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Events\WorkLogChanged;
 use App\Modules\Tasks\Models\Task;
 
@@ -11,6 +13,15 @@ use App\Modules\Tasks\Models\Task;
  */
 class TaskObserver
 {
+    public function __construct(private readonly ScheduleNextOccurrence $scheduleNext) {}
+
+    public function saved(Task $task): void
+    {
+        if ($task->status === TaskStatus::Completed && ($task->wasRecentlyCreated || $task->wasChanged('status'))) {
+            ($this->scheduleNext)($task);
+        }
+    }
+
     public function deleting(Task $task): void
     {
         $days = $task->notes()->pluck('logged_on')->unique(fn ($day) => $day->toDateString());

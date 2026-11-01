@@ -2,6 +2,7 @@
 import type { Task, TaskStatus } from '@focus/types';
 import type { MenuItem } from '@focus/ui';
 import { dueLabel } from '@/lib/dates';
+import { taskRecurrenceLabels } from '@/lib/labels';
 import { toneBorder } from '@/lib/tones';
 
 const props = defineProps<{ task: Task; featured?: boolean }>();
@@ -90,6 +91,7 @@ const menu = computed<MenuItem[]>(() => [
                 >
                     {{ done ? 'Done' : dueLabel(task.due_date) }}
                 </Text>
+                <Icon v-if="task.recurrence && !done" name="retry" :label="taskRecurrenceLabels[task.recurrence]" />
             </div>
             <div v-if="task.goal" class="flex min-w-0 items-center gap-2">
                 <dt class="sr-only">Goal</dt>

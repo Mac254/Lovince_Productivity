@@ -7,9 +7,10 @@ import {
     type Task,
     type TaskInput,
     type TaskPriority,
+    type TaskRecurrence,
     type TaskStatus,
 } from '@focus/types';
-import { goalTimeframeOptions, taskPriorityOptions, taskStatusOptions } from '@/lib/labels';
+import { goalTimeframeOptions, taskPriorityOptions, taskRecurrenceOptions, taskStatusOptions } from '@/lib/labels';
 import { parseDuration } from '@/lib/dates';
 import { fromKind, kindOf, kindOptions, type TaskKind } from '@/lib/taskKind';
 
@@ -34,6 +35,7 @@ const form = reactive({
     start_date: '' as string | null,
     due_date: '' as string | null,
     estimate: '',
+    recurrence: '' as TaskRecurrence | '' | null,
     goal_id: '' as number | '' | null,
     is_highlighted: false,
 });
@@ -77,6 +79,7 @@ watch(open, (value) => {
         start_date: source.start_date ?? '',
         due_date: source.due_date ?? '',
         estimate: source.estimate_minutes ? String(source.estimate_minutes) : '',
+        recurrence: source.recurrence ?? '',
         goal_id: source.goal_id ?? '',
         is_highlighted: source.is_highlighted ?? false,
     });
@@ -112,6 +115,7 @@ async function submit(): Promise<void> {
         ...fromKind(form.kind),
         start_date: form.start_date || null,
         due_date: form.due_date || null,
+        recurrence: form.recurrence || null,
         ...(settings.values.tasks.estimates ? { estimate_minutes: estimateMinutes.value } : {}),
         goal_id: form.goal_id === '' ? null : form.goal_id,
         is_highlighted: form.is_highlighted,
@@ -223,6 +227,14 @@ async function submit(): Promise<void> {
                     label="Due date"
                     optional
                     :error="errors.due_date"
+                />
+                <Select
+                    :id="fid('repeat')"
+                    v-model="form.recurrence"
+                    label="Repeat"
+                    :options="taskRecurrenceOptions"
+                    :hint="form.recurrence ? 'Finishing it schedules the next one' : undefined"
+                    :error="errors.recurrence"
                 />
                 <Input
                     v-if="settings.values.tasks.estimates"

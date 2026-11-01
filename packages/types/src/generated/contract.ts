@@ -13,6 +13,9 @@ export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export const TASK_CATEGORIES = ['general', 'development', 'integration'] as const;
 export type TaskCategory = (typeof TASK_CATEGORIES)[number];
 
+export const TASK_RECURRENCES = ['daily', 'weekdays', 'weekly', 'monthly'] as const;
+export type TaskRecurrence = (typeof TASK_RECURRENCES)[number];
+
 export const GOAL_STATUSES = ['active', 'on_hold', 'completed', 'cancelled'] as const;
 export type GoalStatus = (typeof GOAL_STATUSES)[number];
 
@@ -78,6 +81,7 @@ export interface Settings {
     };
     tasks: {
         estimates: boolean;
+        repeat_from: 'due' | 'completed';
     };
     planner: {
         enabled: boolean;
@@ -118,6 +122,7 @@ export const SETTINGS_DEFAULTS: Settings = {
     },
     tasks: {
         estimates: true,
+        repeat_from: 'due',
     },
     planner: {
         enabled: true,
