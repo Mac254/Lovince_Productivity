@@ -12,6 +12,7 @@ const task: Task = {
     priority: 'urgent',
     category: 'integration',
     is_highlighted: false,
+    cover: null,
     estimate_minutes: null,
     recurrence: null,
     next_occurrence_id: null,
