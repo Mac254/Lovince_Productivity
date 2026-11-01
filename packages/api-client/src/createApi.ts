@@ -1,5 +1,6 @@
 import type { AxiosInstance } from 'axios';
 import { authEndpoints } from './endpoints/auth';
+import { backupEndpoints } from './endpoints/backup';
 import { blockerEndpoints } from './endpoints/blockers';
 import { checklistEndpoints } from './endpoints/checklist';
 import { dashboardEndpoints } from './endpoints/dashboard';
@@ -32,6 +33,7 @@ export function createApi(http: AxiosInstance) {
         reviews: reviewEndpoints(http),
         metrics: metricEndpoints(http),
         search: searchEndpoints(http),
+        backup: backupEndpoints(http),
         profile: profileEndpoints(http),
         settings: settingsEndpoints(http),
         wallpapers: wallpaperEndpoints(http),

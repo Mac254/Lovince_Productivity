@@ -45,6 +45,7 @@ export type {
 } from './api/reports';
 export type { FocusMetrics, MetricRange, Metrics } from './api/metrics';
 export type { SearchKind, SearchResult } from './api/search';
+export type { BackupImportResult } from './api/backup';
 export type {
     ReviewPrompt,
     WeeklyReflection,

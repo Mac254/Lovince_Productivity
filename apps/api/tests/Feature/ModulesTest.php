@@ -13,7 +13,7 @@ class ModulesTest extends TestCase
         $modules = $this->app->make(ModuleRegistry::class);
 
         $this->assertSame(
-            ['Auth', 'Blockers', 'Clock', 'Dashboard', 'Goals', 'Journal', 'Metrics', 'Planner', 'Quotes', 'Reports', 'Reviews', 'Search', 'Settings', 'Tasks', 'Users'],
+            ['Auth', 'Backup', 'Blockers', 'Clock', 'Dashboard', 'Goals', 'Journal', 'Metrics', 'Planner', 'Quotes', 'Reports', 'Reviews', 'Search', 'Settings', 'Tasks', 'Users'],
             array_keys($modules->modules()),
         );
 

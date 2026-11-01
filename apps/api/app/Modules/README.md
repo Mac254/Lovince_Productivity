@@ -25,6 +25,7 @@ Tasks ← Clock
 Tasks ← Planner
 Tasks, Goals, Blockers, Journal, Clock ← Reviews
 Tasks, Goals, Blockers, Journal ← Search
+Tasks, Goals, Blockers, Journal, Clock, Reviews, Planner ← Backup
 Tasks, Goals, Blockers, Journal, Quotes, Clock, Reviews ← Dashboard, Metrics, Reports (read models)
 ```
 

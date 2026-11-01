@@ -26,6 +26,10 @@ final class Contract
 
     public const SEARCH_MAX = 100;
 
+    public const BACKUP_MAX_KB = 20480;
+
+    public const BACKUP_RECORDS_MAX = 50000;
+
     public const PER_PAGE_MAX = 100;
 
     public const PER_PAGE_DEFAULT = 25;
@@ -98,6 +102,7 @@ final class Contract
             'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX],
             'goal' => ['title' => self::GOAL_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'search' => self::SEARCH_MAX,
+            'backupKb' => self::BACKUP_MAX_KB,
             'perPage' => self::PER_PAGE_MAX,
             'perPageDefault' => self::PER_PAGE_DEFAULT,
             'journal' => self::JOURNAL_MAX,

@@ -45,6 +45,7 @@ export const LIMITS = {
         description: 5000,
     },
     search: 100,
+    backupKb: 20480,
     perPage: 100,
     perPageDefault: 25,
     journal: 20000,

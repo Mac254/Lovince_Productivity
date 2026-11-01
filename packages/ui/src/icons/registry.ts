@@ -26,6 +26,7 @@ import IconClock from '~icons/solar/clock-circle-linear';
 import IconClose from '~icons/solar/close-linear';
 import IconCloseCircle from '~icons/solar/close-circle-linear';
 import IconDashboard from '~icons/solar/widget-linear';
+import IconDownload from '~icons/solar/download-linear';
 import IconEdit from '~icons/solar/pen-linear';
 import IconExitFullscreen from '~icons/solar/minimize-square-linear';
 import IconEye from '~icons/solar/eye-linear';
@@ -93,6 +94,7 @@ export const icons = {
     close: IconClose,
     'close-circle': IconCloseCircle,
     dashboard: IconDashboard,
+    download: IconDownload,
     edit: IconEdit,
     'exit-fullscreen': IconExitFullscreen,
     eye: IconEye,

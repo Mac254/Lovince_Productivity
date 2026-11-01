@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
+import type { BackupImportResult } from '@focus/types';
 import { LIMITS } from '@focus/types';
 import { useClockPrefs } from '@/features/clock/wallpapers';
-import { formatDate } from '@/lib/dates';
+import { formatDate, todayIso } from '@/lib/dates';
 import type { StartPage, ThemeChoice } from '@/stores/preferences';
 
 const auth = useAuthStore();
@@ -17,6 +18,7 @@ const sections = [
     { id: 'appearance', label: 'Appearance' },
     { id: 'clock', label: 'Clock & timer' },
     { id: 'security', label: 'Security' },
+    { id: 'data', label: 'Your data' },
     { id: 'reset', label: 'Reset' },
 ];
 
@@ -56,6 +58,71 @@ async function allowNotifications(): Promise<void> {
         if (notificationPermission.value === 'granted') toast.success('Notifications on');
     } catch {
         toast.error('This browser can’t show notifications.');
+    }
+}
+
+const settings = useSettingsStore();
+const dashboard = useDashboardStore();
+const goals = useGoalsStore();
+const exporting = ref(false);
+const importing = ref(false);
+const backupFile = ref<File | null>(null);
+
+async function exportData(): Promise<void> {
+    exporting.value = true;
+    try {
+        const url = URL.createObjectURL(await api.backup.export());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `focus-backup-${todayIso()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        toast.error(errorMessage(error, 'Could not export your data.'));
+    } finally {
+        exporting.value = false;
+    }
+}
+
+function chooseBackup(file: File): void {
+    if (file.size > LIMITS.backupKb * 1024) {
+        toast.error(`Backups can be up to ${Math.round(LIMITS.backupKb / 1024)} MB.`);
+        return;
+    }
+    backupFile.value = file;
+}
+
+function importSummary(result: BackupImportResult): string {
+    const parts: [number, string, string][] = [
+        [result.tasks, 'task', 'tasks'],
+        [result.goals, 'goal', 'goals'],
+        [result.journal, 'journal entry', 'journal entries'],
+        [result.blockers, 'blocker', 'blockers'],
+        [result.focus_sessions, 'focus session', 'focus sessions'],
+        [result.weekly_reviews, 'weekly review', 'weekly reviews'],
+        [result.time_blocks, 'time block', 'time blocks'],
+        [result.task_types, 'task type', 'task types'],
+    ];
+    const added = parts
+        .filter(([count]) => count > 0)
+        .map(([count, one, many]) => `${count} ${count === 1 ? one : many}`);
+    return added.length ? `Added ${added.join(', ')}` : 'Nothing new to add';
+}
+
+async function importData(): Promise<void> {
+    if (!backupFile.value) return;
+    importing.value = true;
+    try {
+        const result = await api.backup.import(backupFile.value);
+        backupFile.value = null;
+        settings.hydrate((await api.settings.get()).values);
+        goals.reset();
+        void dashboard.invalidate();
+        toast.success(importSummary(result));
+    } catch (error) {
+        toast.error(errorMessage(error, 'Could not import that file.'));
+    } finally {
+        importing.value = false;
     }
 }
 
@@ -363,6 +430,44 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     </SettingRow>
                 </SettingsSection>
 
+                <SettingsSection
+                    id="data"
+                    title="Your data"
+                    icon="download"
+                    description="A single JSON file with everything you’ve written."
+                >
+                    <SettingRow
+                        label="Export"
+                        description="Settings, tasks with their work log and checklists, goals, blockers, journal, focus sessions, reviews and time blocks."
+                    >
+                        <template #action>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                icon-start="download"
+                                :loading="exporting"
+                                @click="exportData"
+                                >Export</Button
+                            >
+                        </template>
+                    </SettingRow>
+                    <SettingRow
+                        label="Import"
+                        description="Adds a backup’s records to this account. Days that already have a journal entry or review keep theirs."
+                    >
+                        <template #action>
+                            <FilePicker
+                                v-slot="{ open }"
+                                accept="application/json,.json"
+                                label="Choose a backup file"
+                                @pick="chooseBackup"
+                            >
+                                <Button variant="outline" size="sm" icon-start="upload" @click="open">Import</Button>
+                            </FilePicker>
+                        </template>
+                    </SettingRow>
+                </SettingsSection>
+
                 <SettingsSection id="reset" title="Reset" icon="undo">
                     <SettingRow
                         label="All settings"
@@ -378,6 +483,15 @@ onMounted(() => void auth.refresh().catch(() => undefined));
             </div>
         </div>
 
+        <ConfirmDialog
+            :open="backupFile !== null"
+            title="Import this backup?"
+            :message="`Everything in ${backupFile?.name ?? 'the file'} is added to your account. Nothing you have now is deleted.`"
+            confirm-label="Import"
+            :loading="importing"
+            @update:open="(value: boolean) => !value && (backupFile = null)"
+            @confirm="importData"
+        />
         <ConfirmDialog
             v-model:open="resetOpen"
             title="Reset settings?"
