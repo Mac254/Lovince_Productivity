@@ -20,7 +20,7 @@ export const autoImports = () => [
             'vue',
             'vue-router',
             'pinia',
-            { '@focus/ui': ['useToast', 'useSurfaceTone'] },
+            { '@focus/ui': ['useToast', 'useSurfaceTone', 'usePagedList'] },
             { '@focus/motion': ['prefersReducedMotion', 'useAnimatedNumber', 'useStaggerIn'] },
         ],
         dirs: [src('composables'), src('stores')],

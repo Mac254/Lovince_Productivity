@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
+import type { TabItem } from '@focus/ui';
 import type { BackupImportResult } from '@focus/types';
 import { LIMITS } from '@focus/types';
 import { useClockPrefs } from '@/features/clock/wallpapers';
 import { formatDate, todayIso } from '@/lib/dates';
 import type { StartPage, ThemeChoice } from '@/stores/preferences';
+
+type SettingsTab = 'account' | 'preferences' | 'features' | 'data';
 
 const auth = useAuthStore();
 const preferences = usePreferencesStore();
@@ -12,15 +15,13 @@ const timer = useTimerStore();
 const router = useRouter();
 const toast = useToast();
 
-const sections = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'general', label: 'General' },
-    { id: 'appearance', label: 'Appearance' },
-    { id: 'clock', label: 'Clock & timer' },
-    { id: 'security', label: 'Security' },
-    { id: 'data', label: 'Your data' },
-    { id: 'reset', label: 'Reset' },
+const tabs: TabItem<SettingsTab>[] = [
+    { value: 'account', label: 'Account', icon: 'user' },
+    { value: 'preferences', label: 'Preferences', icon: 'palette' },
+    { value: 'features', label: 'Features', icon: 'tasks' },
+    { value: 'data', label: 'Data', icon: 'download' },
 ];
+const tab = useTabQuery(['account', 'preferences', 'features', 'data'] as const, 'account');
 
 const themeOptions: { value: ThemeChoice; label: string }[] = [
     { value: 'dark', label: 'Dark' },
@@ -258,21 +259,8 @@ onMounted(() => void auth.refresh().catch(() => undefined));
             description="Your profile, how Focus looks, and how you sign in."
         />
 
-        <div class="grid gap-6 lg:grid-cols-4 lg:items-start">
-            <nav
-                aria-label="Settings sections"
-                class="hidden lg:sticky lg:top-(--topbar-height) lg:flex lg:flex-col lg:gap-1 lg:pt-6"
-            >
-                <a
-                    v-for="section in sections"
-                    :key="section.id"
-                    :href="`#${section.id}`"
-                    class="rounded-md px-3 py-2 text-label font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-                    >{{ section.label }}</a
-                >
-            </nav>
-
-            <div class="flex flex-col gap-6 lg:col-span-3">
+        <Tabs v-model="tab" label="Settings sections" :tabs="tabs">
+            <template #account>
                 <SettingsSection id="profile" title="Profile" icon="user" description="Only you can see these.">
                     <SettingRow label="Photo" description="JPG, PNG or WebP, up to 2 MB.">
                         <Avatar :name="auth.user?.name ?? ''" :src="auth.user?.avatar_url" size="lg" />
@@ -313,6 +301,38 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     </SettingRow>
                 </SettingsSection>
 
+                <SettingsSection id="security" title="Security" icon="lock">
+                    <SettingRow
+                        label="Password"
+                        description="At least 12 characters with upper and lower case letters and a number."
+                    >
+                        <Text tone="muted" aria-label="Password set">••••••••••••</Text>
+                        <template #action>
+                            <Button variant="outline" size="sm" icon-start="key" @click="editPassword">Change</Button>
+                        </template>
+                    </SettingRow>
+                    <SettingRow
+                        label="This device"
+                        description="Kept in a secure cookie scripts can’t read. Signing out ends it at once."
+                    >
+                        <div v-if="session" class="flex min-w-0 flex-col gap-1">
+                            <Text>{{ session.value }}</Text>
+                            <Text role="caption" tone="muted">{{ session.detail }}</Text>
+                        </div>
+                        <template #action>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                icon-start="logout"
+                                :loading="signingOut"
+                                @click="signOut"
+                                >Sign out</Button
+                            >
+                        </template>
+                    </SettingRow>
+                </SettingsSection>
+            </template>
+            <template #preferences>
                 <SettingsSection id="general" title="General" icon="dashboard" description="Saved on this device.">
                     <SettingRow label="Open Focus on" description="Where you land when you open Focus or sign in.">
                         <ChipGroup v-model="preferences.prefs.startPage" label="Open Focus on" :options="startPages" />
@@ -398,38 +418,14 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                         </template>
                     </SettingRow>
                 </SettingsSection>
-
-                <SettingsSection id="security" title="Security" icon="lock">
-                    <SettingRow
-                        label="Password"
-                        description="At least 12 characters with upper and lower case letters and a number."
-                    >
-                        <Text tone="muted" aria-label="Password set">••••••••••••</Text>
-                        <template #action>
-                            <Button variant="outline" size="sm" icon-start="key" @click="editPassword">Change</Button>
-                        </template>
-                    </SettingRow>
-                    <SettingRow
-                        label="This device"
-                        description="Kept in a secure cookie scripts can’t read. Signing out ends it at once."
-                    >
-                        <div v-if="session" class="flex min-w-0 flex-col gap-1">
-                            <Text>{{ session.value }}</Text>
-                            <Text role="caption" tone="muted">{{ session.detail }}</Text>
-                        </div>
-                        <template #action>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                icon-start="logout"
-                                :loading="signingOut"
-                                @click="signOut"
-                                >Sign out</Button
-                            >
-                        </template>
-                    </SettingRow>
-                </SettingsSection>
-
+            </template>
+            <template #features>
+                <ModuleSettings
+                    :modules="['tasks', 'planner', 'timer', 'review', 'journal']"
+                    :skip="['timer.chime', 'timer.auto_break']"
+                />
+            </template>
+            <template #data>
                 <SettingsSection
                     id="data"
                     title="Your data"
@@ -480,8 +476,8 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                         </template>
                     </SettingRow>
                 </SettingsSection>
-            </div>
-        </div>
+            </template>
+        </Tabs>
 
         <ConfirmDialog
             :open="backupFile !== null"

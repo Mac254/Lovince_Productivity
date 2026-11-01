@@ -86,6 +86,7 @@ declare global {
   const useLink: typeof import('vue-router').useLink
   const useModel: typeof import('vue').useModel
   const useOnline: typeof import('./composables/useOnline').useOnline
+  const usePagedList: typeof import('@focus/ui').usePagedList
   const usePreferencesStore: typeof import('./stores/preferences').usePreferencesStore
   const useReminders: typeof import('./composables/useReminders').useReminders
   const useRoute: typeof import('vue-router').useRoute
@@ -94,6 +95,7 @@ declare global {
   const useSlots: typeof import('vue').useSlots
   const useStaggerIn: typeof import('@focus/motion').useStaggerIn
   const useSurfaceTone: typeof import('@focus/ui').useSurfaceTone
+  const useTabQuery: typeof import('./composables/useTabQuery').useTabQuery
   const useTaskTypesStore: typeof import('./stores/taskTypes').useTaskTypesStore
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useTimerStore: typeof import('./stores/timer').useTimerStore
@@ -199,6 +201,7 @@ declare module 'vue' {
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useOnline: UnwrapRef<typeof import('./composables/useOnline')['useOnline']>
+    readonly usePagedList: UnwrapRef<typeof import('@focus/ui')['usePagedList']>
     readonly usePreferencesStore: UnwrapRef<typeof import('./stores/preferences')['usePreferencesStore']>
     readonly useReminders: UnwrapRef<typeof import('./composables/useReminders')['useReminders']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
@@ -207,6 +210,7 @@ declare module 'vue' {
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useStaggerIn: UnwrapRef<typeof import('@focus/motion')['useStaggerIn']>
     readonly useSurfaceTone: UnwrapRef<typeof import('@focus/ui')['useSurfaceTone']>
+    readonly useTabQuery: UnwrapRef<typeof import('./composables/useTabQuery')['useTabQuery']>
     readonly useTaskTypesStore: UnwrapRef<typeof import('./stores/taskTypes')['useTaskTypesStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useTimerStore: UnwrapRef<typeof import('./stores/timer')['useTimerStore']>

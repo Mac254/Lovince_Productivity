@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import { LIMITS, type Task, type WeeklyReview, type WeeklyReviewSummary } from '@focus/types';
+import type { TabItem } from '@focus/ui';
 import { weekLabel, weekStartIso } from '@/features/reviews/week';
 import { shiftDate } from '@/lib/calendar';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
@@ -19,6 +20,21 @@ const moving = ref<number | null>(null);
 const movingAll = ref(false);
 const draft = reactive({ wins: '', challenges: '', next_focus: '' });
 const past = ref<WeeklyReviewSummary[]>([]);
+const reflecting = ref(false);
+const tab = useTabQuery(['days', 'tasks', 'plan', 'journal', 'past'] as const, 'days');
+const tabs = computed<TabItem<'days' | 'tasks' | 'plan' | 'journal' | 'past'>[]>(() => [
+    { value: 'days', label: 'Days', icon: 'calendar-range' },
+    { value: 'tasks', label: 'Tasks', icon: 'check-circle', count: review.value?.carry_over.length },
+    { value: 'plan', label: 'Goals & next week', icon: 'target' },
+    { value: 'journal', label: 'Journal', icon: 'journal', count: review.value?.journal.length },
+    { value: 'past', label: 'Past reviews', icon: 'history' },
+]);
+const completedPage = usePagedList(() => review.value?.completed ?? []);
+const carryPage = usePagedList(() => review.value?.carry_over ?? []);
+const goalsPage = usePagedList(() => review.value?.goals ?? [], 6);
+const nextPage = usePagedList(() => review.value?.next_week ?? []);
+const unscheduledPage = usePagedList(() => review.value?.unscheduled ?? [], 5);
+const pastPage = usePagedList(past, 24);
 
 const thisWeek = weekStartIso();
 const week = computed(() =>
@@ -73,6 +89,7 @@ async function save(completed?: boolean): Promise<void> {
             completed ? 'Review done. Have a good week.' : completed === false ? 'Review reopened' : 'Review saved',
         );
         if (completed !== undefined) {
+            reflecting.value = false;
             void dashboard.load();
             void loadPast();
         }
@@ -146,6 +163,13 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                     @click="go(shiftDate(week, 7))"
                 />
                 <Button v-if="!isThisWeek" variant="ghost" @click="go(thisWeek)">This week</Button>
+                <Button
+                    v-if="review"
+                    :variant="done ? 'outline' : 'primary'"
+                    :icon-start="done ? 'check' : 'edit'"
+                    @click="reflecting = true"
+                    >{{ done ? 'Reflection' : 'Reflect' }}</Button
+                >
             </template>
         </PageHeader>
 
@@ -184,195 +208,228 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                 />
             </section>
 
-            <Card as="section" aria-labelledby="days-heading" class="group">
-                <CardHeader
-                    title="Day by day"
-                    title-id="days-heading"
-                    icon="calendar-range"
-                    subtitle="Focus and logged time"
-                />
-                <ol class="grid grid-cols-7 gap-2">
-                    <li v-for="day in review.days" :key="day.date" class="flex flex-col items-center gap-2">
-                        <div class="flex h-24 w-full items-end justify-center rounded-md bg-surface-raised p-1">
-                            <div
-                                class="w-full rounded-sm bg-accent"
-                                :style="{ height: `${((day.focus_minutes + day.minutes_logged) / peak) * 100}%` }"
-                                :title="`${formatMinutes(day.focus_minutes) || '0m'} focus · ${formatMinutes(day.minutes_logged) || '0m'} logged`"
-                            />
-                        </div>
-                        <Text role="caption" weight="semibold">{{ formatDate(day.date, { weekday: 'short' }) }}</Text>
-                        <Text role="caption" tone="muted" tabular>{{ plural(day.completed, 'done', 'done') }}</Text>
-                    </li>
-                </ol>
-            </Card>
-
-            <div class="grid gap-6 lg:grid-cols-2">
-                <Card as="section" aria-labelledby="done-heading" class="group">
-                    <CardHeader
-                        title="Completed"
-                        title-id="done-heading"
-                        icon="check-circle"
-                        :subtitle="plural(review.completed.length, 'task')"
-                    />
-                    <ReviewTaskList :tasks="review.completed" empty="Nothing was completed this week." />
-                </Card>
-
-                <Card as="section" aria-labelledby="carry-heading" class="group">
-                    <CardHeader
-                        title="Carry over"
-                        title-id="carry-heading"
-                        icon="history"
-                        subtitle="Due by the week’s end, still open"
-                    >
-                        <Button
-                            v-if="review.carry_over.length > 1"
-                            variant="ghost"
-                            size="sm"
-                            :loading="movingAll"
-                            @click="moveAll"
-                            >Move all to next week</Button
-                        >
-                    </CardHeader>
-                    <ReviewTaskList
-                        :tasks="review.carry_over"
-                        empty="Nothing carries over."
-                        action="Next week"
-                        :busy="moving"
-                        @act="moveToNextWeek"
-                    />
-                </Card>
-
-                <Card as="section" aria-labelledby="goals-heading" class="group">
-                    <CardHeader title="Goals" title-id="goals-heading" icon="target" subtitle="Active goals" />
-                    <ul v-if="review.goals.length" class="flex flex-col gap-4">
-                        <li v-for="goal in review.goals" :key="goal.id" class="flex flex-col gap-2">
-                            <span class="flex items-center justify-between gap-3">
-                                <RouterLink
-                                    :to="{ name: 'goal-detail', params: { id: goal.id } }"
-                                    class="flex min-w-0 items-center gap-2 font-semibold underline-offset-4 hover:underline"
-                                    ><span :class="['size-2 shrink-0 rounded-full', toneDot[goal.tone]]" /><span
-                                        class="truncate"
-                                        >{{ goal.title }}</span
-                                    ></RouterLink
-                                >
-                                <Text as="span" role="caption" tone="muted" tabular
-                                    >{{ goal.completed }}/{{ goal.total }} ·
-                                    {{
-                                        goal.completed_this_week
-                                            ? `+${goal.completed_this_week} this week`
-                                            : 'no progress this week'
-                                    }}</Text
-                                >
-                            </span>
-                            <ProgressBar
-                                :value="goal.progress"
-                                :label="`${goal.title} progress`"
-                                :tone="goal.progress === 100 ? 'highlight' : 'accent'"
-                            />
-                        </li>
-                    </ul>
-                    <Text v-else role="label" tone="muted">No active goals.</Text>
-                </Card>
-
-                <Card as="section" aria-labelledby="next-heading" class="group">
-                    <CardHeader
-                        title="Next week"
-                        title-id="next-heading"
-                        icon="calendar-check"
-                        :subtitle="weekLabel(review.week.next_start, review.week.next_end)"
-                    />
-                    <ReviewTaskList
-                        :tasks="review.next_week"
-                        empty="Nothing is due next week yet."
-                        :today="todayIso()"
-                    />
-                    <template v-if="review.unscheduled.length">
-                        <p class="mt-4 mb-1 text-label font-semibold">Unscheduled</p>
-                        <ReviewTaskList
-                            :tasks="review.unscheduled"
-                            empty=""
-                            action="Plan"
-                            :busy="moving"
-                            @act="moveToNextWeek"
+            <Tabs v-model="tab" label="Week sections" :tabs="tabs">
+                <template #days>
+                    <Card as="section" aria-labelledby="days-heading" class="group">
+                        <CardHeader
+                            title="Day by day"
+                            title-id="days-heading"
+                            icon="calendar-range"
+                            subtitle="Focus and logged time"
                         />
-                    </template>
-                </Card>
-            </div>
+                        <ol class="grid grid-cols-7 gap-2">
+                            <li v-for="day in review.days" :key="day.date" class="flex flex-col items-center gap-2">
+                                <div class="flex h-24 w-full items-end justify-center rounded-md bg-surface-raised p-1">
+                                    <div
+                                        class="w-full rounded-sm bg-accent"
+                                        :style="{
+                                            height: `${((day.focus_minutes + day.minutes_logged) / peak) * 100}%`,
+                                        }"
+                                        :title="`${formatMinutes(day.focus_minutes) || '0m'} focus · ${formatMinutes(day.minutes_logged) || '0m'} logged`"
+                                    />
+                                </div>
+                                <Text role="caption" weight="semibold">{{
+                                    formatDate(day.date, { weekday: 'short' })
+                                }}</Text>
+                                <Text role="caption" tone="muted" tabular>{{
+                                    plural(day.completed, 'done', 'done')
+                                }}</Text>
+                            </li>
+                        </ol>
+                    </Card>
+                </template>
 
-            <Card v-if="review.journal.length" as="section" aria-labelledby="journal-heading" class="group">
-                <CardHeader title="From your journal" title-id="journal-heading" icon="journal" />
-                <ul class="flex flex-col divide-y divide-border">
-                    <li v-for="entry in review.journal" :key="entry.date" class="flex flex-col gap-1 py-2">
-                        <RouterLink
-                            :to="{ name: 'journal', query: { date: entry.date } }"
-                            class="text-label font-semibold underline-offset-4 hover:underline"
-                            >{{
-                                formatDate(entry.date, { weekday: 'long', day: 'numeric', month: 'short' })
-                            }}</RouterLink
-                        >
-                        <Text role="label" tone="muted" class="break-words">{{ entry.excerpt }}</Text>
-                    </li>
-                </ul>
-            </Card>
+                <template #tasks>
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <Card as="section" aria-labelledby="done-heading" class="group">
+                            <CardHeader
+                                title="Completed"
+                                title-id="done-heading"
+                                icon="check-circle"
+                                :subtitle="plural(review.completed.length, 'task')"
+                            />
+                            <ReviewTaskList :tasks="completedPage.visible" empty="Nothing was completed this week." />
+                            <Pagination v-model:page="completedPage.page" :last-page="completedPage.lastPage" />
+                        </Card>
 
-            <Card as="section" aria-labelledby="reflect-heading" class="group gap-4">
-                <CardHeader
-                    title="Reflect"
-                    title-id="reflect-heading"
-                    icon="edit"
-                    :subtitle="
-                        done
-                            ? `Done ${formatDate(review.review!.completed_at!, { dateStyle: 'medium' })}`
-                            : 'A few lines is enough'
-                    "
-                />
-                <div class="grid gap-4 lg:grid-cols-3">
-                    <Textarea
-                        id="review-wins"
-                        v-model="draft.wins"
-                        label="What went well"
-                        optional
-                        :maxlength="LIMITS.review"
-                    />
-                    <Textarea
-                        id="review-challenges"
-                        v-model="draft.challenges"
-                        label="What got in the way"
-                        optional
-                        :maxlength="LIMITS.review"
-                    />
-                    <Textarea
-                        id="review-next"
-                        v-model="draft.next_focus"
-                        label="Next week’s focus"
-                        optional
-                        :maxlength="LIMITS.review"
-                    />
-                </div>
-                <div class="flex flex-wrap justify-end gap-2">
-                    <Button variant="outline" icon-start="save" :disabled="!dirty" :loading="saving" @click="save()"
-                        >Save</Button
-                    >
-                    <Button v-if="!done" icon-start="check" :loading="saving" @click="save(true)">Finish review</Button>
-                    <Button v-else variant="ghost" :loading="saving" @click="save(false)">Reopen</Button>
-                </div>
-            </Card>
+                        <Card as="section" aria-labelledby="carry-heading" class="group">
+                            <CardHeader
+                                title="Carry over"
+                                title-id="carry-heading"
+                                icon="history"
+                                subtitle="Due by the week’s end, still open"
+                            >
+                                <Button
+                                    v-if="review.carry_over.length > 1"
+                                    variant="ghost"
+                                    size="sm"
+                                    :loading="movingAll"
+                                    @click="moveAll"
+                                    >Move all to next week</Button
+                                >
+                            </CardHeader>
+                            <ReviewTaskList
+                                :tasks="carryPage.visible"
+                                empty="Nothing carries over."
+                                action="Next week"
+                                :busy="moving"
+                                @act="moveToNextWeek"
+                            />
+                            <Pagination v-model:page="carryPage.page" :last-page="carryPage.lastPage" />
+                        </Card>
+                    </div>
+                </template>
 
-            <Card v-if="past.length" as="section" aria-labelledby="past-heading" class="group">
-                <CardHeader title="Past reviews" title-id="past-heading" icon="history" subtitle="Weeks you finished" />
-                <ul class="flex flex-wrap gap-2">
-                    <li v-for="item in past" :key="item.week_start">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :to="{ name: 'review', params: { week: item.week_start } }"
-                            :aria-current="item.week_start === week ? 'page' : undefined"
-                        >
-                            {{ weekLabel(item.week_start, shiftDate(item.week_start, 6)) }}
-                        </Button>
-                    </li>
-                </ul>
-            </Card>
+                <template #plan>
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <Card as="section" aria-labelledby="goals-heading" class="group">
+                            <CardHeader title="Goals" title-id="goals-heading" icon="target" subtitle="Active goals" />
+                            <ul v-if="review.goals.length" class="flex flex-col gap-4">
+                                <li v-for="goal in goalsPage.visible" :key="goal.id" class="flex flex-col gap-2">
+                                    <span class="flex items-center justify-between gap-3">
+                                        <RouterLink
+                                            :to="{ name: 'goal-detail', params: { id: goal.id } }"
+                                            class="flex min-w-0 items-center gap-2 font-semibold underline-offset-4 hover:underline"
+                                            ><span :class="['size-2 shrink-0 rounded-full', toneDot[goal.tone]]" /><span
+                                                class="truncate"
+                                                >{{ goal.title }}</span
+                                            ></RouterLink
+                                        >
+                                        <Text as="span" role="caption" tone="muted" tabular
+                                            >{{ goal.completed }}/{{ goal.total }} ·
+                                            {{
+                                                goal.completed_this_week
+                                                    ? `+${goal.completed_this_week} this week`
+                                                    : 'no progress this week'
+                                            }}</Text
+                                        >
+                                    </span>
+                                    <ProgressBar
+                                        :value="goal.progress"
+                                        :label="`${goal.title} progress`"
+                                        :tone="goal.progress === 100 ? 'highlight' : 'accent'"
+                                    />
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted">No active goals.</Text>
+                            <Pagination v-model:page="goalsPage.page" :last-page="goalsPage.lastPage" />
+                        </Card>
+
+                        <Card as="section" aria-labelledby="next-heading" class="group">
+                            <CardHeader
+                                title="Next week"
+                                title-id="next-heading"
+                                icon="calendar-check"
+                                :subtitle="weekLabel(review.week.next_start, review.week.next_end)"
+                            />
+                            <ReviewTaskList
+                                :tasks="nextPage.visible"
+                                empty="Nothing is due next week yet."
+                                :today="todayIso()"
+                            />
+                            <Pagination v-model:page="nextPage.page" :last-page="nextPage.lastPage" />
+                            <template v-if="review.unscheduled.length">
+                                <p class="mt-4 mb-1 text-label font-semibold">Unscheduled</p>
+                                <ReviewTaskList
+                                    :tasks="unscheduledPage.visible"
+                                    empty=""
+                                    action="Plan"
+                                    :busy="moving"
+                                    @act="moveToNextWeek"
+                                />
+                                <Pagination v-model:page="unscheduledPage.page" :last-page="unscheduledPage.lastPage" />
+                            </template>
+                        </Card>
+                    </div>
+                </template>
+
+                <template #journal>
+                    <Card as="section" aria-labelledby="journal-heading" class="group">
+                        <CardHeader title="From your journal" title-id="journal-heading" icon="journal" />
+                        <ul v-if="review.journal.length" class="flex flex-col divide-y divide-border">
+                            <li v-for="entry in review.journal" :key="entry.date" class="flex flex-col gap-1 py-2">
+                                <RouterLink
+                                    :to="{ name: 'journal', query: { date: entry.date } }"
+                                    class="text-label font-semibold underline-offset-4 hover:underline"
+                                    >{{
+                                        formatDate(entry.date, { weekday: 'long', day: 'numeric', month: 'short' })
+                                    }}</RouterLink
+                                >
+                                <Text role="label" tone="muted" class="break-words">{{ entry.excerpt }}</Text>
+                            </li>
+                        </ul>
+                        <Text v-else role="label" tone="muted">No journal entries this week.</Text>
+                    </Card>
+                </template>
+
+                <template #past>
+                    <Card as="section" aria-labelledby="past-heading" class="group">
+                        <CardHeader
+                            title="Past reviews"
+                            title-id="past-heading"
+                            icon="history"
+                            subtitle="Weeks you finished"
+                        />
+                        <ul v-if="past.length" class="flex flex-wrap gap-2">
+                            <li v-for="item in pastPage.visible" :key="item.week_start">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    :to="{ name: 'review', params: { week: item.week_start } }"
+                                    :aria-current="item.week_start === week ? 'page' : undefined"
+                                >
+                                    {{ weekLabel(item.week_start, shiftDate(item.week_start, 6)) }}
+                                </Button>
+                            </li>
+                        </ul>
+                        <Text v-else role="label" tone="muted">No finished reviews yet.</Text>
+                        <Pagination v-model:page="pastPage.page" :last-page="pastPage.lastPage" />
+                    </Card>
+                </template>
+            </Tabs>
         </template>
     </div>
+
+    <Dialog
+        v-if="review"
+        v-model:open="reflecting"
+        title="Reflect"
+        :description="
+            done
+                ? `Done ${formatDate(review.review!.completed_at!, { dateStyle: 'medium' })}`
+                : 'A few lines is enough.'
+        "
+        initial-focus="review-wins"
+    >
+        <div class="flex flex-col gap-4">
+            <Textarea
+                id="review-wins"
+                v-model="draft.wins"
+                label="What went well"
+                optional
+                :maxlength="LIMITS.review"
+            />
+            <Textarea
+                id="review-challenges"
+                v-model="draft.challenges"
+                label="What got in the way"
+                optional
+                :maxlength="LIMITS.review"
+            />
+            <Textarea
+                id="review-next"
+                v-model="draft.next_focus"
+                label="Next week’s focus"
+                optional
+                :maxlength="LIMITS.review"
+            />
+        </div>
+        <template #footer>
+            <Button variant="outline" icon-start="save" :disabled="!dirty" :loading="saving" @click="save()"
+                >Save</Button
+            >
+            <Button v-if="!done" icon-start="check" :loading="saving" @click="save(true)">Finish review</Button>
+            <Button v-else variant="ghost" :loading="saving" @click="save(false)">Reopen</Button>
+        </template>
+    </Dialog>
 </template>

@@ -15,6 +15,8 @@ const history = useAsync((signal) => api.focusSessions.list(date.value, { signal
 
 const meta = computed(() => history.data.value?.meta);
 const sessions = computed(() => history.data.value?.data ?? []);
+const sessionPage = usePagedList(sessions, 8);
+watch(date, () => (sessionPage.page = 1));
 const isToday = computed(() => date.value === todayIso());
 const peak = computed(() => Math.max(1, ...(meta.value?.week.map((day) => day.minutes) ?? [])));
 const weekMinutes = computed(() => meta.value?.week.reduce((sum, day) => sum + day.minutes, 0) ?? 0);
@@ -186,7 +188,7 @@ watch(
                 {{ isToday ? 'No focus sessions yet today.' : 'No focus sessions on this day.' }}
             </p>
             <ul v-else class="flex flex-col divide-y divide-chrome-border">
-                <li v-for="session in sessions" :key="session.id" class="flex items-center gap-3 py-3">
+                <li v-for="session in sessionPage.visible" :key="session.id" class="flex items-center gap-3 py-3">
                     <span
                         :class="[
                             'size-2 shrink-0 rounded-full',
@@ -217,6 +219,7 @@ watch(
                     />
                 </li>
             </ul>
+            <Pagination v-model:page="sessionPage.page" :last-page="sessionPage.lastPage" />
         </Section>
     </Sheet>
 </template>

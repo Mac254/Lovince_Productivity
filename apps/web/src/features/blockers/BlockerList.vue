@@ -7,6 +7,7 @@ import { relativeTime } from '@/lib/dates';
 const props = defineProps<{ blockers: Blocker[]; showTask?: boolean }>();
 const emit = defineEmits<{ changed: [] }>();
 const toast = useToast();
+const paged = usePagedList(() => props.blockers, 10);
 
 async function setStatus(blocker: Blocker, status: Blocker['status']): Promise<void> {
     try {
@@ -41,46 +42,49 @@ defineExpose({ count: () => props.blockers.length });
 </script>
 
 <template>
-    <ul class="flex flex-col divide-y divide-border">
-        <li v-for="blocker in blockers" :key="blocker.id" class="flex items-start gap-3 py-3">
-            <span
-                :class="[
-                    'mt-1 inline-flex size-(--control-sm) shrink-0 items-center justify-center rounded-full',
-                    blocker.status === 'open' ? 'bg-danger text-danger-ink' : 'bg-surface-raised text-highlight-fg',
-                ]"
-            >
-                <Icon :name="blocker.status === 'open' ? 'blocker' : 'check-circle'" />
-            </span>
-            <div class="min-w-0 flex-1">
-                <Text
+    <div class="flex flex-col gap-3">
+        <ul class="flex flex-col divide-y divide-border">
+            <li v-for="blocker in paged.visible" :key="blocker.id" class="flex items-start gap-3 py-3">
+                <span
                     :class="[
-                        'break-words whitespace-pre-line',
-                        blocker.status === 'resolved' && 'text-fg-muted line-through',
+                        'mt-1 inline-flex size-(--control-sm) shrink-0 items-center justify-center rounded-full',
+                        blocker.status === 'open' ? 'bg-danger text-danger-ink' : 'bg-surface-raised text-highlight-fg',
                     ]"
                 >
-                    {{ blocker.description }}
-                </Text>
-                <p class="mt-1 flex flex-wrap items-center gap-2 text-caption text-fg-muted">
-                    <Badge :tone="blocker.status === 'open' ? 'danger' : 'success'" dot>
-                        {{ blocker.status === 'open' ? 'Open' : 'Resolved' }}
-                    </Badge>
-                    <RouterLink
-                        v-if="showTask && blocker.task"
-                        :to="{ name: 'task-detail', params: { id: blocker.task.id } }"
-                        class="truncate font-semibold text-fg underline-offset-4 hover:underline"
+                    <Icon :name="blocker.status === 'open' ? 'blocker' : 'check-circle'" />
+                </span>
+                <div class="min-w-0 flex-1">
+                    <Text
+                        :class="[
+                            'break-words whitespace-pre-line',
+                            blocker.status === 'resolved' && 'text-fg-muted line-through',
+                        ]"
                     >
-                        {{ blocker.task.title }}
-                    </RouterLink>
-                    <span>
-                        {{
-                            blocker.status === 'resolved' && blocker.resolved_at
-                                ? `Resolved ${relativeTime(blocker.resolved_at)}`
-                                : `Raised ${relativeTime(blocker.created_at)}`
-                        }}
-                    </span>
-                </p>
-            </div>
-            <DropdownMenu :items="menu(blocker)" :label="`Actions for blocker`" size="sm" trigger-variant="ghost" />
-        </li>
-    </ul>
+                        {{ blocker.description }}
+                    </Text>
+                    <p class="mt-1 flex flex-wrap items-center gap-2 text-caption text-fg-muted">
+                        <Badge :tone="blocker.status === 'open' ? 'danger' : 'success'" dot>
+                            {{ blocker.status === 'open' ? 'Open' : 'Resolved' }}
+                        </Badge>
+                        <RouterLink
+                            v-if="showTask && blocker.task"
+                            :to="{ name: 'task-detail', params: { id: blocker.task.id } }"
+                            class="truncate font-semibold text-fg underline-offset-4 hover:underline"
+                        >
+                            {{ blocker.task.title }}
+                        </RouterLink>
+                        <span>
+                            {{
+                                blocker.status === 'resolved' && blocker.resolved_at
+                                    ? `Resolved ${relativeTime(blocker.resolved_at)}`
+                                    : `Raised ${relativeTime(blocker.created_at)}`
+                            }}
+                        </span>
+                    </p>
+                </div>
+                <DropdownMenu :items="menu(blocker)" :label="`Actions for blocker`" size="sm" trigger-variant="ghost" />
+            </li>
+        </ul>
+        <Pagination v-model:page="paged.page" :last-page="paged.lastPage" />
+    </div>
 </template>

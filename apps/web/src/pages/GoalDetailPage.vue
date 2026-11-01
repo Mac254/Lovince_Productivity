@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
+import type { TabItem } from '@focus/ui';
 import type { Goal, Task } from '@focus/types';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { formatDate } from '@/lib/dates';
@@ -66,6 +67,17 @@ const groups = computed(() => [
         items: tasks.value.filter((t) => t.status === 'cancelled'),
     },
 ]);
+const tab = useTabQuery(['open', 'done', 'cancelled'] as const, 'open');
+const tabs = computed<TabItem<typeof tab.value>[]>(() =>
+    groups.value.map((group) => ({
+        value: group.key as typeof tab.value,
+        label: group.title,
+        icon: group.icon,
+        count: group.items.length,
+    })),
+);
+const tabTasks = usePagedList(() => groups.value.find((group) => group.key === tab.value)?.items ?? [], 10);
+watch(tab, () => (tabTasks.page = 1));
 const overdue = computed(() => tasks.value.filter((t) => t.is_overdue).length);
 
 async function confirmDelete(): Promise<void> {
@@ -154,32 +166,21 @@ watch(id, load, { immediate: true });
                 />
             </Card>
 
-            <div class="grid gap-6 lg:grid-cols-3">
-                <Card
-                    v-for="group in groups"
-                    :key="group.key"
-                    as="section"
-                    :aria-labelledby="`group-${group.key}`"
-                    class="group"
-                >
-                    <CardHeader
-                        :title="group.title"
-                        :title-id="`group-${group.key}`"
-                        :icon="group.icon"
-                        :subtitle="`${group.items.length} ${group.items.length === 1 ? 'task' : 'tasks'}`"
-                    />
+            <Tabs v-model="tab" label="Goal tasks" :tabs="tabs">
+                <template v-for="group in groups" :key="group.key" #[group.key]>
                     <ul v-if="group.items.length" class="-mx-2 flex flex-col">
                         <TaskRow
-                            v-for="task in group.items"
+                            v-for="task in tabTasks.visible"
                             :key="task.id"
                             :task="task"
                             @toggle="actions.toggleComplete"
                             @star="actions.toggleHighlight"
                         />
                     </ul>
-                    <Text v-else role="label" tone="muted" class="py-2">None.</Text>
-                </Card>
-            </div>
+                    <Text v-else role="label" tone="muted" class="py-2">No {{ group.title.toLowerCase() }} tasks.</Text>
+                    <Pagination v-model:page="tabTasks.page" :last-page="tabTasks.lastPage" />
+                </template>
+            </Tabs>
         </template>
 
         <GoalFormDialog v-model:open="editOpen" :goal="goal" @saved="changed" />

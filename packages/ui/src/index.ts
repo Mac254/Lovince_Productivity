@@ -34,6 +34,8 @@ export { default as ProgressBar } from './components/ProgressBar/ProgressBar.vue
 export { default as Skeleton } from './components/Skeleton/Skeleton.vue';
 export { default as Avatar } from './components/Avatar/Avatar.vue';
 export { default as Pagination } from './components/Pagination/Pagination.vue';
+export { default as Tabs } from './components/Tabs/Tabs.vue';
+export type { TabItem } from './components/Tabs/types';
 export { default as Table } from './components/Table/Table.vue';
 export { default as TableHeader } from './components/Table/TableHeader.vue';
 export { default as TableBody } from './components/Table/TableBody.vue';
@@ -58,3 +60,4 @@ export { default as FacetFilter, type FacetOption } from './patterns/FacetFilter
 
 // Composables
 export { provideSurfaceTone, useSurfaceTone, type SurfaceTone } from './composables/useSurfaceTone';
+export { usePagedList } from './composables/usePagedList';

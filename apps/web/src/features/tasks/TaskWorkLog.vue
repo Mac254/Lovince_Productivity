@@ -27,6 +27,7 @@ const days = computed(() => {
         minutes: items.reduce((sum, n) => sum + (n.minutes ?? 0), 0),
     }));
 });
+const dayPage = usePagedList(days, 5);
 const estimate = computed(() => {
     const target = props.estimateMinutes ?? 0;
     if (!settings.values.tasks.estimates || !target) return null;
@@ -101,7 +102,7 @@ watch(() => props.taskId, load, { immediate: true });
 
         <Skeleton v-if="loading" class="h-24" />
         <ol v-else-if="days.length" class="flex flex-col gap-6">
-            <li v-for="day in days" :key="day.date" class="flex flex-col gap-2">
+            <li v-for="day in dayPage.visible" :key="day.date" class="flex flex-col gap-2">
                 <div class="flex items-baseline justify-between gap-3 border-b border-border pb-2">
                     <h3 class="text-label font-semibold">
                         {{
@@ -143,6 +144,7 @@ watch(() => props.taskId, load, { immediate: true });
             >
             <Button variant="outline" size="sm" icon-start="add" @click="open(null)">Log your first entry</Button>
         </div>
+        <Pagination v-model:page="dayPage.page" :last-page="dayPage.lastPage" />
 
         <TaskNoteDialog
             v-model:open="dialogOpen"

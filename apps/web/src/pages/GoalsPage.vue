@@ -28,6 +28,8 @@ const visible = computed(() =>
         return goal.timeframe === view.value && goal.status !== 'cancelled';
     }),
 );
+const goalsPage = usePagedList(visible, 20);
+watch(view, () => (goalsPage.page = 1));
 
 const dialogOpen = ref(false);
 const editing = ref<Goal | null>(null);
@@ -86,9 +88,18 @@ onMounted(run);
         >
             <Skeleton v-for="n in 4" :key="n" class="h-60" />
         </div>
-        <div v-else-if="visible.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
-            <GoalCard v-for="goal in visible" :key="goal.id" :goal="goal" @edit="open" @delete="deleting = $event" />
-        </div>
+        <template v-else-if="visible.length">
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+                <GoalCard
+                    v-for="goal in goalsPage.visible"
+                    :key="goal.id"
+                    :goal="goal"
+                    @edit="open"
+                    @delete="deleting = $event"
+                />
+            </div>
+            <Pagination v-model:page="goalsPage.page" :last-page="goalsPage.lastPage" />
+        </template>
         <EmptyState
             v-else
             icon="target"
