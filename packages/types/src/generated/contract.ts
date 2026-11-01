@@ -112,6 +112,7 @@ export interface Settings {
     };
     journal: {
         font: 'mono' | 'sans';
+        searchable: boolean;
     };
 }
 
@@ -155,5 +156,6 @@ export const SETTINGS_DEFAULTS: Settings = {
     },
     journal: {
         font: 'mono',
+        searchable: true,
     },
 };

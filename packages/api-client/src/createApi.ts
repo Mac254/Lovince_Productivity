@@ -11,6 +11,7 @@ import { profileEndpoints } from './endpoints/profile';
 import { quoteEndpoints } from './endpoints/quotes';
 import { reportEndpoints } from './endpoints/reports';
 import { reviewEndpoints } from './endpoints/reviews';
+import { searchEndpoints } from './endpoints/search';
 import { settingsEndpoints } from './endpoints/settings';
 import { wallpaperEndpoints } from './endpoints/wallpapers';
 import { taskEndpoints } from './endpoints/tasks';
@@ -30,6 +31,7 @@ export function createApi(http: AxiosInstance) {
         reports: reportEndpoints(http),
         reviews: reviewEndpoints(http),
         metrics: metricEndpoints(http),
+        search: searchEndpoints(http),
         profile: profileEndpoints(http),
         settings: settingsEndpoints(http),
         wallpapers: wallpaperEndpoints(http),

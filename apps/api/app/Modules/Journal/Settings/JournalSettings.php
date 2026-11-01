@@ -26,6 +26,7 @@ class JournalSettings extends SettingsModule
     {
         return [
             Setting::choice('font', 'Writing font', ['mono' => 'Monospace', 'sans' => 'Sans'], 'mono', 'Used in the journal editor.'),
+            Setting::toggle('searchable', 'Include in search', true, 'Show journal entries in quick search results.'),
         ];
     }
 }

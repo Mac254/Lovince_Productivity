@@ -44,6 +44,7 @@ export type {
     TypeBreakdownRow,
 } from './api/reports';
 export type { FocusMetrics, MetricRange, Metrics } from './api/metrics';
+export type { SearchKind, SearchResult } from './api/search';
 export type {
     ReviewPrompt,
     WeeklyReflection,

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
+import type { SearchKind, SearchResult } from '@focus/types';
 import type { IconName } from '@focus/ui';
 import type { RouteLocationRaw } from 'vue-router';
 import { navigation } from '@/lib/navigation';
+import { formatDate } from '@/lib/dates';
 import { parseQuickAdd } from '@/lib/quickAdd';
 
 interface Command {
@@ -30,6 +32,18 @@ const query = ref('');
 const active = ref(0);
 const creating = ref(false);
 const list = ref<HTMLElement | null>(null);
+const found = ref<SearchResult[]>([]);
+const searching = ref(false);
+let pending: AbortController | undefined;
+let debounce: number | undefined;
+
+const kindIcons: Record<SearchKind, IconName> = {
+    task: 'tasks',
+    goal: 'target',
+    blocker: 'blocker',
+    journal: 'journal',
+};
+const kindLabels: Record<SearchKind, string> = { task: 'Task', goal: 'Goal', blocker: 'Blocker', journal: 'Journal' };
 
 const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'dark'));
 const quick = computed(() => {
@@ -72,10 +86,51 @@ const staticCommands = computed<Command[]>(() => [
     },
 ]);
 
+function target(result: SearchResult): RouteLocationRaw {
+    if (result.kind === 'goal') return { name: 'goal-detail', params: { id: result.id } };
+    if (result.kind === 'journal') return { name: 'journal', query: { date: result.date } };
+    if (result.task_id) return { name: 'task-detail', params: { id: result.task_id } };
+    return { name: 'blockers' };
+}
+
+const foundCommands = computed<Command[]>(() =>
+    found.value.map((result) => ({
+        id: `found-${result.kind}-${result.id}`,
+        group: 'Found',
+        label: result.title,
+        hint: [
+            kindLabels[result.kind],
+            result.kind !== 'journal' && result.date && formatDate(result.date),
+            result.excerpt,
+        ]
+            .filter(Boolean)
+            .join(' · '),
+        icon: kindIcons[result.kind],
+        run: () => go(target(result)),
+    })),
+);
+
+async function search(text: string): Promise<void> {
+    pending?.abort();
+    if (text.length < 2) {
+        found.value = [];
+        return;
+    }
+    pending = new AbortController();
+    searching.value = true;
+    try {
+        found.value = await api.search.query(text, { signal: pending.signal });
+    } catch {
+        found.value = [];
+    } finally {
+        searching.value = false;
+    }
+}
+
 const commands = computed<Command[]>(() => {
     const text = query.value.trim().toLowerCase();
     const matches = staticCommands.value.filter((command) => !text || command.label.toLowerCase().includes(text));
-    if (!quick.value?.title) return matches;
+    if (!quick.value?.title) return [...matches, ...foundCommands.value];
     return [
         {
             id: 'add',
@@ -86,6 +141,7 @@ const commands = computed<Command[]>(() => {
             run: create,
         },
         ...matches,
+        ...foundCommands.value,
     ];
 });
 
@@ -132,10 +188,15 @@ function onKeydown(event: KeyboardEvent): void {
     }
 }
 
-watch(query, () => (active.value = 0));
+watch(query, (value) => {
+    active.value = 0;
+    window.clearTimeout(debounce);
+    debounce = window.setTimeout(() => void search(value.trim()), 200);
+});
 watch(open, (value) => {
     if (!value) return;
     query.value = '';
+    found.value = [];
     active.value = 0;
     void goals.load();
     void taskTypes.load();
@@ -145,15 +206,15 @@ watch(open, (value) => {
 <template>
     <Dialog
         v-model:open="open"
-        title="Quick add"
-        description="Type a task, like “Send invoice fri !high ~30m”, or search for a page or action."
+        title="Quick add and search"
+        description="Type a task, like “Send invoice fri !high ~30m”, or search your tasks, goals, blockers, journal and pages."
         :initial-focus="`${uid}-query`"
     >
         <div class="flex flex-col gap-4" @keydown="onKeydown">
             <Input
                 :id="`${uid}-query`"
                 v-model="query"
-                label="Task or command"
+                label="Task, search or command"
                 role="combobox"
                 autocomplete="off"
                 :aria-expanded="commands.length > 0"
@@ -197,7 +258,8 @@ watch(open, (value) => {
                         </span>
                     </div>
                 </div>
-                <Text v-if="!commands.length" role="label" tone="muted" class="px-2">Nothing matches.</Text>
+                <Text v-if="searching && !found.length" role="label" tone="muted" class="px-2">Searching…</Text>
+                <Text v-else-if="!commands.length" role="label" tone="muted" class="px-2">Nothing matches.</Text>
             </div>
             <Text role="caption" tone="muted"
                 >Dates: today, tomorrow, fri, next week, in 3 days · !high · ~45m · * star · every week · #type ·
