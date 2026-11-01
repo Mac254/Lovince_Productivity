@@ -35,7 +35,7 @@ export const darkTheme = {
 
     border: 'neutral.800',
     'border-control': 'neutral.500',
-    'border-strong': 'neutral.400',
+    'border-strong': 'neutral.500',
 
     /* Accent: charcoal surfaces carrying neon text (palette "Cc"); green graphics. */
     accent: 'green.500',

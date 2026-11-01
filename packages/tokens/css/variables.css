@@ -79,7 +79,7 @@
     --fg-inverse-muted: var(--focus-neutral-600);
     --border: var(--focus-neutral-800);
     --border-control: var(--focus-neutral-500);
-    --border-strong: var(--focus-neutral-400);
+    --border-strong: var(--focus-neutral-500);
     --accent: var(--focus-green-500);
     --accent-solid: var(--focus-neutral-850);
     --accent-solid-hover: var(--focus-neutral-800);
