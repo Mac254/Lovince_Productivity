@@ -34,6 +34,15 @@ export type TaskSort = (typeof TASK_SORTS)[number];
 export const BLOCKER_STATUSES = ['open', 'resolved'] as const;
 export type BlockerStatus = (typeof BLOCKER_STATUSES)[number];
 
+export const SUGGESTION_CATEGORIES = ['focus', 'growth', 'health', 'wellbeing', 'social', 'fun'] as const;
+export type SuggestionCategory = (typeof SUGGESTION_CATEGORIES)[number];
+
+export const SUGGESTION_STATUSES = ['new', 'accepted', 'done', 'dismissed'] as const;
+export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
+
+export const SUGGESTION_SOURCES = ['insight', 'library', 'custom'] as const;
+export type SuggestionSource = (typeof SUGGESTION_SOURCES)[number];
+
 export const LIMITS = {
     task: {
         title: 200,
@@ -76,6 +85,10 @@ export const LIMITS = {
         name: 80,
         items: 40,
     },
+    suggestion: {
+        title: 160,
+        body: 1000,
+    },
 } as const;
 
 /** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */
@@ -101,6 +114,10 @@ export interface Settings {
         day_end: '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23';
         step: '15' | '30' | '60';
         reminder: 'off' | '5' | '10' | '15';
+    };
+    suggestions: {
+        enabled: boolean;
+        ideas_per_day: '1' | '2' | '3' | '5';
     };
     clock: {
         wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | `custom:${number}`;
@@ -147,6 +164,10 @@ export const SETTINGS_DEFAULTS: Settings = {
         day_end: '18',
         step: '30',
         reminder: '5',
+    },
+    suggestions: {
+        enabled: true,
+        ideas_per_day: '3',
     },
     clock: {
         wallpaper: 'neon',

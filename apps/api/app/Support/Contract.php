@@ -6,6 +6,9 @@ use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
+use App\Modules\Suggestions\Enums\SuggestionCategory;
+use App\Modules\Suggestions\Enums\SuggestionSource;
+use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
 use App\Modules\Tasks\Enums\TaskRecurrence;
@@ -75,6 +78,10 @@ final class Contract
 
     public const SCHEDULE_ITEM_LIMIT = 40;
 
+    public const SUGGESTION_TITLE_MAX = 160;
+
+    public const SUGGESTION_BODY_MAX = 1000;
+
     /**
      * @return array<string, list<string>>
      */
@@ -94,6 +101,9 @@ final class Contract
             'TaskDueFilter' => IndexTaskRequest::DUE_FILTERS,
             'TaskSort' => IndexTaskRequest::SORTS,
             'BlockerStatus' => $values(BlockerStatus::cases()),
+            'SuggestionCategory' => $values(SuggestionCategory::cases()),
+            'SuggestionStatus' => $values(SuggestionStatus::cases()),
+            'SuggestionSource' => $values(SuggestionSource::cases()),
         ];
     }
 
@@ -121,6 +131,7 @@ final class Contract
             'checklist' => ['title' => self::CHECKLIST_ITEM_MAX, 'max' => self::CHECKLIST_LIMIT],
             'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
             'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT],
+            'suggestion' => ['title' => self::SUGGESTION_TITLE_MAX, 'body' => self::SUGGESTION_BODY_MAX],
         ];
     }
 }
