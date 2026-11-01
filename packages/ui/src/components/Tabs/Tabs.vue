@@ -20,7 +20,7 @@ function select(value: string): void {
                 :key="tab.value"
                 :value="tab.value"
                 :class="[
-                    'inline-flex h-(--control-md) shrink-0 items-center gap-2 border-b-2 border-transparent px-3',
+                    'inline-flex h-(--control-md) flex-1 shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3',
                     'text-label font-semibold text-fg-muted transition-colors duration-(--duration-instant) hover:text-fg',
                     'focus-visible:outline-2 focus-visible:outline-focus-ring',
                     'aria-selected:border-highlight aria-selected:text-fg',
