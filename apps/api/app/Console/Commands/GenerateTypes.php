@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Settings\Setting;
-use App\Settings\SettingsRegistry;
+use App\Modules\Settings\Services\SettingsRegistry;
+use App\Shared\Support\Settings\Setting;
 use App\Support\Contract;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -71,7 +71,7 @@ class GenerateTypes extends Command
     private function settings(): array
     {
         $registry = app(SettingsRegistry::class);
-        $lines = ['/** Settings by module, from apps/api/app/Settings/Modules. */', 'export interface Settings {'];
+        $lines = ['/** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */', 'export interface Settings {'];
         foreach ($registry->modules() as $name => $module) {
             $lines[] = "    {$name}: {";
             foreach ($module->settings() as $setting) {

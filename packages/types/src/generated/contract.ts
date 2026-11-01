@@ -58,7 +58,7 @@ export const LIMITS = {
     wallpapers: 12,
 } as const;
 
-/** Settings by module, from apps/api/app/Settings/Modules. */
+/** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */
 export interface Settings {
     general: {
         start_page: 'dashboard' | 'today' | 'focus';

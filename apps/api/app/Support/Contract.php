@@ -2,14 +2,14 @@
 
 namespace App\Support;
 
-use App\Enums\BlockerStatus;
-use App\Enums\GoalStatus;
-use App\Enums\GoalTimeframe;
-use App\Enums\GoalTone;
-use App\Enums\TaskCategory;
-use App\Enums\TaskPriority;
-use App\Enums\TaskStatus;
-use App\Http\Requests\Task\IndexTaskRequest;
+use App\Modules\Blockers\Enums\BlockerStatus;
+use App\Modules\Goals\Enums\GoalStatus;
+use App\Modules\Goals\Enums\GoalTimeframe;
+use App\Modules\Goals\Enums\GoalTone;
+use App\Modules\Tasks\Enums\TaskCategory;
+use App\Modules\Tasks\Enums\TaskPriority;
+use App\Modules\Tasks\Enums\TaskStatus;
+use App\Modules\Tasks\Http\Requests\IndexTaskRequest;
 
 /**
  * The single source for values shared with the TypeScript apps.

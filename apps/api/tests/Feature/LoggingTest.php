@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Task;
-use App\Models\User;
+use App\Modules\Tasks\Models\Task;
+use App\Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;

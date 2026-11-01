@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use Database\Seeders\DemoSeeder;
-use Database\Seeders\OwnerSeeder;
+use App\Modules\Tasks\Database\Seeders\DemoSeeder;
+use App\Modules\Users\Database\Seeders\OwnerSeeder;
+use App\Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;

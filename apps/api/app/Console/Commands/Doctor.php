@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Quote;
-use App\Models\User;
+use App\Modules\Quotes\Models\Quote;
+use App\Modules\Users\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;

@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\GenerateDailyReport;
-use App\Models\Blocker;
-use App\Models\DailyReport;
-use App\Models\Goal;
-use App\Models\Task;
-use App\Models\TaskNote;
-use App\Models\TaskType;
-use App\Models\User;
+use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Goals\Models\Goal;
+use App\Modules\Reports\Jobs\GenerateDailyReport;
+use App\Modules\Reports\Models\DailyReport;
+use App\Modules\Tasks\Models\Task;
+use App\Modules\Tasks\Models\TaskNote;
+use App\Modules\Tasks\Models\TaskType;
+use App\Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
