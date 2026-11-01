@@ -56,6 +56,7 @@ export const LIMITS = {
     avatarKb: 2048,
     wallpaperKb: 8192,
     wallpapers: 12,
+    focusSessionMinutes: 720,
 } as const;
 
 /** Settings by module, from the Settings folder of each module in apps/api/app/Modules. */

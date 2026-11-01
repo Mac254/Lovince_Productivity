@@ -26,6 +26,7 @@ const ticker = createTicker();
 const now = ref(new Date());
 const controlsVisible = ref(true);
 const settingsOpen = ref(false);
+const historyOpen = ref(false);
 const fullscreen = ref(false);
 const root = ref<HTMLElement | null>(null);
 const settings = ref<HTMLElement | null>(null);
@@ -58,7 +59,7 @@ const dateLine = computed(
     () =>
         `${new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now.value)} · Week ${isoWeek(now.value)}`,
 );
-const showControls = computed(() => controlsVisible.value || settingsOpen.value || mode.value === 'timer');
+const showControls = computed(() => controlsVisible.value || settingsOpen.value || historyOpen.value || mode.value === 'timer');
 
 function wake(): void {
     controlsVisible.value = true;
@@ -78,6 +79,7 @@ async function toggleFullscreen(): Promise<void> {
 function onKey(event: KeyboardEvent): void {
     wake();
     if (event.key === 'Escape') settingsOpen.value = false;
+    if (historyOpen.value) return;
     const target = event.target as HTMLElement | null;
     if (
         target &&
@@ -89,6 +91,11 @@ function onKey(event: KeyboardEvent): void {
 
 function onPointerDown(event: PointerEvent): void {
     if (settingsOpen.value && !settings.value?.contains(event.target as Node)) settingsOpen.value = false;
+}
+
+function openHistory(): void {
+    settingsOpen.value = false;
+    historyOpen.value = true;
 }
 
 function onFile(file: File): void {
@@ -180,6 +187,19 @@ onBeforeUnmount(() => {
             </div>
 
             <div ref="settings" class="relative flex items-center gap-1 rounded-full bg-chrome p-1 shadow-floating">
+                <Pressable
+                    type="button"
+                    :aria-expanded="historyOpen"
+                    aria-haspopup="dialog"
+                    :class="[
+                        'flex h-(--control-sm) items-center gap-2 rounded-full px-4 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover',
+                        historyOpen && 'bg-chrome-hover',
+                    ]"
+                    @click="openHistory"
+                >
+                    <Icon name="history" size="sm" />
+                    History
+                </Pressable>
                 <Pressable
                     type="button"
                     :aria-expanded="settingsOpen"
@@ -375,6 +395,8 @@ onBeforeUnmount(() => {
                 </footer>
             </div>
         </Transition>
+
+        <FocusHistory v-model:open="historyOpen" />
     </main>
 </template>
 

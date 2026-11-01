@@ -27,6 +27,7 @@ export type { BadgeTone } from './components/Badge/tones';
 export { default as Card } from './components/Card/Card.vue';
 export { default as CardHeader } from './components/CardHeader/CardHeader.vue';
 export { default as Dialog } from './components/Dialog/Dialog.vue';
+export { default as Sheet } from './components/Sheet/Sheet.vue';
 export { default as DropdownMenu } from './components/DropdownMenu/DropdownMenu.vue';
 export { default as ChipGroup } from './components/ChipGroup/ChipGroup.vue';
 export { default as ProgressBar } from './components/ProgressBar/ProgressBar.vue';

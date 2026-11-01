@@ -1,3 +1,5 @@
+import type { FocusSessionInput } from '@focus/types';
+import { api, isApiError } from '@focus/api-client';
 import { playChime } from '@/lib/chime';
 import { todayIso } from '@/lib/dates';
 
@@ -22,6 +24,7 @@ export const MIN_MINUTES = 1;
 export const MAX_MINUTES = 180;
 const STORAGE_KEY = 'focus.timer';
 const MINUTE = 60_000;
+const MIN_RECORDED_MS = MINUTE;
 
 interface Persisted {
     presetId: string;
@@ -32,6 +35,8 @@ interface Persisted {
     status: TimerStatus;
     task: { id: number; title: string } | null;
     sessions: { date: string; count: number };
+    startedAt: number | null;
+    pending: FocusSessionInput[];
 }
 
 function read(): Partial<Persisted> {
@@ -61,6 +66,9 @@ export const useTimerStore = defineStore('timer', () => {
     const sound = settings.bind('timer', 'chime');
     const autoBreak = settings.bind('timer', 'auto_break');
     const sessions = ref(saved.sessions?.date === todayIso() ? saved.sessions : { date: todayIso(), count: 0 });
+    const startedAt = ref<number | null>(saved.startedAt ?? null);
+    const pending = ref<FocusSessionInput[]>(saved.pending ?? []);
+    const recorded = ref(0);
     const now = ref(Date.now());
     const baseTitle = ref('Focus');
     let ticker: number | undefined;
@@ -116,6 +124,7 @@ export const useTimerStore = defineStore('timer', () => {
         const remaining =
             status.value === 'paused' && pausedRemainingMs.value !== null ? pausedRemainingMs.value : durationMs.value;
         now.value = Date.now();
+        if (status.value !== 'paused' || startedAt.value === null) startedAt.value = now.value;
         endsAt.value = now.value + remaining;
         pausedRemainingMs.value = null;
         status.value = 'running';
@@ -136,6 +145,7 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     function reset(): void {
+        if (active.value) record(durationMs.value - remainingMs.value, false);
         stopTicker();
         endsAt.value = null;
         pausedRemainingMs.value = null;
@@ -158,6 +168,7 @@ export const useTimerStore = defineStore('timer', () => {
         endsAt.value = null;
         pausedRemainingMs.value = null;
         status.value = 'done';
+        record(durationMs.value, true);
         if (kind.value === 'focus') {
             if (sessions.value.date !== todayIso()) sessions.value = { date: todayIso(), count: 0 };
             sessions.value = { ...sessions.value, count: sessions.value.count + 1 };
@@ -188,9 +199,47 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
+    function record(focusedMs: number, completed: boolean): void {
+        const start = startedAt.value;
+        startedAt.value = null;
+        if (kind.value !== 'focus' || start === null || focusedMs < MIN_RECORDED_MS) return;
+        pending.value = [
+            ...pending.value,
+            {
+                started_at: new Date(start).toISOString(),
+                started_on: todayIso(new Date(start)),
+                planned_minutes: Math.round(durationMs.value / MINUTE),
+                focused_seconds: Math.round(focusedMs / 1000),
+                completed,
+                task_id: task.value?.id ?? null,
+            },
+        ];
+        void flush();
+    }
+
+    let flushing = false;
+
+    async function flush(): Promise<void> {
+        if (flushing) return;
+        flushing = true;
+        try {
+            while (pending.value.length) {
+                await api.focusSessions.create(pending.value[0]!);
+                pending.value = pending.value.slice(1);
+                recorded.value++;
+            }
+        } catch (error) {
+            if (isApiError(error) && error.kind === 'validation') pending.value = pending.value.slice(1);
+        } finally {
+            flushing = false;
+        }
+    }
+
     function setTask(value: Persisted['task']): void {
         task.value = value;
     }
+
+    void flush();
 
     // Resume after a reload: a run that ended while away counts, quietly.
     if (status.value === 'running') {
@@ -199,7 +248,7 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     watch(
-        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sessions],
+        [presetId, kind, durationMs, endsAt, pausedRemainingMs, status, task, sessions, startedAt, pending],
         () => {
             try {
                 const state: Persisted = {
@@ -211,6 +260,8 @@ export const useTimerStore = defineStore('timer', () => {
                     status: status.value,
                     task: task.value,
                     sessions: sessions.value,
+                    startedAt: startedAt.value,
+                    pending: pending.value,
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             } catch {
@@ -239,6 +290,7 @@ export const useTimerStore = defineStore('timer', () => {
         sound,
         autoBreak,
         sessions,
+        recorded,
         baseTitle,
         remainingMs,
         progress,
