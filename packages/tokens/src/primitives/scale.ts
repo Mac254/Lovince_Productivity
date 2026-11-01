@@ -33,4 +33,5 @@ export const container = {
     app: '90rem',
     form: '28rem',
     dialog: '36rem',
+    'dialog-wide': '60rem',
 } as const;

@@ -21,3 +21,15 @@ export function isoWeekday(date: string): number {
 export function fitsDay(schedule: Schedule, date: string): boolean {
     return !schedule.days.length || schedule.days.includes(isoWeekday(date));
 }
+
+export type DaySection = 'morning' | 'afternoon' | 'evening';
+
+export const daySections: { value: DaySection; label: string; from: number }[] = [
+    { value: 'morning', label: 'Morning', from: 0 },
+    { value: 'afternoon', label: 'Afternoon', from: 12 * 60 },
+    { value: 'evening', label: 'Evening', from: 17 * 60 },
+];
+
+export function sectionOf(minute: number): DaySection {
+    return [...daySections].reverse().find((section) => minute >= section.from)?.value ?? 'morning';
+}

@@ -48,6 +48,7 @@
     --container-app: 90rem;
     --container-form: 28rem;
     --container-dialog: 36rem;
+    --container-dialog-wide: 60rem;
 }
 
 @theme inline {

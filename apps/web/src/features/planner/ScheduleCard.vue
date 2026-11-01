@@ -2,7 +2,7 @@
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { Schedule } from '@focus/types';
 import { formatMinutes, todayIso } from '@/lib/dates';
-import { dayPresets, presetOf } from './schedules';
+import { dayPresets, daySections, presetOf, sectionOf, type DaySection } from './schedules';
 import { clockTime } from './timeline';
 
 const props = defineProps<{ schedule: Schedule }>();
@@ -15,6 +15,24 @@ const applying = ref(false);
 const clash = ref('');
 const deleting = ref(false);
 const deleteBusy = ref(false);
+const expanded = ref(true);
+
+const grouped = computed(() =>
+    daySections
+        .map((option) => ({
+            ...option,
+            items: props.schedule.items.filter((item) => sectionOf(item.start_minute) === option.value),
+        }))
+        .filter((option) => option.items.length),
+);
+const section = ref<DaySection>(grouped.value[0]?.value ?? 'morning');
+const sectionOptions = computed(() =>
+    grouped.value.map((option) => ({ value: option.value, label: `${option.label} · ${option.items.length}` })),
+);
+const shown = computed(() => grouped.value.find((option) => option.value === section.value)?.items ?? []);
+watch(grouped, (options) => {
+    if (!options.some((option) => option.value === section.value)) section.value = options[0]?.value ?? 'morning';
+});
 
 const repeats = computed(() => dayPresets.find((preset) => preset.value === presetOf(props.schedule.days))?.label);
 const total = computed(() => formatMinutes(props.schedule.items.reduce((sum, item) => sum + item.minutes, 0)));
@@ -60,21 +78,40 @@ async function remove(): Promise<void> {
             icon="calendar-clock"
             :subtitle="`${repeats} · ${schedule.items.length} activities · ${total}`"
         >
-            <DropdownMenu :items="menu" :label="`${schedule.name} actions`" trigger-variant="ghost" size="sm" />
+            <div class="flex items-center gap-1">
+                <IconButton
+                    :icon="expanded ? 'chevron-up' : 'chevron-down'"
+                    :label="expanded ? `Collapse ${schedule.name}` : `Expand ${schedule.name}`"
+                    :aria-expanded="expanded"
+                    :aria-controls="`${uid}-body`"
+                    variant="ghost"
+                    size="sm"
+                    @click="expanded = !expanded"
+                />
+                <DropdownMenu :items="menu" :label="`${schedule.name} actions`" trigger-variant="ghost" size="sm" />
+            </div>
         </CardHeader>
 
-        <ol class="flex flex-col">
-            <li
-                v-for="item in schedule.items"
-                :key="item.id"
-                class="flex items-baseline gap-4 border-t border-border py-2 first:border-t-0"
-            >
-                <Text role="label" tone="muted" tabular class="w-28 shrink-0"
-                    >{{ clockTime(item.start_minute) }}–{{ clockTime(item.start_minute + item.minutes) }}</Text
+        <div v-show="expanded" :id="`${uid}-body`" class="flex flex-col gap-4">
+            <ChipGroup
+                v-if="sectionOptions.length > 1"
+                v-model="section"
+                :label="`${schedule.name} part of day`"
+                :options="sectionOptions"
+            />
+            <ol class="flex flex-col">
+                <li
+                    v-for="item in shown"
+                    :key="item.id"
+                    class="flex items-baseline gap-4 border-t border-border py-2 first:border-t-0"
                 >
-                <Text role="label" class="truncate font-semibold">{{ item.title }}</Text>
-            </li>
-        </ol>
+                    <Text role="label" tone="muted" tabular class="w-28 shrink-0"
+                        >{{ clockTime(item.start_minute) }}–{{ clockTime(item.start_minute + item.minutes) }}</Text
+                    >
+                    <Text role="label" class="truncate font-semibold">{{ item.title }}</Text>
+                </li>
+            </ol>
+        </div>
 
         <form class="mt-4 flex flex-wrap items-end gap-3" novalidate @submit.prevent="apply()">
             <div class="min-w-48 flex-1">

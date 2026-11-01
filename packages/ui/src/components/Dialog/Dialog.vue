@@ -15,7 +15,7 @@ import IconButton from '../IconButton/IconButton.vue';
  * `alert` makes it an alertdialog; `initialFocus` names the element id to focus on open.
  */
 withDefaults(
-    defineProps<{ title: string; description?: string; size?: 'sm' | 'md'; alert?: boolean; initialFocus?: string }>(),
+    defineProps<{ title: string; description?: string; size?: 'sm' | 'md' | 'lg'; alert?: boolean; initialFocus?: string }>(),
     { size: 'md' },
 );
 const open = defineModel<boolean>('open', { required: true });
@@ -28,7 +28,7 @@ const open = defineModel<boolean>('open', { required: true });
             <LvDialogContent
                 :class="[
                     'dialog fixed inset-0 z-(--z-modal) m-auto h-fit max-h-(--dialog-max-height) w-(--dialog-width) overflow-y-auto rounded-lg border border-border bg-surface-overlay text-fg shadow-overlay focus-visible:outline-none',
-                    size === 'sm' ? 'max-w-form' : 'max-w-dialog',
+                    { sm: 'max-w-form', md: 'max-w-dialog', lg: 'max-w-dialog-wide' }[size],
                 ]"
             >
                 <div class="p-6 sm:p-8">
