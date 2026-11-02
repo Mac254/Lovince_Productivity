@@ -129,7 +129,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
         <ErrorState v-if="error" :message="error" @retry="load" />
         <div v-else class="flex gap-3">
             <ol aria-hidden="true" class="flex shrink-0 flex-col">
-                <li v-for="hour in hours" :key="hour" class="h-14 -translate-y-2 text-caption text-fg-muted tabular">
+                <li v-for="hour in hours" :key="hour" class="h-20 -translate-y-2 text-caption text-fg-muted tabular">
                     {{ clockTime(hour) }}
                 </li>
             </ol>
@@ -138,29 +138,41 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     v-for="hour in hours"
                     :key="hour"
                     aria-hidden="true"
-                    class="pointer-events-none h-14 border-t border-border"
+                    class="pointer-events-none h-20 border-t border-border"
                 />
                 <Pressable
                     v-for="block in blocks"
                     :key="block.id"
                     type="button"
-                    class="absolute inset-x-1 flex min-h-6 cursor-pointer flex-col overflow-hidden rounded-md border border-border border-l-highlight bg-surface-raised px-2 py-1 text-left transition-colors hover:bg-surface-overlay focus-visible:outline-2 focus-visible:outline-focus-ring"
                     :class="[
+                        'absolute inset-x-1 flex cursor-pointer overflow-clip rounded-sm border-l-4 border-highlight bg-surface-raised px-2 text-left ring-1 ring-border transition-colors hover:bg-surface-overlay focus-visible:outline-2 focus-visible:outline-focus-ring',
+                        block.minutes < 30 ? 'items-center gap-2' : 'flex-col py-1',
                         block.task?.status === 'completed' && 'opacity-60',
-                        block.minutes >= 45 ? 'border-l-4' : 'border-l-2',
                     ]"
-                    :style="{ top: percent(block.start_minute), height: `${(block.minutes / span) * 100}%` }"
+                    :style="{ top: percent(block.start_minute), height: `calc(${(block.minutes / span) * 100}% - 2px)` }"
                     :aria-label="`${block.title ?? 'Block'}, ${clockTime(block.start_minute)} to ${clockTime(block.start_minute + block.minutes)}`"
                     @click="edit(block)"
                 >
                     <span
-                        class="truncate text-label font-semibold"
-                        :class="block.task?.status === 'completed' && 'line-through'"
-                        >{{ block.title ?? 'Untitled' }}</span
+                        :class="[
+                            'flex min-w-0 flex-col',
+                            block.minutes >= 120 && 'sticky top-16',
+                            block.minutes < 30 && 'flex-row items-baseline gap-2',
+                        ]"
                     >
-                    <span v-if="block.minutes >= 45" class="truncate text-caption text-fg-muted tabular"
-                        >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes) }}</span
-                    >
+                        <span
+                            :class="[
+                                'truncate font-semibold',
+                                block.minutes < 30 ? 'text-caption' : 'text-label',
+                                block.task?.status === 'completed' && 'line-through',
+                            ]"
+                            >{{ block.title ?? 'Untitled' }}</span
+                        >
+                        <span class="shrink-0 truncate text-caption text-fg-muted tabular"
+                            >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
+                            }}<template v-if="block.minutes >= 120"> · {{ formatMinutes(block.minutes) }}</template></span
+                        >
+                    </span>
                 </Pressable>
                 <div
                     v-if="showNow"
