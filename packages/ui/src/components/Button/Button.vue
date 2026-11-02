@@ -5,7 +5,14 @@ import { RouterLink } from 'vue-router';
 import type { IconName } from '../../icons/registry';
 import type { RouteLocationRaw } from 'vue-router';
 import Icon from '../../primitives/Icon/Icon.vue';
-import { buttonVariants, controlHeights, interactive, lovinceVariants, type ButtonSize, type ButtonVariant } from './variants';
+import {
+    buttonVariants,
+    controlHeights,
+    interactive,
+    lovinceVariants,
+    type ButtonSize,
+    type ButtonVariant,
+} from './variants';
 
 const props = withDefaults(
     defineProps<{

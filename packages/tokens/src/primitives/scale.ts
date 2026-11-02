@@ -17,6 +17,13 @@ export const shadow = {
     overlay: '0 2px 4px rgb(0 0 0 / 0.35), 0 24px 64px rgb(0 0 0 / 0.55)',
 } as const;
 
+/** Light UI: the same layers, but soft and diffuse — on a pale page a dark shadow reads as a hard edge. */
+export const lightShadow = {
+    card: '0 1px 2px rgb(0 0 0 / 0.03), 0 2px 8px -2px rgb(0 0 0 / 0.04)',
+    floating: '0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -6px rgb(0 0 0 / 0.1)',
+    overlay: '0 2px 4px rgb(0 0 0 / 0.04), 0 16px 48px -12px rgb(0 0 0 / 0.16)',
+} as const satisfies Record<keyof typeof shadow, string>;
+
 export const zIndex = {
     nav: 100,
     dropdown: 1000,

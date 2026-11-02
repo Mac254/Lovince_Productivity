@@ -16,12 +16,20 @@ const model = defineModel<string | null>({ default: '' });
 </script>
 
 <template>
-    <Field :id="id" v-slot="{ describedBy, invalid }" :label="label" :error="error" :hint="hint" :optional="optional" :surface="surface">
+    <Field
+        :id="id"
+        v-slot="{ describedBy, invalid }"
+        :label="label"
+        :error="error"
+        :hint="hint"
+        :optional="optional"
+        :surface="surface"
+    >
         <LvInput
             :model-value="model ?? ''"
             v-bind="$attrs"
             :aria-describedby="describedBy"
-            :class="[controlClasses(invalid, surface), 'h-(--control-md)']"
+            :class="[controlClasses(invalid, surface), 'h-(--control-md) read-only:bg-canvas']"
             @update:model-value="model = $event"
         />
     </Field>

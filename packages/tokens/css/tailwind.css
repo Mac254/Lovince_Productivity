@@ -39,9 +39,6 @@
     --radius-md: 1rem;
     --radius-lg: 1.75rem;
     --radius-full: 9999px;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 4px 16px -4px rgb(0 0 0 / 0.06);
-    --shadow-floating: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.45);
-    --shadow-overlay: 0 2px 4px rgb(0 0 0 / 0.35), 0 24px 64px rgb(0 0 0 / 0.55);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
     --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -73,6 +70,7 @@
     --color-border: var(--border);
     --color-border-control: var(--border-control);
     --color-border-strong: var(--border-strong);
+    --color-border-hover: var(--border-hover);
     --color-accent: var(--accent);
     --color-accent-solid: var(--accent-solid);
     --color-accent-solid-hover: var(--accent-solid-hover);
@@ -116,4 +114,7 @@
     --color-tone-violet: var(--tone-violet);
     --color-tone-rose: var(--tone-rose);
     --color-tone-cyan: var(--tone-cyan);
+    --shadow-card: var(--elevation-card);
+    --shadow-floating: var(--elevation-floating);
+    --shadow-overlay: var(--elevation-overlay);
 }

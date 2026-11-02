@@ -36,6 +36,8 @@ export const darkTheme = {
     border: 'neutral.800',
     'border-control': 'neutral.500',
     'border-strong': 'neutral.500',
+    /* Hover outline on interactive cards; in light it stays a step above `border`, not a dark edge. */
+    'border-hover': 'neutral.700',
 
     /* Accent: charcoal surfaces carrying neon text (palette "Cc"); green graphics. */
     accent: 'green.500',
@@ -123,6 +125,7 @@ export const lightTheme = {
     border: 'neutral.200',
     'border-control': 'neutral.500',
     'border-strong': 'neutral.600',
+    'border-hover': 'neutral.300',
 
     accent: 'green.700',
     'accent-solid': 'neutral.850',

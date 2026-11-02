@@ -47,7 +47,15 @@ function choose(key: string | string[]): void {
 </script>
 
 <template>
-    <Field :id="id" v-slot="{ describedBy, invalid }" :label="label" :error="error" :hint="hint" :optional="optional" :surface="surface">
+    <Field
+        :id="id"
+        v-slot="{ describedBy, invalid }"
+        :label="label"
+        :error="error"
+        :hint="hint"
+        :optional="optional"
+        :surface="surface"
+    >
         <LvSelectRoot :model-value="selected" @update:model-value="choose">
             <LvSelectTrigger
                 :id="id"

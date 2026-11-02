@@ -14,7 +14,7 @@ const model = defineModel<string | null>({ default: '' });
             :model-value="model ?? ''"
             v-bind="$attrs"
             :aria-describedby="describedBy"
-            :class="[controlClasses(invalid), 'min-h-24 resize-y py-3']"
+            :class="[controlClasses(invalid), 'min-h-24 resize-y py-3 read-only:bg-canvas']"
             @update:model-value="model = $event"
         />
     </Field>

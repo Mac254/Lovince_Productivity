@@ -32,7 +32,7 @@ provideSurfaceTone(props.tone);
                 highlight: 'bg-highlight text-highlight-ink',
                 accent: 'bg-accent-solid text-accent-ink',
             }[tone],
-            interactive && tone === 'default' && 'hover:ring-border-strong',
+            interactive && tone === 'default' && 'hover:shadow-card hover:ring-border-hover',
         ]"
     >
         <slot />

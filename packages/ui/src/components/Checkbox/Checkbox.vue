@@ -9,7 +9,7 @@ const model = defineModel<boolean>({ default: false });
 <template>
     <label
         :for="id"
-:class="[
+        :class="[
             'inline-flex min-h-(--control-sm) cursor-pointer items-center gap-3 text-label font-semibold',
             surface === 'chrome' ? 'text-chrome-fg' : 'text-fg-muted',
         ]"
