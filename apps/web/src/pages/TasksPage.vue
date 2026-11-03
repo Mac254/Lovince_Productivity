@@ -16,6 +16,7 @@ import {
 import type { LocationQuery } from 'vue-router';
 import { groupByDue } from '@/features/tasks/dueGroups';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
+import { allFacet, withoutAll } from '@/lib/facets';
 import { taskPriorityOptions } from '@/lib/labels';
 import { fromKind, kindOptions, type TaskKind } from '@/lib/taskKind';
 
@@ -56,6 +57,9 @@ const filters = reactive({
     sort: fromQuery<TaskSort>(route.query, 'sort', TASK_SORTS),
     page: Number(route.query.page) || 1,
 });
+
+const statusFacet = allFacet(toRef(filters, 'status'));
+const statusOptions = withoutAll(statusChips);
 
 const dueLabels: Record<TaskDueFilter, string> = {
     today: 'Due today',
@@ -203,10 +207,6 @@ onMounted(() => {
         </PageHeader>
 
         <section aria-label="Filters" class="flex flex-col gap-4 border-b border-border pb-6">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <ChipGroup v-model="filters.status" label="Status" :options="statusChips" />
-                <ChipGroup v-model="view" label="View" :options="viewOptions" />
-            </div>
             <div class="flex flex-wrap items-center gap-2">
                 <SearchField
                     id="task-search"
@@ -216,6 +216,7 @@ onMounted(() => {
                     :maxlength="LIMITS.search"
                     class="w-full sm:w-96"
                 />
+                <FacetFilter v-model="statusFacet" label="Status" :options="statusOptions" />
                 <FacetFilter v-model="filters.priority" label="Priority" :options="taskPriorityOptions" />
                 <FacetFilter v-model="typeFacet" label="Type" :options="typeOptions" />
                 <FacetFilter v-model="filters.due" label="Due" :options="dueOptions" />
@@ -231,6 +232,7 @@ onMounted(() => {
                         <template v-else-if="loading">Loading…</template>
                     </Text>
                     <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
+                    <ChipGroup v-model="view" label="View" :options="viewOptions" />
                 </div>
             </div>
         </section>
