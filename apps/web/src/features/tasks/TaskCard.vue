@@ -18,7 +18,10 @@ const emit = defineEmits<{
 const router = useRouter();
 const done = computed(() => props.task.status === 'completed');
 const closed = computed(() => done.value || props.task.status === 'cancelled');
-const cover = computed(() => taskCoverUrl(props.task.cover));
+const settings = useSettingsStore();
+const compact = computed(() => settings.values.tasks.card_density === 'compact');
+const cover = computed(() => (settings.values.tasks.card_covers ? taskCoverUrl(props.task.cover) : null));
+const showDescription = computed(() => settings.values.tasks.card_descriptions && !compact.value);
 
 const menu = computed<MenuItem[]>(() => [
     {
@@ -39,22 +42,25 @@ const menu = computed<MenuItem[]>(() => [
         :tone="featured ? 'highlight' : 'default'"
         interactive
         :class="[
-            'min-h-52 gap-3 border-t-4',
+            'group/card border-t-4',
+            compact ? 'gap-2' : 'min-h-52 gap-3',
             task.goal?.tone && !featured ? toneBorder[task.goal.tone] : 'border-transparent',
         ]"
     >
-        <div v-if="cover" class="-mx-4 -mt-4 overflow-hidden rounded-t-lg sm:-mx-6 sm:-mt-6">
+        <div v-if="cover" class="relative -mx-4 -mt-4 overflow-hidden rounded-t-lg sm:-mx-6 sm:-mt-6">
             <img
                 :src="cover"
                 alt=""
                 loading="lazy"
-                :class="['h-32 w-full object-cover', closed && 'opacity-60 grayscale']"
+                :class="[
+                    'w-full object-cover transition-transform duration-(--duration-slow) group-hover/card:scale-105',
+                    compact ? 'h-20' : 'h-32',
+                    closed && 'opacity-60 grayscale',
+                ]"
             />
         </div>
-        <div class="flex items-start justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-2">
-                <TaskTypeBadge :task="task" />
-            </div>
+        <div class="flex items-center justify-between gap-2">
+            <TaskTypeBadge :task="task" />
             <div class="flex shrink-0 items-center gap-1">
                 <IconButton
                     :icon="task.is_highlighted ? 'star-filled' : 'star'"
@@ -66,27 +72,29 @@ const menu = computed<MenuItem[]>(() => [
                     size="sm"
                     @click="emit('star', task)"
                 />
-                <IconButton
-                    :icon="done ? 'undo' : 'check'"
-                    :label="done ? `Mark “${task.title}” as not done` : `Mark “${task.title}” complete`"
-                    :variant="done ? 'primary' : 'outline'"
-                    :pressed="done"
-                    size="sm"
-                    @click="emit('toggle', task)"
-                />
                 <DropdownMenu :items="menu" :label="`Actions for “${task.title}”`" size="sm" />
             </div>
         </div>
 
-        <Heading :level="3" role="title">
-            <RouterLink
-                :to="{ name: 'task-detail', params: { id: task.id } }"
-                :class="['underline-offset-4 hover:underline', closed && 'line-through decoration-2']"
-            >
-                {{ task.title }}
-            </RouterLink>
-        </Heading>
-        <Text v-if="task.description" role="label" tone="muted" class="line-clamp-2">{{ task.description }}</Text>
+        <div class="flex items-start gap-3">
+            <TaskCheck :task="task" size="lg" @toggle="emit('toggle', task)" />
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <Heading :level="3" role="title" class="line-clamp-2">
+                    <RouterLink
+                        :to="{ name: 'task-detail', params: { id: task.id } }"
+                        :class="[
+                            'underline-offset-4 hover:underline',
+                            closed && 'text-fg-muted line-through decoration-2',
+                        ]"
+                    >
+                        {{ task.title }}
+                    </RouterLink>
+                </Heading>
+                <Text v-if="showDescription && task.description" role="label" tone="muted" class="line-clamp-2">{{
+                    task.description
+                }}</Text>
+            </div>
+        </div>
 
         <dl class="flex flex-wrap gap-x-4 gap-y-2 text-label">
             <div class="flex items-center gap-2">
@@ -122,7 +130,14 @@ const menu = computed<MenuItem[]>(() => [
             </div>
         </dl>
 
-        <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
+        <ProgressBar
+            v-if="task.checklist?.total && !compact"
+            :value="(task.checklist.done / task.checklist.total) * 100"
+            :label="`Checklist progress for “${task.title}”`"
+            tone="highlight"
+        />
+
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
             <StatusBadge :status="task.status" />
             <PriorityDots :priority="task.priority" />
         </div>

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import { describe, expect, it } from 'vitest';
+import { createPinia, setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { nextTick } from 'vue';
 import TaskCard from '@/features/tasks/TaskCard.vue';
 import type { Task } from '@focus/types';
@@ -32,6 +33,8 @@ const mountCard = (props = {}) =>
     mount(TaskCard, { props: { task, ...props }, global: { stubs: { RouterLink: true } }, attachTo: document.body });
 
 describe('TaskCard', () => {
+    beforeEach(() => setActivePinia(createPinia()));
+
     it('renders descriptions as text, never HTML', () => {
         const wrapper = mountCard();
         expect(wrapper.find('img').exists()).toBe(false);
