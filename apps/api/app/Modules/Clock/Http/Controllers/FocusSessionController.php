@@ -46,7 +46,6 @@ class FocusSessionController extends Controller
                 'count' => $sessions->count(),
                 'completed' => $sessions->where('completed', true)->count(),
                 'goal_minutes' => $stats->goalMinutes($request->user()),
-                'streak' => $stats->streak($request->user()),
                 'week' => $days->values(),
             ],
         ]);

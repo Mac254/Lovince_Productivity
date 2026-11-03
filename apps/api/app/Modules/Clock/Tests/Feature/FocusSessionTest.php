@@ -98,7 +98,7 @@ class FocusSessionTest extends TestCase
         $this->getJson('/api/v1/focus-sessions')->assertUnauthorized();
     }
 
-    public function test_streak_goal_metrics_and_dashboard_include_focus_time(): void
+    public function test_goal_metrics_and_the_one_streak_include_focus_time(): void
     {
         $user = User::factory()->create(['settings' => ['timer' => ['daily_goal' => '60']]]);
         foreach ([0, 1, 2, 4] as $back) {
@@ -112,7 +112,7 @@ class FocusSessionTest extends TestCase
 
         $this->getJson('/api/v1/focus-sessions')
             ->assertJsonPath('meta.goal_minutes', 60)
-            ->assertJsonPath('meta.streak', 3);
+            ->assertJsonMissingPath('meta.streak');
 
         $this->getJson('/api/v1/metrics?days=7')
             ->assertOk()
@@ -120,13 +120,15 @@ class FocusSessionTest extends TestCase
             ->assertJsonPath('data.focus.sessions', 4)
             ->assertJsonPath('data.focus.goal_days', 4)
             ->assertJsonPath('data.focus.best_hour', 9)
-            ->assertJsonPath('data.daily.6.focus', 60);
+            ->assertJsonPath('data.daily.6.focus', 60)
+            ->assertJsonMissingPath('data.focus.streak');
 
         $this->getJson('/api/v1/dashboard')
             ->assertOk()
             ->assertJsonPath('data.focus.minutes', 60)
             ->assertJsonPath('data.focus.goal_minutes', 60)
-            ->assertJsonPath('data.focus.streak', 3);
+            ->assertJsonMissingPath('data.focus.streak')
+            ->assertJsonPath('data.streak.current', 3);
     }
 
     public function test_a_session_is_saved_once_and_in_the_app_timezone(): void

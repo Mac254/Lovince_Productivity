@@ -2,7 +2,7 @@
 import { formatLongDate, greeting, todayIso } from '@/lib/dates';
 
 const auth = useAuthStore();
-const dashboard = useDashboardStore();
+const dashboard = useDashboard();
 const goals = useGoalsStore();
 const router = useRouter();
 const toast = useToast();
@@ -34,14 +34,22 @@ function onShortcut(event: KeyboardEvent): void {
     paletteOpen.value = !paletteOpen.value;
 }
 
+let dayCheck: number | undefined;
+function refreshOnNewDay(): void {
+    if (dashboard.data && dashboard.data.date !== todayIso() && !dashboard.loading) void dashboard.invalidate();
+}
+
 onMounted(() => {
     window.addEventListener('keydown', onShortcut);
-    void dashboard.ensure();
+    dayCheck = window.setInterval(refreshOnNewDay, 60_000);
     void syncOutbox().then((synced) => {
         if (synced) void dashboard.invalidate();
     });
 });
-onUnmounted(() => window.removeEventListener('keydown', onShortcut));
+onUnmounted(() => {
+    window.removeEventListener('keydown', onShortcut);
+    window.clearInterval(dayCheck);
+});
 useReminders();
 async function syncOutbox(): Promise<number> {
     if (!outbox.pending.length) return 0;

@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuthStore } from '@/stores/auth';
+import { useDashboardStore } from '@/stores/dashboard';
 import { timerPresets, useTimerStore } from '@/stores/timer';
 
 vi.mock('@/lib/chime', () => ({ playChime: vi.fn() }));
@@ -9,7 +10,7 @@ const { create, list, getTimer, saveTimer } = vi.hoisted(() => ({
     getTimer: vi.fn(),
     saveTimer: vi.fn(),
     create: vi.fn().mockResolvedValue({}),
-    list: vi.fn().mockResolvedValue({ data: [], meta: { minutes: 1, count: 1, goal_minutes: 120, streak: 1 } }),
+    list: vi.fn().mockResolvedValue({ data: [], meta: { minutes: 1, count: 1, goal_minutes: 120 } }),
 }));
 
 vi.mock('@focus/api-client', async (original) => {
@@ -86,6 +87,15 @@ describe('focus timer', () => {
         timer.start();
         vi.advanceTimersByTime(20 * MINUTE);
         expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes the streak once a finished session is saved', async () => {
+        const invalidate = vi.spyOn(useDashboardStore(), 'invalidate').mockResolvedValue();
+        const timer = useTimerStore();
+        timer.setCustom(1);
+        timer.start();
+        vi.advanceTimersByTime(MINUTE + 500);
+        await vi.waitFor(() => expect(invalidate).toHaveBeenCalledTimes(1));
     });
 
     it('records a session stopped early after a minute, but not a shorter one', () => {

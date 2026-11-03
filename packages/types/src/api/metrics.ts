@@ -10,7 +10,6 @@ export interface FocusMetrics {
     sessions: number;
     completed: number;
     per_day: number;
-    streak: number;
     goal_minutes: number;
     goal_days: number;
     best_hour: number | null;

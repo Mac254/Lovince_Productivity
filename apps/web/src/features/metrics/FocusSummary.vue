@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FocusMetrics } from '@focus/types';
-import { streakLabel } from '@/features/clock/focusSummary';
 import { formatMinutes } from '@/lib/dates';
 
 const props = defineProps<{ focus: FocusMetrics; days: number }>();
@@ -28,7 +27,6 @@ const stats = computed(() => [
         value: formatMinutes(props.focus.per_day) || '0m',
         hint: `${props.focus.completed} of ${props.focus.sessions} ran to the end`,
     },
-    { label: 'Focus streak', value: String(props.focus.streak), hint: streakLabel(props.focus.streak) },
     {
         label: 'Goal met',
         value: props.focus.goal_minutes ? `${props.focus.goal_days}/${props.days}` : '—',
@@ -45,7 +43,7 @@ function hourLabel(hour: number): string {
 
 <template>
     <div class="flex flex-col gap-6">
-        <dl class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <dl class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div v-for="stat in stats" :key="stat.label" class="flex flex-col gap-1">
                 <dt class="text-label text-fg-muted">{{ stat.label }}</dt>
                 <dd class="font-display text-heading font-semibold tabular">{{ stat.value }}</dd>

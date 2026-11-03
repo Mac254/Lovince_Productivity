@@ -2,7 +2,7 @@
 import { api, errorMessage } from '@focus/api-client';
 import type { FocusSession } from '@focus/types';
 import { useAsync } from '@/composables/useAsync';
-import { goalProgress, streakLabel } from '@/features/clock/focusSummary';
+import { goalProgress } from '@/features/clock/focusSummary';
 import { formatMinutes, parseDate, todayIso } from '@/lib/dates';
 
 const open = defineModel<boolean>('open', { required: true });
@@ -92,7 +92,7 @@ watch(
                     Last 7 days
                 </h2>
                 <p class="text-label tabular text-chrome-fg-muted">
-                    {{ total(weekMinutes) }} · {{ activeDays }}/7 days · {{ streakLabel(meta?.streak ?? 0) }}
+                    {{ total(weekMinutes) }} · {{ activeDays }}/7 days
                 </p>
             </div>
             <ol class="grid h-28 grid-cols-7 items-end gap-2">

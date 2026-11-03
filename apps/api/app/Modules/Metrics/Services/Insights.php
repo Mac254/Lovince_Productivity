@@ -23,7 +23,7 @@ class Insights
             $this->pace($totals['completed'], $totals['completed_previous'], $days),
             $this->onTime($totals['on_time_rate'], $totals['on_time_sample']),
             $this->estimates($totals['estimate_accuracy'], $totals['estimated_tasks']),
-            $this->streak($focus['streak']),
+            $this->streak($metrics['consistency']['current']),
             $this->bestHour($focus['best_hour'], $focus['sessions']),
             $this->bestWeekday($metrics['daily'], $totals['completed']),
             $this->topCategory($metrics['by_category'], $totals['completed']),
@@ -83,7 +83,7 @@ class Insights
 
     private function streak(int $streak): ?array
     {
-        return $streak >= 3 ? $this->insight('streak', 'positive', "{$streak}-day focus streak. Keep it going.") : null;
+        return $streak >= 3 ? $this->insight('streak', 'positive', "{$streak}-day streak. Keep it going.") : null;
     }
 
     private function bestHour(?int $hour, int $sessions): ?array

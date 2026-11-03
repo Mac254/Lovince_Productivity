@@ -32,7 +32,6 @@ export interface FocusToday {
     minutes: number;
     sessions: number;
     goal_minutes: number;
-    streak: number;
 }
 
 export interface IntegrationSummary {

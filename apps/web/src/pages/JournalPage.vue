@@ -28,7 +28,6 @@ let autosave: number | undefined;
 
 const month = ref(monthOf(date.value));
 const previews = ref<Record<string, string>>({});
-const recent = ref<Set<string>>(new Set());
 const results = ref<JournalEntry[]>([]);
 const search = ref('');
 const monthEntries = computed(() =>
@@ -46,17 +45,6 @@ const views = [
     { value: 'write' as const, label: 'Write' },
     { value: 'preview' as const, label: 'Preview' },
 ];
-
-/** Consecutive days with an entry, ending today (or yesterday, while today is still blank). */
-const streak = computed(() => {
-    let day = recent.value.has(todayIso()) ? todayIso() : shiftDate(todayIso(), -1);
-    let count = 0;
-    while (recent.value.has(day)) {
-        count++;
-        day = shiftDate(day, -1);
-    }
-    return count;
-});
 
 async function loadDay(): Promise<void> {
     status.value = 'loading';
@@ -94,13 +82,6 @@ async function loadMonth(): Promise<void> {
     }
 }
 
-async function loadRecent(): Promise<void> {
-    const { data } = await api.journal
-        .list({ from: shiftDate(todayIso(), -62), to: todayIso() })
-        .catch(() => ({ data: [] as JournalEntry[] }));
-    recent.value = new Set(data.map((entry) => entry.date));
-}
-
 async function searchEntries(): Promise<void> {
     if (!search.value.trim()) {
         results.value = [];
@@ -122,16 +103,9 @@ async function save(): Promise<void> {
         savedAt.value = entry?.updated_at ?? null;
         status.value = 'saved';
         const next = { ...previews.value };
-        const days = new Set(recent.value);
-        if (text.trim()) {
-            next[date.value] = text;
-            days.add(date.value);
-        } else {
-            delete next[date.value];
-            days.delete(date.value);
-        }
+        if (text.trim()) next[date.value] = text;
+        else delete next[date.value];
         previews.value = next;
-        recent.value = days;
     } catch (e) {
         status.value = 'error';
         toast.error(errorMessage(e, 'Could not save your entry.'));
@@ -183,7 +157,6 @@ onMounted(() => {
     void loadDay();
     void loadContext();
     void loadMonth();
-    void loadRecent();
 });
 onBeforeUnmount(() => {
     window.clearTimeout(autosave);
@@ -286,20 +259,6 @@ onBeforeUnmount(() => {
                     </div>
 
                     <JournalCalendar v-model:month="month" compact :selected="date" :previews="previews" @select="go" />
-
-                    <div
-                        class="flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2"
-                        :aria-label="`Writing streak: ${streak} ${streak === 1 ? 'day' : 'days'}`"
-                        role="status"
-                    >
-                        <Icon name="flame" :class="streak ? 'text-highlight-fg' : 'text-fg-subtle'" />
-                        <Text as="span" role="label" weight="semibold" tabular
-                            >{{ streak >= 63 ? '63+' : streak }}-day streak</Text
-                        >
-                        <Text as="span" role="caption" tone="muted" class="ml-auto">
-                            {{ streak ? 'Keep it going' : 'Write today to start one' }}
-                        </Text>
-                    </div>
                 </Card>
 
                 <Card as="section" aria-labelledby="entries-heading" class="gap-4">

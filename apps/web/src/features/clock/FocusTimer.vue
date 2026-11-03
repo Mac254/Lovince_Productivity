@@ -20,8 +20,7 @@ const todayLine = computed(() => {
     if (!today) return 'Focus time today';
     const time = formatMinutes(today.minutes) || '0m';
     const goal = today.goal_minutes ? ` of ${formatMinutes(today.goal_minutes)}` : '';
-    const streak = today.streak > 1 ? ` · ${today.streak}-day streak` : '';
-    return `${time}${goal} today${streak}`;
+    return `${time}${goal} today`;
 });
 
 const statusLine = computed(() => {

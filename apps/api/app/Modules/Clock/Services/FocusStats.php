@@ -10,8 +10,6 @@ use Illuminate\Support\Collection;
 
 class FocusStats
 {
-    private const STREAK_LOOKBACK_DAYS = 366;
-
     public function __construct(private readonly SettingsRegistry $settings) {}
 
     public function goalMinutes(User $user): int
@@ -51,31 +49,8 @@ class FocusStats
             ->all();
     }
 
-    public function streak(User $user, ?Carbon $today = null): int
-    {
-        $today ??= today();
-        $days = array_flip(
-            FocusSession::query()
-                ->whereBelongsTo($user)
-                ->whereDate('started_on', '>=', $today->copy()->subDays(self::STREAK_LOOKBACK_DAYS)->toDateString())
-                ->pluck('started_on')
-                ->map(fn ($date) => Carbon::parse($date)->toDateString())
-                ->unique()
-                ->all(),
-        );
-
-        $day = isset($days[$today->toDateString()]) ? $today->copy() : $today->copy()->subDay();
-        $streak = 0;
-        while (isset($days[$day->toDateString()])) {
-            $streak++;
-            $day->subDay();
-        }
-
-        return $streak;
-    }
-
     /**
-     * @return array{minutes: int, sessions: int, goal_minutes: int, streak: int}
+     * @return array{minutes: int, sessions: int, goal_minutes: int}
      */
     public function today(User $user): array
     {
@@ -85,7 +60,6 @@ class FocusStats
             'minutes' => self::minutes($sessions),
             'sessions' => $sessions->count(),
             'goal_minutes' => $this->goalMinutes($user),
-            'streak' => $this->streak($user),
         ];
     }
 }

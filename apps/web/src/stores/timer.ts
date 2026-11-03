@@ -228,7 +228,10 @@ export const useTimerStore = defineStore('timer', () => {
                 pending.value = pending.value.slice(1);
                 recorded.value++;
             }
-            if (sent) await loadToday();
+            if (sent) {
+                await loadToday();
+                void useDashboardStore().invalidate();
+            }
         } catch (error) {
             if (isApiError(error) && error.kind === 'validation') pending.value = pending.value.slice(1);
         } finally {
@@ -243,7 +246,6 @@ export const useTimerStore = defineStore('timer', () => {
                 minutes: meta.minutes,
                 sessions: meta.count,
                 goal_minutes: meta.goal_minutes,
-                streak: meta.streak,
             };
         } catch {
             today.value ??= null;

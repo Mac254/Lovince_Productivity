@@ -227,7 +227,6 @@ class MetricsService
             'sessions' => $sessions->count(),
             'completed' => $sessions->where('completed', true)->count(),
             'per_day' => (int) round($minutes / $days),
-            'streak' => $this->focus->streak($user),
             'goal_minutes' => $goal,
             'goal_days' => $goal > 0 ? count(array_filter($byDay, fn (int $m) => $m >= $goal)) : 0,
             'best_hour' => max($byHour) > 0 ? array_search(max($byHour), $byHour, true) : null,
