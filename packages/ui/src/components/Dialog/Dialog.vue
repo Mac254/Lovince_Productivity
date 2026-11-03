@@ -8,6 +8,8 @@ import {
     LvDialogRoot,
     LvDialogTitle,
 } from '@lovince/ui-vue';
+import { useTemplateRef } from 'vue';
+import { provideLayer } from '../../composables/useLayer';
 import IconButton from '../IconButton/IconButton.vue';
 
 /**
@@ -19,6 +21,7 @@ withDefaults(
     { size: 'md' },
 );
 const open = defineModel<boolean>('open', { required: true });
+provideLayer(useTemplateRef<HTMLElement>('layer'));
 </script>
 
 <template>
@@ -50,6 +53,7 @@ const open = defineModel<boolean>('open', { required: true });
                         <slot name="footer" />
                     </footer>
                 </div>
+                <div ref="layer" />
             </LvDialogContent>
         </LvDialogPortal>
     </LvDialogRoot>

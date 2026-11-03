@@ -7,6 +7,7 @@ import {
     LvDropdownMenuTrigger,
 } from '@lovince/ui-vue';
 import { ref } from 'vue';
+import { useLayer } from '../../composables/useLayer';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
 import { buttonVariants, controlSquares, interactive, type ButtonSize } from '../Button/variants';
@@ -28,6 +29,7 @@ withDefaults(
 );
 
 const open = ref(false);
+const layer = useLayer();
 </script>
 
 <template>
@@ -41,7 +43,7 @@ const open = ref(false);
                 <Icon :name="icon" />
             </slot>
         </LvDropdownMenuTrigger>
-        <LvDropdownMenuPortal>
+        <LvDropdownMenuPortal :to="layer">
             <LvDropdownMenuContent
                 align="end"
                 :side-offset="8"

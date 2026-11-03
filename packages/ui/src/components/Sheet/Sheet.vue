@@ -7,12 +7,15 @@ import {
     LvDialogRoot,
     LvDialogTitle,
 } from '@lovince/ui-vue';
+import { useTemplateRef } from 'vue';
+import { provideLayer } from '../../composables/useLayer';
 import IconButton from '../IconButton/IconButton.vue';
 
 withDefaults(defineProps<{ title: string; description?: string; tone?: 'surface' | 'chrome' }>(), {
     tone: 'surface',
 });
 const open = defineModel<boolean>('open', { required: true });
+provideLayer(useTemplateRef<HTMLElement>('layer'));
 </script>
 
 <template>
@@ -55,6 +58,7 @@ const open = defineModel<boolean>('open', { required: true });
                 <div class="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
                     <slot />
                 </div>
+                <div ref="layer" />
             </LvDialogContent>
         </LvDialogPortal>
     </LvDialogRoot>

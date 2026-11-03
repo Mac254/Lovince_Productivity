@@ -12,6 +12,7 @@ import {
     LvPopoverTrigger,
 } from '@lovince/ui-vue';
 import { computed, ref } from 'vue';
+import { useLayer } from '../../composables/useLayer';
 import Icon from '../../primitives/Icon/Icon.vue';
 
 export interface FacetOption<V> {
@@ -28,6 +29,7 @@ const props = defineProps<{ label: string; options: FacetOption<T>[] }>();
 const model = defineModel<T | ''>({ default: '' });
 
 const open = ref(false);
+const layer = useLayer();
 const active = computed(() => props.options.find((option) => option.value === model.value));
 
 function choose(option: FacetOption<T>): void {
@@ -61,7 +63,7 @@ function clear(): void {
                 }}</span>
             </template>
         </LvPopoverTrigger>
-        <LvPopoverPortal>
+        <LvPopoverPortal :to="layer">
             <LvPopoverContent
                 align="start"
                 :side-offset="8"

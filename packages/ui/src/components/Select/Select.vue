@@ -10,6 +10,7 @@ import {
     LvSelectValue,
 } from '@lovince/ui-vue';
 import { computed } from 'vue';
+import { useLayer } from '../../composables/useLayer';
 import Icon from '../../primitives/Icon/Icon.vue';
 import Field from '../Field/Field.vue';
 import { controlClasses, type ControlSurface } from '../Field/controlClasses';
@@ -30,6 +31,7 @@ const props = defineProps<{
     surface?: ControlSurface;
 }>();
 const model = defineModel<T | '' | null>({ default: '' });
+const layer = useLayer();
 
 /**
  * Lovince select values are non-empty strings, while options here may be numbers or the empty
@@ -73,7 +75,7 @@ function choose(key: string | string[]): void {
                     class="text-fg-muted transition-transform duration-(--duration-fast) group-state-open:rotate-180"
                 />
             </LvSelectTrigger>
-            <LvSelectPortal>
+            <LvSelectPortal :to="layer">
                 <LvSelectContent
                     :side-offset="8"
                     class="select-menu z-(--z-popover) max-h-(--lovince-floating-available-height) w-(--lovince-anchor-width) min-w-48 overflow-y-auto rounded-md border border-border bg-surface-raised p-1 text-fg shadow-floating focus-visible:outline-none"
