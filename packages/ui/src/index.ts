@@ -69,9 +69,9 @@ export { default as ErrorState } from './patterns/ErrorState/ErrorState.vue';
 export { default as ConfirmDialog } from './patterns/ConfirmDialog/ConfirmDialog.vue';
 export { default as PageHeader } from './patterns/PageHeader/PageHeader.vue';
 export { default as Section } from './patterns/Section/Section.vue';
-export { default as SectionHeader } from './patterns/SectionHeader/SectionHeader.vue';
 export { default as Timeline } from './patterns/Timeline/Timeline.vue';
 export { default as TimelineItem } from './patterns/Timeline/TimelineItem.vue';
+export { default as SectionHeader } from './patterns/SectionHeader/SectionHeader.vue';
 export { default as SearchField } from './patterns/SearchField/SearchField.vue';
 export { default as FacetFilter, type FacetOption } from './patterns/FacetFilter/FacetFilter.vue';
 
