@@ -154,6 +154,32 @@ export const accentRamps = {
         900: '#00424d',
         950: '#00222a',
     },
+    indigo: {
+        50: '#eef0ff',
+        100: '#e0e4ff',
+        200: '#c7cdfe',
+        300: '#a5aefc',
+        400: '#8590f9',
+        500: '#6670f0',
+        600: '#4f55dc',
+        700: '#4044b8',
+        800: '#353a92',
+        900: '#2d3173',
+        950: '#1b1d44',
+    },
+    graphite: {
+        50: '#f4f6f8',
+        100: '#e7ebf0',
+        200: '#d0d7e0',
+        300: '#b2bdcb',
+        400: '#94a3b6',
+        500: '#73839a',
+        600: '#5a697f',
+        700: '#485567',
+        800: '#3a4453',
+        900: '#2b333e',
+        950: '#181d24',
+    },
 } as const satisfies Record<string, Record<keyof typeof ramps.green, string>>;
 
 export type AccentName = keyof typeof accentRamps;

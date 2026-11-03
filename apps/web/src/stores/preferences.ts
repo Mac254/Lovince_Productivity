@@ -23,6 +23,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
         accent: settings.bind('appearance', 'accent'),
         corners: settings.bind('appearance', 'corners'),
         textSize: settings.bind('appearance', 'text_size'),
+        font: settings.bind('appearance', 'font'),
         reduceMotion: settings.bind('appearance', 'reduce_motion'),
         startPage: settings.bind('general', 'start_page'),
         showQuotes: settings.bind('general', 'show_quotes'),
@@ -41,6 +42,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
         root.dataset.accent = prefs.accent;
         root.dataset.corners = prefs.corners;
         root.dataset.textSize = prefs.textSize;
+        root.dataset.font = prefs.font;
         if (prefs.reduceMotion) root.dataset.motion = 'reduce';
         else delete root.dataset.motion;
         const canvas = getComputedStyle(root).getPropertyValue('--canvas').trim();

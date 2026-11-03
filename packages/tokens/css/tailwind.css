@@ -15,6 +15,8 @@
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Outfit Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-serif: 'Source Serif 4 Variable', ui-serif, Georgia, Cambria, serif;
+    --font-hand: 'Caveat Variable', 'Segoe Print', 'Bradley Hand', cursive;
     --text-caption: 0.75rem;
     --text-caption--line-height: 1rem;
     --text-label: 0.875rem;

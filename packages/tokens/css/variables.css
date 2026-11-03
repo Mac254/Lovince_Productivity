@@ -242,6 +242,8 @@
     --swatch-amber: #ffbf1f;
     --swatch-rose: #ff6b87;
     --swatch-cyan: #1fd6f0;
+    --swatch-indigo: #8590f9;
+    --swatch-graphite: #94a3b6;
 }
 
 :root[data-accent='blue'] {
@@ -314,6 +316,34 @@
     --focus-green-950: #00222a;
 }
 
+:root[data-accent='indigo'] {
+    --focus-green-50: #eef0ff;
+    --focus-green-100: #e0e4ff;
+    --focus-green-200: #c7cdfe;
+    --focus-green-300: #a5aefc;
+    --focus-green-400: #8590f9;
+    --focus-green-500: #6670f0;
+    --focus-green-600: #4f55dc;
+    --focus-green-700: #4044b8;
+    --focus-green-800: #353a92;
+    --focus-green-900: #2d3173;
+    --focus-green-950: #1b1d44;
+}
+
+:root[data-accent='graphite'] {
+    --focus-green-50: #f4f6f8;
+    --focus-green-100: #e7ebf0;
+    --focus-green-200: #d0d7e0;
+    --focus-green-300: #b2bdcb;
+    --focus-green-400: #94a3b6;
+    --focus-green-500: #73839a;
+    --focus-green-600: #5a697f;
+    --focus-green-700: #485567;
+    --focus-green-800: #3a4453;
+    --focus-green-900: #2b333e;
+    --focus-green-950: #181d24;
+}
+
 :root[data-corners='sharp'] {
     --radius-sm: 0.25rem;
     --radius-md: 0.375rem;
@@ -336,4 +366,39 @@
 
 :root[data-text-size='larger'] {
     font-size: 112.5%;
+}
+
+[data-font='focus'] {
+    --font-display: 'Outfit Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='editorial'] {
+    --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='modern'] {
+    --font-display: 'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='studio'] {
+    --font-display: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='classic'] {
+    --font-display: 'Source Serif 4 Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Source Sans 3 Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='friendly'] {
+    --font-display: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='system'] {
+    --font-display: system-ui, -apple-system, 'Segoe UI', Roboto, ui-sans-serif, sans-serif;
+    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, ui-sans-serif, sans-serif;
 }

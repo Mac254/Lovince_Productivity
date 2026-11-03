@@ -3,7 +3,32 @@ export const fontFamily = {
     display: "'Outfit Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif",
     /* Code-like surfaces: the journal editor and its status bar. */
     mono: "'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace",
+    serif: "'Source Serif 4 Variable', ui-serif, Georgia, Cambria, serif",
+    hand: "'Caveat Variable', 'Segoe Print', 'Bradley Hand', cursive",
 } as const;
+
+const families = {
+    fraunces: "'Fraunces Variable', ui-serif, Georgia, serif",
+    grotesk: "'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif",
+    dmSans: "'DM Sans Variable', ui-sans-serif, system-ui, sans-serif",
+    jakarta: "'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif",
+    nunito: "'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif",
+    sourceSans: "'Source Sans 3 Variable', ui-sans-serif, system-ui, sans-serif",
+    system: "system-ui, -apple-system, 'Segoe UI', Roboto, ui-sans-serif, sans-serif",
+} as const;
+
+/** Heading and body typeface pairs, applied as `data-font` on the root. */
+export const fontPairings = {
+    focus: { display: fontFamily.display, sans: fontFamily.sans },
+    editorial: { display: families.fraunces, sans: fontFamily.sans },
+    modern: { display: families.grotesk, sans: families.dmSans },
+    studio: { display: families.jakarta, sans: families.jakarta },
+    classic: { display: fontFamily.serif, sans: families.sourceSans },
+    friendly: { display: families.nunito, sans: families.nunito },
+    system: { display: families.system, sans: families.system },
+} as const;
+
+export type FontPairing = keyof typeof fontPairings;
 
 /** Weight 500 is the floor in this system; only these weights are used. */
 export const fontWeight = {

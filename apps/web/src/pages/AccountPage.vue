@@ -2,10 +2,13 @@
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { IconName, TabItem } from '@focus/ui';
 import type { BackupImportResult } from '@focus/types';
-import { LIMITS } from '@focus/types';
+import { LIMITS, type Settings } from '@focus/types';
+import { useAsync } from '@/composables/useAsync';
 import { useClockPrefs } from '@/features/clock/wallpapers';
 import { formatDate, todayIso } from '@/lib/dates';
 import type { StartPage, ThemeChoice } from '@/stores/preferences';
+
+type FontPairing = Settings['appearance']['font'];
 
 type SettingsTab = 'account' | 'preferences' | 'features' | 'data';
 
@@ -28,7 +31,7 @@ const themeOptions: { value: ThemeChoice; label: string; icon: IconName }[] = [
     { value: 'light', label: 'Light', icon: 'sun' },
     { value: 'system', label: 'System', icon: 'monitor' },
 ];
-const accentOptions = (['green', 'blue', 'violet', 'amber', 'rose', 'cyan'] as const).map((value) => ({
+const accentOptions = (['green', 'blue', 'indigo', 'violet', 'rose', 'amber', 'cyan', 'graphite'] as const).map((value) => ({
     value,
     label: value[0]!.toUpperCase() + value.slice(1),
     color: `var(--swatch-${value})`,
@@ -38,6 +41,14 @@ const cornerOptions = [
     { value: 'soft' as const, label: 'Soft' },
     { value: 'round' as const, label: 'Round' },
 ];
+const descriptions = useAsync(() => api.settings.get());
+const fontOptions = computed(() => {
+    const setting = descriptions.data.value?.modules
+        .find((module) => module.key === 'appearance')
+        ?.settings.find((item) => item.key === 'font');
+    return (setting?.options ?? []).map((option) => ({ value: option.value as FontPairing, label: option.label }));
+});
+onMounted(() => void descriptions.run());
 const textSizeOptions = [
     { value: 'small' as const, label: 'Small' },
     { value: 'default' as const, label: 'Default' },
@@ -390,6 +401,22 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                             :options="cornerOptions"
                         />
                     </SettingRow>
+                    <RadioGroup
+                        v-if="fontOptions.length"
+                        v-model="preferences.prefs.font"
+                        label="Typeface"
+                        description="A heading and body pairing used across the app."
+                        :options="fontOptions"
+                        layout="cards"
+                        class="py-4"
+                    >
+                        <template #option="{ option }">
+                            <span :data-font="option.value" class="flex w-full flex-col gap-1 text-fg">
+                                <span class="font-display text-heading font-semibold tracking-tight">Aa</span>
+                                <span class="font-sans text-label font-medium text-fg-muted">Plan the day, finish the work.</span>
+                            </span>
+                        </template>
+                    </RadioGroup>
                     <SettingRow label="Text size" description="Scales text and spacing across the app.">
                         <SegmentedControl
                             v-model="preferences.prefs.textSize"

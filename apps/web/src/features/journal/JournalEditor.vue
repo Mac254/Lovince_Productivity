@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '@focus/types';
+import { LIMITS, type Settings } from '@focus/types';
 import { caretPosition, continueList, indentList, type Edit } from '@/lib/textEditing';
 
 /**
@@ -10,7 +10,16 @@ import { caretPosition, continueList, indentList, type Edit } from '@/lib/textEd
 const props = defineProps<{ label: string; disabled?: boolean; saveState: string }>();
 const emit = defineEmits<{ save: []; previous: []; next: [] }>();
 const body = defineModel<string>({ required: true });
-const font = defineModel<'mono' | 'sans'>('font', { required: true });
+const font = defineModel<Settings['journal']['font']>('font', { required: true });
+
+const fonts = {
+    mono: { label: 'Mono', name: 'monospace', class: 'font-mono text-label' },
+    sans: { label: 'Sans', name: 'sans serif', class: 'font-sans text-body' },
+    serif: { label: 'Serif', name: 'serif', class: 'font-serif text-lead' },
+    hand: { label: 'Hand', name: 'handwriting', class: 'font-hand text-title' },
+} as const;
+const fontOrder = Object.keys(fonts) as (keyof typeof fonts)[];
+const nextFont = computed(() => fontOrder[(fontOrder.indexOf(font.value) + 1) % fontOrder.length]!);
 
 const editor = ref<{ $el: HTMLTextAreaElement } | null>(null);
 const textarea = computed(() => editor.value?.$el ?? null);
@@ -96,7 +105,7 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
             placeholder="## Done&#10;- &#10;&#10;## Learned&#10;- &#10;&#10;## Next&#10;- "
             :class="[
                 'editor min-h-96 w-full flex-1 resize-y bg-transparent px-6 py-6 text-fg placeholder:text-fg-subtle focus-visible:outline-none',
-                font === 'mono' ? 'font-mono text-label' : 'text-body',
+                fonts[font].class,
             ]"
             @keydown="onKeydown"
             @keyup="trackCaret"
@@ -119,10 +128,10 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
                 <Pressable
                     type="button"
                     class="rounded-sm underline-offset-4 hover:text-fg hover:underline"
-                    :aria-label="`Writing font: ${font === 'mono' ? 'monospace' : 'sans serif'}. Switch font`"
-                    @click="font = font === 'mono' ? 'sans' : 'mono'"
+                    :aria-label="`Writing font: ${fonts[font].name}. Switch to ${fonts[nextFont].name}`"
+                    @click="font = nextFont"
                 >
-                    {{ font === 'mono' ? 'Mono' : 'Sans' }}
+                    {{ fonts[font].label }}
                 </Pressable>
                 <span class="max-sm:hidden">Markdown</span>
                 <span aria-live="polite">{{ saveState }}</span>

@@ -127,6 +127,7 @@ describe('settings', () => {
             accent: 'green',
             corners: 'round',
             textSize: 'default',
+            font: 'focus',
             startPage: 'dashboard',
             reduceMotion: false,
             showQuotes: true,
