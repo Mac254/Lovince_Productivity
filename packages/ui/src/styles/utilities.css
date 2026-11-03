@@ -50,6 +50,38 @@
         animation: icon-enter var(--duration-slower) var(--ease-out) both;
     }
 
+    /*
+     * Rows in a TransitionGroup named "list": new rows rise in, a leaving row fades out of flow, and the rest glide into its place.
+     * The list needs `relative` so the leaving row keeps its width.
+     */
+    .list-move {
+        transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .list-enter-active {
+        transition:
+            opacity var(--duration-slow) var(--ease-out),
+            translate var(--duration-slow) var(--ease-out);
+    }
+
+    .list-leave-active {
+        position: absolute;
+        inset-inline: 0;
+        transition:
+            opacity var(--duration-fast) var(--ease-in),
+            scale var(--duration-fast) var(--ease-in);
+    }
+
+    .list-enter-from {
+        opacity: 0;
+        translate: 0 calc(var(--spacing) * 2);
+    }
+
+    .list-leave-to {
+        opacity: 0;
+        scale: 0.98;
+    }
+
     @keyframes icon-wiggle {
         0%,
         100% {

@@ -76,6 +76,12 @@ const focusTasks = computed<Task[]>(() => {
 });
 
 const day = computed(() => (stats.value ? dayProgress(stats.value) : null));
+const dayPercent = useAnimatedNumber(() => day.value?.percent ?? 0);
+const integration = {
+    developed: useAnimatedNumber(() => data.value?.integration.development_completed ?? 0),
+    pending: useAnimatedNumber(() => data.value?.integration.integration_pending.length ?? 0),
+    integrated: useAnimatedNumber(() => data.value?.integration.integration_completed ?? 0),
+};
 
 const content = ref<HTMLElement | null>(null);
 useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboard.data });
@@ -169,7 +175,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     <div class="mb-3 flex flex-wrap gap-2">
                         <FacetFilter v-model="focusFacet" label="Show" :options="withoutAll(focusOptions)" />
                     </div>
-                    <ul v-if="focusTasks.length" class="-mx-2 flex flex-col">
+                    <TransitionGroup v-if="focusTasks.length" tag="ul" name="list" class="relative -mx-2 flex flex-col">
                         <TaskRow
                             v-for="task in focusTasks"
                             :key="task.id"
@@ -177,7 +183,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                             @toggle="actions.toggleComplete"
                             @star="actions.toggleHighlight"
                         />
-                    </ul>
+                    </TransitionGroup>
                     <EmptyState
                         v-else
                         icon="checklist"
@@ -191,7 +197,10 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                 <div class="flex flex-col gap-6">
                     <Card as="section" data-stagger aria-labelledby="progress-heading" class="group gap-3">
                         <CardHeader title="Today’s progress" title-id="progress-heading" icon="flame" />
-                        <span class="font-display text-display-sm font-semibold tabular">{{ day.percent }}%</span>
+                        <p class="font-display text-display-sm font-semibold tabular">
+                            <span aria-hidden="true">{{ dayPercent }}%</span>
+                            <span class="sr-only">{{ day.percent }}%</span>
+                        </p>
                         <PlanProgress :day="day" />
                         <Text v-if="data.planned_tasks[0]" role="label" tone="muted" truncate
                             >Next: {{ data.planned_tasks[0].title }}</Text
@@ -209,7 +218,12 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                         icon="star"
                         subtitle="Tasks you starred"
                     />
-                    <ul v-if="data.highlighted_tasks.length" class="-mx-2 flex flex-col">
+                    <TransitionGroup
+                        v-if="data.highlighted_tasks.length"
+                        tag="ul"
+                        name="list"
+                        class="relative -mx-2 flex flex-col"
+                    >
                         <TaskRow
                             v-for="task in data.highlighted_tasks"
                             :key="task.id"
@@ -217,7 +231,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                             @toggle="actions.toggleComplete"
                             @star="actions.toggleHighlight"
                         />
-                    </ul>
+                    </TransitionGroup>
                     <Text v-else role="label" tone="muted" class="py-4">Star a task to keep it here.</Text>
                 </Card>
                 <TaskListPanel
@@ -289,19 +303,22 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                         <dl class="mb-4 grid grid-cols-3 gap-2 text-center">
                             <div class="flex flex-col gap-1 rounded-md bg-surface-raised px-2 py-3">
                                 <dd class="font-display text-heading font-semibold tabular">
-                                    {{ data.integration.development_completed }}
+                                    <span aria-hidden="true">{{ integration.developed }}</span>
+                                    <span class="sr-only">{{ data.integration.development_completed }}</span>
                                 </dd>
                                 <Text as="dt" role="caption" tone="muted">Dev done</Text>
                             </div>
                             <div class="flex flex-col gap-1 rounded-md bg-highlight px-2 py-3 text-highlight-ink">
                                 <dd class="font-display text-heading font-semibold tabular">
-                                    {{ data.integration.integration_pending.length }}
+                                    <span aria-hidden="true">{{ integration.pending }}</span>
+                                    <span class="sr-only">{{ data.integration.integration_pending.length }}</span>
                                 </dd>
                                 <dt class="text-caption">To integrate</dt>
                             </div>
                             <div class="flex flex-col gap-1 rounded-md bg-surface-raised px-2 py-3">
                                 <dd class="font-display text-heading font-semibold tabular">
-                                    {{ data.integration.integration_completed }}
+                                    <span aria-hidden="true">{{ integration.integrated }}</span>
+                                    <span class="sr-only">{{ data.integration.integration_completed }}</span>
                                 </dd>
                                 <Text as="dt" role="caption" tone="muted">Integrated</Text>
                             </div>

@@ -25,7 +25,7 @@ function activity(task: Task): string {
             <slot name="actions" />
         </CardHeader>
         <slot name="lead" />
-        <ul v-if="tasks.length" class="-mx-2 flex flex-col">
+        <TransitionGroup v-if="tasks.length" tag="ul" name="list" class="relative -mx-2 flex flex-col">
             <li v-for="task in tasks" :key="task.id">
                 <RouterLink
                     :to="{ name: 'task-detail', params: { id: task.id } }"
@@ -55,7 +55,7 @@ function activity(task: Task): string {
                     </Text>
                 </RouterLink>
             </li>
-        </ul>
+        </TransitionGroup>
         <Text v-else role="label" tone="muted" class="py-4">{{ empty }}</Text>
     </Card>
 </template>

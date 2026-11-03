@@ -6,6 +6,8 @@ const props = defineProps<{ day: DayProgress }>();
 
 const share = (count: number) => (props.day.total ? (count / props.day.total) * 100 : 0);
 const toDo = computed(() => props.day.remaining - props.day.worked);
+const filled = ref(false);
+onMounted(() => requestAnimationFrame(() => requestAnimationFrame(() => (filled.value = true))));
 </script>
 
 <template>
@@ -19,8 +21,8 @@ const toDo = computed(() => props.day.remaining - props.day.worked);
             :aria-valuetext="`${day.percent}%, ${dayProgressLabel(day)}`"
             class="flex h-2 w-full overflow-hidden rounded-full bg-border"
         >
-            <div class="segment h-full bg-highlight" :style="{ width: `${share(day.done)}%` }" />
-            <div class="segment worked h-full" :style="{ width: `${share(day.worked / 2)}%` }" />
+            <div class="segment h-full bg-highlight" :style="{ width: `${filled ? share(day.done) : 0}%` }" />
+            <div class="segment worked h-full" :style="{ width: `${filled ? share(day.worked / 2) : 0}%` }" />
         </div>
         <ul v-if="day.total" class="flex flex-wrap gap-x-4 gap-y-1 text-caption text-fg-muted" aria-hidden="true">
             <li class="flex items-center gap-2">
