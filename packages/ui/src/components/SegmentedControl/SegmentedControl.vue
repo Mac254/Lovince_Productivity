@@ -4,6 +4,7 @@ import { LvSegmentedControlItem, LvSegmentedControlRoot } from '@lovince/ui-vue'
 import { ref } from 'vue';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
+import Tooltip from '../Tooltip/Tooltip.vue';
 
 withDefaults(
     defineProps<{
@@ -37,24 +38,23 @@ function choose(value: string): void {
             class="relative flex gap-1"
             @update:model-value="choose"
         >
-            <LvSegmentedControlItem
-                v-for="option in options"
-                :key="option.value"
-                :value="option.value"
-                :aria-label="iconOnly ? option.label : undefined"
-                :title="iconOnly ? option.label : undefined"
-                data-liquid-item
-                :class="[
-                    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-semibold text-fg-muted transition-colors duration-(--duration-fast) hover:text-fg',
-                    'focus-visible:outline-2 focus-visible:outline-focus-ring',
-                    'aria-checked:text-highlight-ink',
-                    size === 'sm' ? 'h-8 text-caption' : 'h-(--control-sm) text-label',
-                    iconOnly ? (size === 'sm' ? 'w-8' : 'w-(--control-sm)') : 'px-4',
-                ]"
-            >
-                <Icon v-if="option.icon" :name="option.icon" size="sm" />
-                <span v-if="!iconOnly">{{ option.label }}</span>
-            </LvSegmentedControlItem>
+            <Tooltip v-for="option in options" :key="option.value" :label="option.label" :disabled="!iconOnly">
+                <LvSegmentedControlItem
+                    :value="option.value"
+                    :aria-label="iconOnly ? option.label : undefined"
+                    data-liquid-item
+                    :class="[
+                        'inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-semibold text-fg-muted transition-colors duration-(--duration-fast) hover:text-fg',
+                        'focus-visible:outline-2 focus-visible:outline-focus-ring',
+                        'aria-checked:text-highlight-ink',
+                        size === 'sm' ? 'h-8 text-caption' : 'h-(--control-sm) text-label',
+                        iconOnly ? (size === 'sm' ? 'w-8' : 'w-(--control-sm)') : 'px-4',
+                    ]"
+                >
+                    <Icon v-if="option.icon" :name="option.icon" size="sm" />
+                    <span v-if="!iconOnly">{{ option.label }}</span>
+                </LvSegmentedControlItem>
+            </Tooltip>
         </LvSegmentedControlRoot>
     </div>
 </template>

@@ -7,6 +7,7 @@ import {
     LvColorPickerSwatch,
 } from '@lovince/ui-vue';
 import { useId } from 'vue';
+import Tooltip from '../Tooltip/Tooltip.vue';
 
 /** Any colour from a saturation area, a hue slider and a hex field, with optional preset swatches. */
 defineProps<{ label: string; description?: string; presets?: { value: string; label: string }[] }>();
@@ -33,20 +34,19 @@ const labelId = useId();
                     class="h-(--control-sm) w-28 rounded-md border border-border-control bg-surface px-3 font-mono text-label uppercase focus-visible:outline-2 focus-visible:outline-focus-ring data-invalid:border-danger"
                 />
                 <div v-if="presets?.length" class="flex flex-wrap gap-2">
-                    <LvColorPickerSwatch
-                        v-for="preset in presets"
-                        :key="preset.value"
-                        :value="preset.value"
-                        :label="preset.label"
-                        :title="preset.label"
-                        :style="{ backgroundColor: preset.value }"
-                        :class="[
-                            'size-(--icon-lg) cursor-pointer rounded-full ring-offset-2 ring-offset-surface transition-shadow duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-focus-ring',
-                            preset.value.toLowerCase() === model.toLowerCase()
-                                ? 'ring-2 ring-fg'
-                                : 'hover:ring-2 hover:ring-border-strong',
-                        ]"
-                    />
+                    <Tooltip v-for="preset in presets" :key="preset.value" :label="preset.label">
+                        <LvColorPickerSwatch
+                            :value="preset.value"
+                            :label="preset.label"
+                            :style="{ backgroundColor: preset.value }"
+                            :class="[
+                                'size-(--icon-lg) cursor-pointer rounded-full ring-offset-2 ring-offset-surface transition-shadow duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-focus-ring',
+                                preset.value.toLowerCase() === model.toLowerCase()
+                                    ? 'ring-2 ring-fg'
+                                    : 'hover:ring-2 hover:ring-border-strong',
+                            ]"
+                        />
+                    </Tooltip>
                 </div>
             </div>
         </LvColorPickerRoot>

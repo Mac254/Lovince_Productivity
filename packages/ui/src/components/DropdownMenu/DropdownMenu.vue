@@ -10,6 +10,7 @@ import { ref } from 'vue';
 import { useLayer } from '../../composables/useLayer';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
+import Tooltip from '../Tooltip/Tooltip.vue';
 import { buttonVariants, controlSquares, interactive, type ButtonSize } from '../Button/variants';
 import type { MenuItem } from './types';
 
@@ -34,15 +35,16 @@ const layer = useLayer();
 
 <template>
     <LvDropdownMenuRoot v-model:open="open">
-        <LvDropdownMenuTrigger
-            :aria-label="label"
-            :title="label"
-            :class="[interactive, controlSquares[size], buttonVariants[triggerVariant], open && 'bg-surface']"
-        >
-            <slot name="trigger">
-                <Icon :name="icon" />
-            </slot>
-        </LvDropdownMenuTrigger>
+        <Tooltip :label="label" :disabled="open">
+            <LvDropdownMenuTrigger
+                :aria-label="label"
+                :class="[interactive, controlSquares[size], buttonVariants[triggerVariant], open && 'bg-surface']"
+            >
+                <slot name="trigger">
+                    <Icon :name="icon" />
+                </slot>
+            </LvDropdownMenuTrigger>
+        </Tooltip>
         <LvDropdownMenuPortal :to="layer">
             <LvDropdownMenuContent
                 align="end"

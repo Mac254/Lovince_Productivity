@@ -131,6 +131,7 @@ declare module 'vue' {
     Toolbar: typeof import('@focus/ui')['Toolbar']
     ToolbarButton: typeof import('@focus/ui')['ToolbarButton']
     ToolbarSeparator: typeof import('@focus/ui')['ToolbarSeparator']
+    Tooltip: typeof import('@focus/ui')['Tooltip']
     TypeBreakdownList: typeof import('./features/tasks/TypeBreakdownList.vue')['default']
     VisuallyHidden: typeof import('@focus/ui')['VisuallyHidden']
     WeeklyGoalsPanel: typeof import('./features/productivity/WeeklyGoalsPanel.vue')['default']

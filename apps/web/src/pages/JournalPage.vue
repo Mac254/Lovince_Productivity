@@ -208,7 +208,8 @@ onBeforeUnmount(() => {
                         <div class="flex min-w-0 items-center gap-1">
                             <IconButton
                                 icon="chevron-left"
-                                label="Previous day (Alt+←)"
+                                label="Previous day"
+                                shortcut="Alt+←"
                                 variant="ghost"
                                 size="sm"
                                 motion="nudge-back"
@@ -222,7 +223,8 @@ onBeforeUnmount(() => {
                             </div>
                             <IconButton
                                 icon="chevron-right"
-                                label="Next day (Alt+→)"
+                                label="Next day"
+                                shortcut="Alt+→"
                                 variant="ghost"
                                 size="sm"
                                 motion="nudge"

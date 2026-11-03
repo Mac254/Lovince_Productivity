@@ -133,31 +133,32 @@ function onQuickTaskSaved(): void {
                 </div>
                 <IconButton
                     icon="search"
-                    :label="`Quick add and commands (${shortcut})`"
+                    label="Quick add and commands"
+                    :shortcut="shortcut"
                     variant="ghost"
                     motion="pop"
                     @click="paletteOpen = true"
                 />
-                <RouterLink
-                    v-if="streak"
-                    :to="{ name: 'metrics', query: { tab: 'focus' } }"
-                    :aria-label="streakLabel"
-                    :title="streakLabel"
-                    :class="[
-                        'group inline-flex h-(--control-sm) items-center gap-1 rounded-full px-3 text-label font-bold tabular ring-1 transition-colors duration-(--duration-fast)',
-                        streak.active_today
-                            ? 'bg-highlight text-highlight-ink ring-transparent'
-                            : 'text-fg ring-border hover:ring-border-hover',
-                    ]"
-                >
-                    <Icon
-                        name="flame"
-                        size="sm"
-                        motion="pop"
-                        :class="!streak.active_today && streak.current && 'text-highlight-fg'"
-                    />
-                    <span aria-hidden="true">{{ streak.current }}</span>
-                </RouterLink>
+                <Tooltip v-if="streak" :label="streakLabel">
+                    <RouterLink
+                        :to="{ name: 'metrics', query: { tab: 'focus' } }"
+                        :aria-label="streakLabel"
+                        :class="[
+                            'group inline-flex h-(--control-sm) items-center gap-1 rounded-full px-3 text-label font-bold tabular ring-1 transition-colors duration-(--duration-fast)',
+                            streak.active_today
+                                ? 'bg-highlight text-highlight-ink ring-transparent'
+                                : 'text-fg ring-border hover:ring-border-hover',
+                        ]"
+                    >
+                        <Icon
+                            name="flame"
+                            size="sm"
+                            motion="pop"
+                            :class="!streak.active_today && streak.current && 'text-highlight-fg'"
+                        />
+                        <span aria-hidden="true">{{ streak.current }}</span>
+                    </RouterLink>
+                </Tooltip>
                 <SegmentedControl
                     v-model="preferences.prefs.theme"
                     label="Theme"

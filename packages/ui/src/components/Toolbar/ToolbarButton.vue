@@ -2,30 +2,28 @@
 import { LvToolbarButton } from '@lovince/ui-vue';
 import { ref } from 'vue';
 import type { IconName } from '../../icons/registry';
-import Icon from '../../primitives/Icon/Icon.vue';
-import { buttonVariants, controlSquares, interactive } from '../Button/variants';
-import Tooltip from '../Tooltip/Tooltip.vue';
+import IconButton from '../IconButton/IconButton.vue';
 
-/** An icon-only toolbar item. `label` is its accessible name and tooltip; `shortcut` shows beside it. */
+/** An icon-only toolbar item: an IconButton that joins the toolbar's arrow-key focus. */
 defineOptions({ inheritAttrs: false });
 defineProps<{ icon: IconName; label: string; shortcut?: string; disabled?: boolean }>();
 
-const button = ref<{ $el: HTMLElement } | null>(null);
+const button = ref<{ focus: () => void } | null>(null);
 
-defineExpose({ focus: () => button.value?.$el.focus() });
+defineExpose({ focus: () => button.value?.focus() });
 </script>
 
 <template>
-    <Tooltip :label="label" :shortcut="shortcut">
-        <LvToolbarButton
+    <LvToolbarButton as-child :disabled="disabled">
+        <IconButton
             ref="button"
             v-bind="$attrs"
+            :icon="icon"
+            :label="label"
+            :shortcut="shortcut"
+            variant="ghost"
+            size="sm"
             :disabled="disabled"
-            :aria-label="label"
-            :aria-keyshortcuts="shortcut?.replace(/Ctrl/g, 'Control')"
-            :class="[interactive, controlSquares.sm, buttonVariants.ghost]"
-        >
-            <Icon :name="icon" size="sm" motion="pop" />
-        </LvToolbarButton>
-    </Tooltip>
+        />
+    </LvToolbarButton>
 </template>
