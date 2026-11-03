@@ -47,6 +47,8 @@ declare module 'vue' {
     FocusHistory: typeof import('./features/clock/FocusHistory.vue')['default']
     FocusSummary: typeof import('./features/metrics/FocusSummary.vue')['default']
     FocusTimer: typeof import('./features/clock/FocusTimer.vue')['default']
+    FontPicker: typeof import('./features/settings/FontPicker.vue')['default']
+    FontSample: typeof import('./features/settings/FontSample.vue')['default']
     GoalCard: typeof import('./features/goals/GoalCard.vue')['default']
     GoalFormDialog: typeof import('./features/goals/GoalFormDialog.vue')['default']
     Heading: typeof import('@focus/ui')['Heading']

@@ -112,7 +112,7 @@ export interface Settings {
         theme: 'dark' | 'light' | 'system';
         accent: 'green' | 'blue' | 'violet' | 'amber' | 'rose' | 'cyan' | 'indigo' | 'graphite' | `#${string}`;
         corners: 'sharp' | 'soft' | 'round';
-        font: 'focus' | 'editorial' | 'modern' | 'studio' | 'classic' | 'friendly' | 'system';
+        font: 'focus' | 'modern' | 'studio' | 'inter' | 'inter_tight' | 'geist' | 'manrope' | 'figtree' | 'onest' | 'public_sans' | 'plex' | 'work_sans' | 'lexend' | 'albert' | 'hanken' | 'instrument' | 'mona' | 'sora' | 'archivo' | 'karla' | 'montserrat' | 'open_sans' | 'roboto' | 'atkinson' | 'editorial' | 'classic' | 'newsreader' | 'literata' | 'lora' | 'merriweather' | 'playfair' | 'garamond' | 'crimson' | 'bitter' | 'roboto_serif' | 'friendly' | 'quicksand' | 'comfortaa' | 'baloo' | 'fredoka' | 'rubik' | 'jetbrains' | 'geist_mono' | 'fira_code' | 'source_code' | 'roboto_mono' | 'red_hat_mono' | 'grotesk' | 'syne' | 'unbounded' | 'bricolage' | 'system';
         text_size: 'small' | 'default' | 'large' | 'larger';
         reduce_motion: boolean;
     };

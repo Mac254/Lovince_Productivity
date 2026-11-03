@@ -373,11 +373,6 @@
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
-[data-font='editorial'] {
-    --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
-    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-}
-
 [data-font='modern'] {
     --font-display: 'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
@@ -388,14 +383,244 @@
     --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
+[data-font='inter'] {
+    --font-display: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='inter_tight'] {
+    --font-display: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='geist'] {
+    --font-display: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='manrope'] {
+    --font-display: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='figtree'] {
+    --font-display: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='onest'] {
+    --font-display: 'Onest Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Onest Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='public_sans'] {
+    --font-display: 'Public Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Public Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='plex'] {
+    --font-display: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='work_sans'] {
+    --font-display: 'Work Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Work Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='lexend'] {
+    --font-display: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='albert'] {
+    --font-display: 'Albert Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Albert Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='hanken'] {
+    --font-display: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='instrument'] {
+    --font-display: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='mona'] {
+    --font-display: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='sora'] {
+    --font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='archivo'] {
+    --font-display: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='karla'] {
+    --font-display: 'Karla Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Karla Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='montserrat'] {
+    --font-display: 'Montserrat Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='open_sans'] {
+    --font-display: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='roboto'] {
+    --font-display: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='atkinson'] {
+    --font-display: 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='editorial'] {
+    --font-display: 'Fraunces Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
 [data-font='classic'] {
     --font-display: 'Source Serif 4 Variable', ui-serif, Georgia, Cambria, serif;
     --font-sans: 'Source Sans 3 Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
+[data-font='newsreader'] {
+    --font-display: 'Newsreader Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='literata'] {
+    --font-display: 'Literata Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Literata Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-font='lora'] {
+    --font-display: 'Lora Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Work Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='merriweather'] {
+    --font-display: 'Merriweather Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='playfair'] {
+    --font-display: 'Playfair Display Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='garamond'] {
+    --font-display: 'EB Garamond Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'EB Garamond Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-font='crimson'] {
+    --font-display: 'Crimson Pro Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Karla Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='bitter'] {
+    --font-display: 'Bitter Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Bitter Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-font='roboto_serif'] {
+    --font-display: 'Roboto Serif Variable', ui-serif, Georgia, Cambria, serif;
+    --font-sans: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
 [data-font='friendly'] {
     --font-display: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='quicksand'] {
+    --font-display: 'Quicksand Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Quicksand Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='comfortaa'] {
+    --font-display: 'Comfortaa Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='baloo'] {
+    --font-display: 'Baloo 2 Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Baloo 2 Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='fredoka'] {
+    --font-display: 'Fredoka Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='rubik'] {
+    --font-display: 'Rubik Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Rubik Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='jetbrains'] {
+    --font-display: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-sans: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-font='geist_mono'] {
+    --font-display: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='fira_code'] {
+    --font-display: 'Fira Code Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-sans: 'Fira Code Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-font='source_code'] {
+    --font-display: 'Source Code Pro Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-sans: 'Source Sans 3 Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='roboto_mono'] {
+    --font-display: 'Roboto Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-sans: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='red_hat_mono'] {
+    --font-display: 'Red Hat Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --font-sans: 'Red Hat Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-font='grotesk'] {
+    --font-display: 'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='syne'] {
+    --font-display: 'Syne Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='unbounded'] {
+    --font-display: 'Unbounded Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font='bricolage'] {
+    --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
 [data-font='system'] {

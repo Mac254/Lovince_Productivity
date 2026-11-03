@@ -137,6 +137,25 @@ describe('settings', () => {
         expect(api.settings.reset).not.toHaveBeenCalled();
     });
 
+    it('previews a typeface on the page without saving it', async () => {
+        const preferences = usePreferencesStore();
+        const root = document.documentElement;
+
+        preferences.previewFont = 'garamond';
+        await nextTick();
+        expect(root.dataset.font).toBe('garamond');
+        expect(preferences.prefs.font).toBe('focus');
+
+        preferences.previewFont = null;
+        await nextTick();
+        expect(root.dataset.font).toBe('focus');
+
+        preferences.prefs.font = 'syne';
+        await nextTick();
+        expect(root.dataset.font).toBe('syne');
+        expect(cached().values.appearance.font).toBe('syne');
+    });
+
     it('resets on the account when signed in', async () => {
         api.settings.reset.mockResolvedValue({ values: structuredClone(SETTINGS_DEFAULTS) });
         const settings = useSettingsStore();

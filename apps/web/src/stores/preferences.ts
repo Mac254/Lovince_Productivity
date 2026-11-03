@@ -1,5 +1,6 @@
 import { accentRamp, customAccentPattern, isLightColor } from '@focus/tokens';
 import type { Settings } from '@focus/types';
+import { loadFont, type FontKey } from '@/features/settings/fonts';
 
 export type ThemeChoice = Settings['appearance']['theme'];
 export type StartPage = Settings['general']['start_page'];
@@ -30,6 +31,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
         showQuotes: settings.bind('general', 'show_quotes'),
         journalFont: settings.bind('journal', 'font'),
     });
+    const previewFont = ref<FontKey | null>(null);
     const systemLight = media('(prefers-color-scheme: light)');
     const systemReducedMotion = media('(prefers-reduced-motion: reduce)');
 
@@ -50,7 +52,9 @@ export const usePreferencesStore = defineStore('preferences', () => {
         else root.style.removeProperty('--highlight-ink');
         root.dataset.corners = prefs.corners;
         root.dataset.textSize = prefs.textSize;
-        root.dataset.font = prefs.font;
+        const font = previewFont.value ?? prefs.font;
+        root.dataset.font = font;
+        void loadFont(font);
         if (prefs.reduceMotion) root.dataset.motion = 'reduce';
         else delete root.dataset.motion;
         const canvas = getComputedStyle(root).getPropertyValue('--canvas').trim();
@@ -62,5 +66,5 @@ export const usePreferencesStore = defineStore('preferences', () => {
         return settings.reset();
     }
 
-    return { prefs, resolved, systemReducedMotion, reset };
+    return { prefs, previewFont, resolved, systemReducedMotion, reset };
 });

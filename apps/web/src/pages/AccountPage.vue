@@ -412,24 +412,9 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                             :options="cornerOptions"
                         />
                     </SettingRow>
-                    <RadioGroup
-                        v-if="fontOptions.length"
-                        v-model="preferences.prefs.font"
-                        label="Typeface"
-                        description="A heading and body pairing used across the app."
-                        :options="fontOptions"
-                        layout="cards"
-                        class="py-4"
-                    >
-                        <template #option="{ option }">
-                            <span :data-font="option.value" class="flex w-full flex-col gap-1 text-fg">
-                                <span class="font-display text-heading font-semibold tracking-tight">Aa</span>
-                                <span class="font-sans text-label font-medium text-fg-muted"
-                                    >Plan the day, finish the work.</span
-                                >
-                            </span>
-                        </template>
-                    </RadioGroup>
+                    <SettingRow label="Typeface" description="Heading and body fonts used across the app.">
+                        <FontPicker v-if="fontOptions.length" :options="fontOptions" />
+                    </SettingRow>
                     <SettingRow label="Text size" description="Scales text and spacing across the app.">
                         <SegmentedControl
                             v-model="preferences.prefs.textSize"
