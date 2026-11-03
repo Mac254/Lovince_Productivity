@@ -486,8 +486,8 @@ importers:
         specifier: workspace:*
         version: link:../tokens
       '@lovince/motion':
-        specifier: ^1.0.0
-        version: 1.0.0(gsap@3.15.0)(lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)))(react@19.3.1)(vue@3.5.44(typescript@6.0.3))
+        specifier: ^2.0.0
+        version: 2.0.0(gsap@3.15.0)(lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)))(react@19.3.1)(vue@3.5.44(typescript@6.0.3))
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -908,8 +908,8 @@ packages:
       vue:
         optional: true
 
-  '@lovince/motion@1.0.0':
-    resolution: {integrity: sha1-WsOCQu9l/UtEXjWUpNBGG67p2Zc=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/motion/-/@lovince/motion-1.0.0.tgz}
+  '@lovince/motion@2.0.0':
+    resolution: {integrity: sha1-ggP3KRCC5uPQW2E1TR3RELo9XG4=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/motion/-/@lovince/motion-2.0.0.tgz}
     engines: {node: '>=18'}
     peerDependencies:
       gsap: ''
@@ -2976,7 +2976,7 @@ snapshots:
     optionalDependencies:
       vue: 3.5.44(typescript@6.0.3)
 
-  '@lovince/motion@1.0.0(gsap@3.15.0)(lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)))(react@19.3.1)(vue@3.5.44(typescript@6.0.3))':
+  '@lovince/motion@2.0.0(gsap@3.15.0)(lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)))(react@19.3.1)(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       '@lovince/tokens': 1.0.0
       gsap: 3.15.0

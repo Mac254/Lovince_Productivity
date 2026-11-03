@@ -9,7 +9,7 @@
     },
     "dependencies": {
         "@focus/tokens": "workspace:*",
-        "@lovince/motion": "^1.0.0",
+        "@lovince/motion": "^2.0.0",
         "gsap": "^3.15.0"
     },
     "peerDependencies": {
