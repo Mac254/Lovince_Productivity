@@ -29,10 +29,17 @@ const draftMinutes = ref(60);
 const now = ref(new Date());
 const missed = ref<TimeBlock[]>([]);
 const movingMissed = ref(false);
+let carried = false;
 const column = ref<HTMLElement | null>(null);
 let clock: number | undefined;
 
 const step = computed(() => Number(settings.values.planner.step));
+watch(
+    () => settings.values.planner.carry_over,
+    (on) => {
+        if (on) void loadMissed();
+    },
+);
 const range = computed(() =>
     visibleRange(Number(settings.values.planner.day_start), Number(settings.values.planner.day_end), blocks.value),
 );
@@ -66,9 +73,13 @@ async function loadMissed(): Promise<void> {
     } catch {
         missed.value = [];
     }
+    if (missed.value.length && settings.values.planner.carry_over && !carried) {
+        carried = true;
+        await moveMissed(true);
+    }
 }
 
-async function moveMissed(): Promise<void> {
+async function moveMissed(auto = false): Promise<void> {
     movingMissed.value = true;
     let moved = 0;
     let skipped = 0;
@@ -84,7 +95,7 @@ async function moveMissed(): Promise<void> {
             skipped++;
         }
     }
-    if (moved || skipped) toast.success(movedSummary({ moved, skipped }));
+    if (moved || (skipped && !auto)) toast.success(movedSummary({ moved, skipped }));
     movingMissed.value = false;
     await load();
 }
@@ -177,7 +188,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     >{{ missed.length }} {{ missed.length === 1 ? 'block' : 'blocks' }} from yesterday weren’t
                     finished</span
                 >
-                <Button variant="outline" size="sm" :loading="movingMissed" @click="moveMissed">Move to today</Button>
+                <Button variant="outline" size="sm" :loading="movingMissed" @click="moveMissed()">Move to today</Button>
             </div>
         </Alert>
         <ErrorState v-if="error" :message="error" @retry="load" />

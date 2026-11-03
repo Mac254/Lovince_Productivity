@@ -110,4 +110,17 @@ class MissedDayTest extends TestCase
 
         $this->getJson('/api/v1/reports/2026-11-02')->assertJsonPath('data.summary.completed', 1);
     }
+
+    public function test_carrying_work_over_is_off_until_turned_on(): void
+    {
+        $this->getJson('/api/v1/settings')
+            ->assertJsonPath('data.values.tasks.carry_over', false)
+            ->assertJsonPath('data.values.planner.carry_over', false);
+
+        $this->patchJson('/api/v1/settings', ['tasks' => ['carry_over' => true], 'planner' => ['carry_over' => true]])->assertOk();
+
+        $this->getJson('/api/v1/settings')
+            ->assertJsonPath('data.values.tasks.carry_over', true)
+            ->assertJsonPath('data.values.planner.carry_over', true);
+    }
 }

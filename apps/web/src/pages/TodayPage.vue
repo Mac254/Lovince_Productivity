@@ -31,6 +31,17 @@ async function moveAllOverdue(): Promise<void> {
 
 const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) : null));
 const settings = useSettingsStore();
+let carried = false;
+watch(
+    () => [dashboard.data?.overdue_tasks, settings.values.tasks.carry_over] as const,
+    ([overdue]) => {
+        if (!overdue?.length || !settings.values.tasks.carry_over || carried) return;
+        carried = true;
+        void actions.moveToToday(overdue);
+    },
+    { immediate: true },
+);
+
 const plannerOn = computed(() => settings.values.planner.enabled);
 const planGroups = computed(() => {
     const groups = groupByDue(dashboard.data?.planned_tasks ?? []);

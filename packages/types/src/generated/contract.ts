@@ -122,6 +122,7 @@ export interface Settings {
         card_descriptions: boolean;
         quick_add: boolean;
         estimates: boolean;
+        carry_over: boolean;
         complete_on_checklist: boolean;
         repeat_from: 'due' | 'completed';
         daily_reminder: 'off' | '6' | '7' | '8' | '9' | '10' | '11';
@@ -131,6 +132,7 @@ export interface Settings {
         day_start: '5' | '6' | '7' | '8' | '9' | '10';
         day_end: '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23';
         step: '15' | '30' | '60';
+        carry_over: boolean;
         reminder: 'off' | '5' | '10' | '15';
     };
     suggestions: {
@@ -179,6 +181,7 @@ export const SETTINGS_DEFAULTS: Settings = {
         card_descriptions: true,
         quick_add: true,
         estimates: true,
+        carry_over: false,
         complete_on_checklist: false,
         repeat_from: 'due',
         daily_reminder: 'off',
@@ -188,6 +191,7 @@ export const SETTINGS_DEFAULTS: Settings = {
         day_start: '8',
         day_end: '18',
         step: '30',
+        carry_over: false,
         reminder: '5',
     },
     suggestions: {
