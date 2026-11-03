@@ -117,6 +117,8 @@ declare module 'vue' {
     ToastRegion: typeof import('@focus/ui')['ToastRegion']
     TodayStrip: typeof import('./features/clock/TodayStrip.vue')['default']
     ToneDot: typeof import('./components/ToneDot.vue')['default']
+    Timeline: typeof import('@focus/ui')['Timeline']
+    TimelineItem: typeof import('@focus/ui')['TimelineItem']
     TonePicker: typeof import('./features/goals/TonePicker.vue')['default']
     TypeBreakdownList: typeof import('./features/tasks/TypeBreakdownList.vue')['default']
     WeeklyGoalsPanel: typeof import('./features/productivity/WeeklyGoalsPanel.vue')['default']

@@ -46,28 +46,24 @@ async function confirmDelete(): Promise<void> {
                     {{ month.items.length }} {{ month.items.length === 1 ? 'win' : 'wins' }}
                 </Text>
             </div>
-            <ol class="flex flex-col gap-3 border-l border-border pl-4">
-                <li v-for="achievement in month.items" :key="achievement.id" class="relative">
-                    <span
-                        aria-hidden="true"
-                        class="absolute top-4 -left-6 inline-flex size-4 items-center justify-center rounded-full bg-highlight text-highlight-ink"
-                    />
+            <Timeline>
+                <TimelineItem
+                    v-for="(achievement, index) in month.items"
+                    :key="achievement.id"
+                    :index="index"
+                    :icon="achievement.category ? suggestionCategoryIcons[achievement.category] : 'star'"
+                    :tone="achievement.category ? suggestionCategoryTones[achievement.category] : 'highlight'"
+                    :datetime="achievement.achieved_on"
+                    :last="index === month.items.length - 1"
+                >
+                    <template #time>
+                        {{ formatDate(achievement.achieved_on, { weekday: 'short', day: 'numeric', month: 'short' }) }}
+                    </template>
                     <Card as="article" class="gap-2">
                         <div class="flex items-start gap-3">
-                            <div class="min-w-0 flex-1">
-                                <Text role="label" tone="muted" tabular>
-                                    <time :datetime="achievement.achieved_on">{{
-                                        formatDate(achievement.achieved_on, {
-                                            weekday: 'short',
-                                            day: 'numeric',
-                                            month: 'short',
-                                        })
-                                    }}</time>
-                                </Text>
-                                <p class="mt-1 font-display text-lead font-medium break-words">
-                                    {{ achievement.title }}
-                                </p>
-                            </div>
+                            <p class="min-w-0 flex-1 font-display text-lead font-medium break-words">
+                                {{ achievement.title }}
+                            </p>
                             <DropdownMenu
                                 :items="menu(achievement)"
                                 :label="`Actions for ${achievement.title}`"
@@ -87,7 +83,6 @@ async function confirmDelete(): Promise<void> {
                             class="flex flex-wrap items-center gap-2 text-caption text-fg-muted"
                         >
                             <Badge v-if="achievement.category" :tone="suggestionCategoryTones[achievement.category]">
-                                <Icon :name="suggestionCategoryIcons[achievement.category]" />
                                 {{ suggestionCategoryLabels[achievement.category] }}
                             </Badge>
                             <RouterLink
@@ -108,8 +103,8 @@ async function confirmDelete(): Promise<void> {
                             </RouterLink>
                         </p>
                     </Card>
-                </li>
-            </ol>
+                </TimelineItem>
+            </Timeline>
         </section>
 
         <ConfirmDialog
