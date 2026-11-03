@@ -19,21 +19,27 @@ use Illuminate\Validation\Rule;
 
 class SuggestionController extends Controller
 {
+    private const LIST_LIMIT = 100;
+
+    private const CATALOGUE_LIMIT = 500;
+
     public function __construct(private readonly SuggestionEngine $engine) {}
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $status = $request->validate(['status' => ['sometimes', Rule::enum(SuggestionStatus::class)]])['status'] ?? SuggestionStatus::New->value;
+        $status = $request->validate([
+            'status' => ['sometimes', Rule::in([...array_column(SuggestionStatus::cases(), 'value'), 'all'])],
+        ])['status'] ?? SuggestionStatus::New->value;
         $this->engine->refreshIfStale($request->user());
 
         return SuggestionResource::collection(
             Suggestion::query()
                 ->whereBelongsTo($request->user())
-                ->where('status', $status)
+                ->when($status !== 'all', fn ($query) => $query->where('status', $status))
                 ->with('task:id,title')
                 ->orderByRaw("CASE source WHEN 'insight' THEN 0 WHEN 'custom' THEN 1 ELSE 2 END")
                 ->latest('updated_at')
-                ->limit(100)
+                ->limit($status === 'all' ? self::CATALOGUE_LIMIT : self::LIST_LIMIT)
                 ->get()
         );
     }

@@ -102,6 +102,8 @@ declare global {
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useTimerStore: typeof import('./stores/timer').useTimerStore
   const useToast: typeof import('@focus/ui').useToast
+  const useViewMode: typeof import('./composables/useViewMode').useViewMode
+  const viewModeOptions: typeof import('./composables/useViewMode').viewModeOptions
   const watch: typeof import('vue').watch
   const watchEffect: typeof import('vue').watchEffect
   const watchPostEffect: typeof import('vue').watchPostEffect
@@ -112,6 +114,9 @@ declare global {
   // @ts-ignore
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { ViewMode } from './composables/useViewMode'
+  import('./composables/useViewMode')
   // @ts-ignore
   export type { ThemeChoice, StartPage, JournalFont } from './stores/preferences'
   import('./stores/preferences')
@@ -222,6 +227,8 @@ declare module 'vue' {
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useTimerStore: UnwrapRef<typeof import('./stores/timer')['useTimerStore']>
     readonly useToast: UnwrapRef<typeof import('@focus/ui')['useToast']>
+    readonly useViewMode: UnwrapRef<typeof import('./composables/useViewMode')['useViewMode']>
+    readonly viewModeOptions: UnwrapRef<typeof import('./composables/useViewMode')['viewModeOptions']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
     readonly watchPostEffect: UnwrapRef<typeof import('vue')['watchPostEffect']>

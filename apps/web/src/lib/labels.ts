@@ -4,6 +4,7 @@ import {
     GOAL_TONES,
     GOAL_TIMEFRAMES,
     SUGGESTION_CATEGORIES,
+    SUGGESTION_SOURCES,
     TASK_CATEGORIES,
     TASK_PRIORITIES,
     TASK_RECURRENCES,
@@ -136,6 +137,20 @@ export const suggestionSourceLabels: Record<SuggestionSource, string> = {
     custom: 'Yours',
 };
 
+export const suggestionStatusTones: Record<SuggestionStatus, BadgeTone> = {
+    new: 'highlight',
+    accepted: 'info',
+    done: 'success',
+    dismissed: 'neutral',
+};
+
+export const suggestionStatusIcons: Record<SuggestionStatus, IconName> = {
+    new: 'lightbulb',
+    accepted: 'calendar-check',
+    done: 'check-circle',
+    dismissed: 'close-circle',
+};
+
 function toOptions<T extends string>(values: readonly T[], labels: Record<T, string>) {
     return values.map((value) => ({ value, label: labels[value] }));
 }
@@ -152,3 +167,4 @@ export const goalTimeframeOptions = toOptions(GOAL_TIMEFRAMES, goalTimeframeLabe
 export const goalToneOptions = toOptions(GOAL_TONES, goalToneLabels);
 export const blockerStatusOptions = toOptions(BLOCKER_STATUSES, blockerStatusLabels);
 export const suggestionCategoryOptions = toOptions(SUGGESTION_CATEGORIES, suggestionCategoryLabels);
+export const suggestionSourceOptions = toOptions(SUGGESTION_SOURCES, suggestionSourceLabels);

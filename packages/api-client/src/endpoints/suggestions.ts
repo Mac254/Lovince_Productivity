@@ -4,7 +4,7 @@ import type { RequestOptions } from './types';
 
 export function suggestionEndpoints(http: AxiosInstance) {
     return {
-        async list(status: SuggestionStatus = 'new', options: RequestOptions = {}): Promise<Suggestion[]> {
+        async list(status: SuggestionStatus | 'all' = 'new', options: RequestOptions = {}): Promise<Suggestion[]> {
             const { data } = await http.get<Resource<Suggestion[]>>('/suggestions', { ...options, params: { status } });
             return data.data;
         },

@@ -16,6 +16,23 @@ class Suggestion extends Model
 {
     protected $attributes = ['status' => 'new'];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Suggestion $suggestion) {
+            if (! $suggestion->isDirty('status')) {
+                return;
+            }
+
+            $now = now();
+            match ($suggestion->status) {
+                SuggestionStatus::New => $suggestion->forceFill(['accepted_at' => null, 'done_at' => null, 'dismissed_at' => null]),
+                SuggestionStatus::Accepted => $suggestion->forceFill(['accepted_at' => $now, 'done_at' => null, 'dismissed_at' => null]),
+                SuggestionStatus::Done => $suggestion->forceFill(['done_at' => $now, 'dismissed_at' => null]),
+                SuggestionStatus::Dismissed => $suggestion->forceFill(['dismissed_at' => $now, 'done_at' => null]),
+            };
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -23,6 +40,9 @@ class Suggestion extends Model
             'category' => SuggestionCategory::class,
             'status' => SuggestionStatus::class,
             'action' => 'array',
+            'accepted_at' => 'datetime',
+            'done_at' => 'datetime',
+            'dismissed_at' => 'datetime',
         ];
     }
 

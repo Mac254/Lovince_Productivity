@@ -14,8 +14,8 @@ class AcceptSuggestion
     public function __construct(private readonly ApplySchedule $applySchedule) {}
 
     /**
-     * Acts on a suggestion: applies a schedule, or adds a task due on `$date`. Suggestions that only
-     * point somewhere (`open`) are just marked accepted.
+     * Acts on a suggestion: applies a schedule, records an achievement on `$date`, or adds a task
+     * due on `$date`. Suggestions that only point somewhere (`open`) are just marked accepted.
      */
     public function __invoke(Suggestion $suggestion, string $date): Suggestion
     {
@@ -24,6 +24,7 @@ class AcceptSuggestion
         match ($action['type'] ?? 'task') {
             'apply_schedule' => ($this->applySchedule)($this->schedule($suggestion, $action), $action['date'] ?? $date),
             'open' => null,
+            'achievement' => $this->achievement($suggestion, $action, $date),
             default => $suggestion->task_id ?? $suggestion->task()->associate($this->task($suggestion, $action, $date)),
         };
 
@@ -39,6 +40,20 @@ class AcceptSuggestion
     {
         return Schedule::query()->whereBelongsTo($suggestion->user)->find($action['schedule_id'] ?? 0)
             ?? throw ValidationException::withMessages(['action' => 'That schedule no longer exists.']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $action
+     */
+    private function achievement(Suggestion $suggestion, array $action, string $date): void
+    {
+        $suggestion->user->achievements()->create([
+            'title' => $action['title'] ?? $suggestion->title,
+            'description' => $suggestion->body,
+            'goal_id' => $action['goal_id'] ?? null,
+            'achieved_on' => $date,
+            'category' => $suggestion->category,
+        ]);
     }
 
     /**

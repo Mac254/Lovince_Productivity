@@ -26,6 +26,10 @@ class SuggestionResource extends JsonResource
             'action' => $this->action ?? ['type' => 'task'],
             'task' => $this->task ? ['id' => $this->task->id, 'title' => $this->task->title] : null,
             'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+            'accepted_at' => $this->accepted_at?->toIso8601String(),
+            'done_at' => $this->done_at?->toIso8601String(),
+            'dismissed_at' => $this->dismissed_at?->toIso8601String(),
         ];
     }
 }
