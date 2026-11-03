@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Metrics } from '@focus/types';
 import type { ApexOptions } from 'apexcharts';
-import VueApexCharts from 'vue3-apexcharts';
+import { VueApexCharts } from './apexChart';
 import { useChartTheme } from './useChartTheme';
 
 /** Tasks completed (the measure, green with a light wash) against tasks created (grey) and work logged (blue). */

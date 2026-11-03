@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ApexOptions } from 'apexcharts';
-import VueApexCharts from 'vue3-apexcharts';
+import { VueApexCharts } from './apexChart';
 import { useChartTheme } from './useChartTheme';
 
 /** Completed in the range vs. open now, per category, as horizontal bars from one baseline. */

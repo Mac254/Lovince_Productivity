@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Metrics } from '@focus/types';
 import type { ApexOptions } from 'apexcharts';
-import VueApexCharts from 'vue3-apexcharts';
+import { VueApexCharts } from './apexChart';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
 import { useChartTheme } from './useChartTheme';
 
