@@ -7,5 +7,6 @@ export interface BackupImportResult {
     focus_sessions: number;
     weekly_reviews: number;
     time_blocks: number;
+    achievements: number;
     skipped: number;
 }

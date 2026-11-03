@@ -30,7 +30,7 @@ class BackupImporter
      */
     private function run(User $user, array $backup): array
     {
-        $counts = array_fill_keys(['task_types', 'goals', 'tasks', 'blockers', 'journal', 'focus_sessions', 'weekly_reviews', 'time_blocks', 'skipped'], 0);
+        $counts = array_fill_keys(['task_types', 'goals', 'tasks', 'blockers', 'journal', 'focus_sessions', 'weekly_reviews', 'time_blocks', 'achievements', 'skipped'], 0);
 
         if (isset($backup['settings'])) {
             $user->forceFill(['settings' => $this->settings->merge($user->settings, $backup['settings'])])->save();
@@ -126,6 +126,15 @@ class BackupImporter
             }
             $user->timeBlocks()->create([...$this->except($row, ['task_ref']), 'task_id' => $taskId]);
             $counts['time_blocks']++;
+        }
+
+        foreach ($backup['achievements'] ?? [] as $row) {
+            $user->achievements()->create([
+                ...$this->except($row, ['goal_ref', 'task_ref']),
+                'goal_id' => $goalRefs[$row['goal_ref'] ?? null] ?? null,
+                'task_id' => $taskRefs[$row['task_ref'] ?? null] ?? null,
+            ]);
+            $counts['achievements']++;
         }
 
         return $counts;

@@ -89,6 +89,12 @@ export const router = createRouter({
                     meta: { title: 'Blockers' },
                 },
                 {
+                    path: 'achievements',
+                    name: 'achievements',
+                    component: () => import('@/pages/AchievementsPage.vue'),
+                    meta: { title: 'Achievements' },
+                },
+                {
                     path: 'metrics',
                     name: 'metrics',
                     component: () => import('@/pages/MetricsPage.vue'),

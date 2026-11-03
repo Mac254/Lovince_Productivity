@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AchievementFormDialog: typeof import('./features/achievements/AchievementFormDialog.vue')['default']
+    AchievementTimeline: typeof import('./features/achievements/AchievementTimeline.vue')['default']
     ActivityHeatmap: typeof import('./features/metrics/ActivityHeatmap.vue')['default']
     Alert: typeof import('@focus/ui')['Alert']
     AnimatedIcon: typeof import('@focus/ui')['AnimatedIcon']

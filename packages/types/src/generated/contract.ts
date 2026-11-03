@@ -46,6 +46,9 @@ export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
 export const SUGGESTION_SOURCES = ['insight', 'library', 'custom'] as const;
 export type SuggestionSource = (typeof SUGGESTION_SOURCES)[number];
 
+export const ACHIEVEMENT_CATEGORIES = ['focus', 'growth', 'health', 'wellbeing', 'social', 'fun'] as const;
+export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
+
 export const LIMITS = {
     task: {
         title: 200,
@@ -92,6 +95,10 @@ export const LIMITS = {
     suggestion: {
         title: 160,
         body: 1000,
+    },
+    achievement: {
+        title: 160,
+        description: 5000,
     },
 } as const;
 

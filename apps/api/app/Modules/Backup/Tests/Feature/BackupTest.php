@@ -39,6 +39,7 @@ class BackupTest extends TestCase
         $owner->journalEntries()->create(['date' => '2026-10-30', 'body' => 'Wrote a lot.']);
         $owner->weeklyReviews()->create(['week_start' => '2026-10-26', 'wins' => 'Chapter one']);
         $owner->timeBlocks()->create(['task_id' => $task->id, 'title' => 'Draft chapter one', 'date' => '2026-11-02', 'start_minute' => 540, 'minutes' => 60]);
+        $owner->achievements()->create(['title' => 'Finished the book', 'achieved_on' => '2026-11-02', 'category' => 'growth', 'goal_id' => $goal->id, 'task_id' => $task->id]);
 
         $this->actingAs($owner);
         $export = $this->get('/api/v1/backup')->assertOk()->assertHeader('Content-Disposition');
@@ -60,6 +61,7 @@ class BackupTest extends TestCase
             ->assertJsonPath('data.focus_sessions', 1)
             ->assertJsonPath('data.weekly_reviews', 1)
             ->assertJsonPath('data.time_blocks', 1)
+            ->assertJsonPath('data.achievements', 1)
             ->assertJsonPath('data.journal', 0)
             ->assertJsonPath('data.skipped', 1);
 
@@ -73,6 +75,9 @@ class BackupTest extends TestCase
         $this->assertTrue((bool) $copy->checklistItems()->sole()->done);
         $this->assertSame($copy->id, $other->blockers()->sole()->task_id);
         $this->assertSame($copy->id, $other->focusSessions()->sole()->task_id);
+        $achievement = $other->achievements()->sole();
+        $this->assertSame($copy->goal_id, $achievement->goal_id);
+        $this->assertSame($copy->id, $achievement->task_id);
         $this->assertSame('Mine already.', $other->journalEntries()->sole()->body);
         $this->assertSame(1, $owner->tasks()->count());
     }

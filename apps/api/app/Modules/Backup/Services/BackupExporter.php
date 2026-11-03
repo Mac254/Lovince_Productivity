@@ -2,6 +2,7 @@
 
 namespace App\Modules\Backup\Services;
 
+use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Models\Blocker;
 use App\Modules\Clock\Models\FocusSession;
 use App\Modules\Goals\Models\Goal;
@@ -107,6 +108,14 @@ class BackupExporter
                 'date' => $block->date->toDateString(),
                 'start_minute' => $block->start_minute,
                 'minutes' => $block->minutes,
+            ])->all(),
+            'achievements' => $user->achievements()->orderBy('achieved_on')->orderBy('id')->get()->map(fn (Achievement $achievement) => [
+                'goal_ref' => $achievement->goal_id,
+                'task_ref' => $achievement->task_id,
+                'title' => $achievement->title,
+                'description' => $achievement->description,
+                'achieved_on' => $achievement->achieved_on->toDateString(),
+                'category' => $this->value($achievement->category),
             ])->all(),
         ];
     }

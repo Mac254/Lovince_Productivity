@@ -1,4 +1,5 @@
 import type { Cover } from '../generated/contract';
+import type { Achievement } from '../models/achievement';
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Task } from '../models/task';
@@ -29,6 +30,10 @@ export type TaskTypeInput = Partial<Pick<TaskType, 'name' | 'tone'>>;
 
 export type GoalInput = Partial<
     Pick<Goal, 'title' | 'description' | 'status' | 'timeframe' | 'tone' | 'start_date' | 'target_date'>
+>;
+
+export type AchievementInput = Partial<
+    Pick<Achievement, 'title' | 'description' | 'achieved_on' | 'category' | 'goal_id' | 'task_id'>
 >;
 
 export type BlockerInput = Partial<Pick<Blocker, 'description' | 'status' | 'task_id'>>;

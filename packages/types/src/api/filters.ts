@@ -1,4 +1,5 @@
 import type {
+    AchievementCategory,
     BlockerStatus,
     GoalStatus,
     GoalTimeframe,
@@ -32,4 +33,11 @@ export interface BlockerFilters {
 export interface GoalFilters {
     status?: GoalStatus;
     timeframe?: GoalTimeframe;
+}
+
+export interface AchievementFilters {
+    goal_id?: number;
+    task_id?: number;
+    category?: AchievementCategory;
+    year?: number;
 }

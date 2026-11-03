@@ -86,6 +86,8 @@ final class Contract
 
     public const SUGGESTION_BODY_MAX = 1000;
 
+    public const ACHIEVEMENT_TITLE_MAX = 160;
+
     /**
      * @return array<string, list<string>>
      */
@@ -109,6 +111,7 @@ final class Contract
             'SuggestionCategory' => $values(SuggestionCategory::cases()),
             'SuggestionStatus' => $values(SuggestionStatus::cases()),
             'SuggestionSource' => $values(SuggestionSource::cases()),
+            'AchievementCategory' => $values(SuggestionCategory::cases()),
         ];
     }
 
@@ -138,6 +141,7 @@ final class Contract
             'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
             'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT],
             'suggestion' => ['title' => self::SUGGESTION_TITLE_MAX, 'body' => self::SUGGESTION_BODY_MAX],
+            'achievement' => ['title' => self::ACHIEVEMENT_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
         ];
     }
 }

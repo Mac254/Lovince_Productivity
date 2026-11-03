@@ -7,6 +7,7 @@ use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
 use App\Modules\Settings\Services\SettingsRegistry;
+use App\Modules\Suggestions\Enums\SuggestionCategory;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
 use App\Modules\Tasks\Enums\TaskRecurrence;
@@ -110,6 +111,14 @@ class BackupRules
             'time_blocks.*.date' => ['required', 'date_format:Y-m-d'],
             'time_blocks.*.start_minute' => ['required', 'integer', 'min:0', 'max:1439'],
             'time_blocks.*.minutes' => ['required', 'integer', 'min:'.Contract::TIME_BLOCK_MINUTES_MIN, 'max:'.Contract::TIME_BLOCK_MINUTES_MAX],
+
+            'achievements' => $list,
+            'achievements.*.goal_ref' => $optionalRef,
+            'achievements.*.task_ref' => $optionalRef,
+            'achievements.*.title' => ['required', 'string', 'max:'.Contract::ACHIEVEMENT_TITLE_MAX],
+            'achievements.*.description' => ['nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
+            'achievements.*.achieved_on' => ['required', 'date_format:Y-m-d'],
+            'achievements.*.category' => ['nullable', Rule::enum(SuggestionCategory::class)],
         ];
     }
 }

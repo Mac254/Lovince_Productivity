@@ -1,4 +1,5 @@
 import type { AxiosInstance } from 'axios';
+import { achievementEndpoints } from './endpoints/achievements';
 import { authEndpoints } from './endpoints/auth';
 import { backupEndpoints } from './endpoints/backup';
 import { blockerEndpoints } from './endpoints/blockers';
@@ -30,6 +31,7 @@ export function createApi(http: AxiosInstance) {
         goals: goalEndpoints(http),
         quotes: quoteEndpoints(http),
         blockers: blockerEndpoints(http),
+        achievements: achievementEndpoints(http),
         journal: journalEndpoints(http),
         reports: reportEndpoints(http),
         reviews: reviewEndpoints(http),

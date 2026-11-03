@@ -5,6 +5,7 @@ export type { GoalRef, IsoDate, IsoDateTime, Task, TaskCover } from './models/ta
 export type { Goal } from './models/goal';
 export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
+export type { Achievement } from './models/achievement';
 export type { JournalContext, JournalEntry } from './models/journal';
 export type {
     FocusDay,
@@ -25,6 +26,7 @@ export type { SettingDescription, SettingsChanges, SettingsModuleDescription, Se
 
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
 export type {
+    AchievementInput,
     BlockerInput,
     GoalInput,
     LoginInput,
@@ -33,7 +35,7 @@ export type {
     TaskNoteInput,
     TaskTypeInput,
 } from './api/inputs';
-export type { BlockerFilters, GoalFilters, TaskFilters } from './api/filters';
+export type { AchievementFilters, BlockerFilters, GoalFilters, TaskFilters } from './api/filters';
 export type { Dashboard, DashboardStats, FocusToday, IntegrationSummary } from './api/dashboard';
 export type {
     DailyReport,

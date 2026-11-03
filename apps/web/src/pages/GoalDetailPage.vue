@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { TabItem } from '@focus/ui';
-import type { Goal, Task } from '@focus/types';
+import type { Achievement, Goal, Task } from '@focus/types';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { formatDate } from '@/lib/dates';
 import { goalStatusLabels, goalStatusTones, goalTimeframeLabels } from '@/lib/labels';
@@ -14,12 +14,15 @@ const goalsStore = useGoalsStore();
 
 const goal = ref<Goal | null>(null);
 const tasks = ref<Task[]>([]);
+const achievements = ref<Achievement[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const editOpen = ref(false);
 const taskOpen = ref(false);
 const deleting = ref(false);
 const deleteBusy = ref(false);
+const achievementOpen = ref(false);
+const editingAchievement = ref<Achievement | null>(null);
 
 const id = computed(() => Number(route.params.id));
 
@@ -27,12 +30,14 @@ async function load(): Promise<void> {
     loading.value = true;
     error.value = null;
     try {
-        const [loadedGoal, goalTasks] = await Promise.all([
+        const [loadedGoal, goalTasks, goalAchievements] = await Promise.all([
             api.goals.get(id.value),
             api.tasks.list({ goal_id: id.value, per_page: 100 }),
+            api.achievements.list({ goal_id: id.value }),
         ]);
         goal.value = loadedGoal;
         tasks.value = goalTasks.data;
+        achievements.value = goalAchievements;
     } catch (e) {
         error.value = errorMessage(e, 'Could not load this goal.');
     } finally {
@@ -46,6 +51,27 @@ const changed = () => {
     return load();
 };
 const actions = useTaskActions(changed);
+
+function goalSaved(saved: Goal): void {
+    const completedNow = saved.status === 'completed' && goal.value?.status !== 'completed';
+    goal.value = saved;
+    void changed();
+    if (completedNow) recordAchievement();
+}
+
+function recordAchievement(): void {
+    editingAchievement.value = null;
+    achievementOpen.value = true;
+}
+
+function editAchievement(achievement: Achievement): void {
+    editingAchievement.value = achievement;
+    achievementOpen.value = true;
+}
+
+async function achievementsChanged(): Promise<void> {
+    achievements.value = await api.achievements.list({ goal_id: id.value }).catch(() => achievements.value);
+}
 
 const groups = computed(() => [
     {
@@ -166,6 +192,13 @@ watch(id, load, { immediate: true });
                 />
             </Card>
 
+            <Alert v-if="goal.status === 'completed' && !achievements.length" icon="star">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <span>You completed this goal. Record it as an achievement to look back on.</span>
+                    <Button size="sm" icon-start="star" @click="recordAchievement">Record an achievement</Button>
+                </div>
+            </Alert>
+
             <Tabs v-model="tab" label="Goal tasks" :tabs="tabs">
                 <template v-for="group in groups" :key="group.key" #[group.key]>
                     <Card as="div" class="gap-3">
@@ -185,9 +218,33 @@ watch(id, load, { immediate: true });
                     </Card>
                 </template>
             </Tabs>
+
+            <section aria-labelledby="goal-achievements" class="flex flex-col gap-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 id="goal-achievements" class="font-display text-title font-semibold tracking-tight">
+                        Achievements
+                    </h2>
+                    <Button variant="outline" icon-start="star" @click="recordAchievement">Record achievement</Button>
+                </div>
+                <AchievementTimeline
+                    v-if="achievements.length"
+                    :achievements="achievements"
+                    @edit="editAchievement"
+                    @changed="achievementsChanged"
+                />
+                <Text v-else role="label" tone="muted">
+                    Milestones along the way — a finished chapter, a first run — show up here.
+                </Text>
+            </section>
         </template>
 
-        <GoalFormDialog v-model:open="editOpen" :goal="goal" @saved="changed" />
+        <GoalFormDialog v-model:open="editOpen" :goal="goal" @saved="goalSaved" />
+        <AchievementFormDialog
+            v-model:open="achievementOpen"
+            :achievement="editingAchievement"
+            :defaults="{ goal_id: goal?.id, title: goal?.status === 'completed' ? goal.title : '' }"
+            @saved="achievementsChanged"
+        />
         <TaskFormDialog v-model:open="taskOpen" :defaults="{ goal_id: goal?.id }" @saved="changed" />
         <ConfirmDialog
             v-model:open="deleting"
