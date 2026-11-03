@@ -2,6 +2,25 @@
 
 The shared Vue components (`components/`, `patterns/`, `primitives/`) are built on `@lovince/ui-vue` and styled only with tokens from `@focus/tokens`. This file lists where they still fall short, so fixes can be planned instead of rediscovered. Each item says what goes wrong and a direction for the fix.
 
+## Lovince already has the fix
+
+Checked against `@lovince/ui-vue` 1.0.0, the version installed now. Many of the gaps below are in our wrappers, not in Lovince: the package ships the part, and we either don't use it or don't pass its props through. Fix these first; they need no new components.
+
+| Gap in `@focus/ui`                                   | Lovince part to use                                                                                                     |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| The Dialog body's native scrollbar                   | `LvScrollAreaRoot` / `Viewport` / `Scrollbar` / `Thumb`                                                                 |
+| Dialog closes while saving or with unsaved edits     | `LvDialogContent`'s `closeOnEscape` and `closeOnOutside` props, and its `escapeKeyDown` and `pointerDownOutside` events |
+| ConfirmDialog is a Dialog with `role="alertdialog"`  | `LvAlertDialogRoot` … `LvAlertDialogAction` / `LvAlertDialogCancel`                                                     |
+| Sheet is a Dialog pinned to the right                | `LvSheetRoot` (`side`, `modal`), `LvSheetContent`, `LvSheetHandle`                                                      |
+| Toasts have no "Undo" button or second line          | `LvToastAction`, `LvToastDescription`, and the viewport's `hotkey`                                                      |
+| Select, Combobox and FacetFilter pick only one value | `multiple` on `LvSelectRoot` and `LvComboboxRoot`                                                                       |
+| An interactive Card isn't clickable as a whole       | `LvCardLink`                                                                                                            |
+| Table can't sort or select rows                      | `LvDataTable` (`sort`, `sortMode`, `selectable`)                                                                        |
+| There's no date range picker                         | `LvDateRangePickerRoot`                                                                                                 |
+| Estimates and times are free-text inputs             | `LvTimeField`, `LvNumberField`                                                                                          |
+
+Lovince doesn't cover these, so they need work in our wrappers: Textarea growing with its content (`LvTextarea` only takes `modelValue`), a clear button and presets on the DatePicker, a scroll cue on the Dialog, and toast placement next to the floating button.
+
 ## Dialog
 
 The header and footer are now pinned and only the body scrolls. Modal widths are `sm` (28rem), `md` (42rem) and `lg` (60rem). What is still weak:
