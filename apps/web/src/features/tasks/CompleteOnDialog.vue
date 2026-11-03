@@ -44,7 +44,7 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <Dialog v-model:open="open" title="Completed on" :description="task?.title" size="sm">
+    <Dialog v-model:open="open" title="Completed on" :description="task?.title" size="sm" :busy="saving">
         <form :id="`${uid}-form`" class="flex flex-col gap-4" novalidate @submit.prevent="submit">
             <DatePicker
                 :id="`${uid}-day`"
@@ -57,7 +57,7 @@ async function submit(): Promise<void> {
             />
         </form>
         <template #footer>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="`${uid}-form`" icon-start="check" :loading="saving">Mark complete</Button>
         </template>
     </Dialog>

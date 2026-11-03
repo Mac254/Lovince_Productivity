@@ -96,6 +96,7 @@ async function submit(): Promise<void> {
         v-model:open="open"
         :title="isEdit ? 'Edit achievement' : 'Record an achievement'"
         description="A win, a milestone or something you’re proud of. Link it to the goal it moved forward."
+        :busy="saving"
     >
         <form id="achievement-form" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
             <Input
@@ -150,7 +151,7 @@ async function submit(): Promise<void> {
             </div>
         </form>
         <template #footer>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" form="achievement-form" :loading="saving" icon-start="star">{{
                 isEdit ? 'Save changes' : 'Record achievement'
             }}</Button>

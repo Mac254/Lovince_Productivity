@@ -63,7 +63,13 @@ function onKeydown(event: KeyboardEvent): void {
 </script>
 
 <template>
-    <Dialog v-model:open="open" :title="isEdit ? 'Edit entry' : 'Log work'" :description="taskTitle" size="sm">
+    <Dialog
+        v-model:open="open"
+        :title="isEdit ? 'Edit entry' : 'Log work'"
+        :description="taskTitle"
+        size="sm"
+        :busy="saving"
+    >
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit" @keydown="onKeydown">
             <Textarea
                 :id="fid('body')"
@@ -98,7 +104,7 @@ function onKeydown(event: KeyboardEvent): void {
         </form>
         <template #footer>
             <span class="mr-auto hidden self-center text-caption text-fg-muted sm:inline">Ctrl+Enter to save</span>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="fid('form')" :loading="saving">{{
                 isEdit ? 'Save changes' : 'Log work'
             }}</Button>

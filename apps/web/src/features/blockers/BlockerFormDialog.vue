@@ -65,6 +65,7 @@ async function submit(): Promise<void> {
         v-model:open="open"
         title="Log a blocker"
         description="What’s stopping progress? You can resolve it once it’s cleared."
+        :busy="saving"
     >
         <form id="blocker-form" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
             <Textarea
@@ -92,7 +93,7 @@ async function submit(): Promise<void> {
             />
         </form>
         <template #footer>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" form="blocker-form" :loading="saving" icon-start="blocker">Log blocker</Button>
         </template>
     </Dialog>

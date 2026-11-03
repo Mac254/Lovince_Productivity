@@ -157,7 +157,7 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <Dialog v-model:open="open" :title="isEdit ? 'Edit task' : 'New task'" size="lg">
+    <Dialog v-model:open="open" :title="isEdit ? 'Edit task' : 'New task'" size="lg" :busy="saving">
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
             <Input
                 :id="fid('title')"
@@ -292,7 +292,7 @@ async function submit(): Promise<void> {
             />
         </form>
         <template #footer>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="fid('form')" :loading="saving">{{
                 isEdit ? 'Save changes' : 'Create task'
             }}</Button>

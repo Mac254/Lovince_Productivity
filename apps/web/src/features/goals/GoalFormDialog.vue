@@ -74,6 +74,7 @@ async function submit(): Promise<void> {
         v-model:open="open"
         :title="isEdit ? 'Edit goal' : 'New goal'"
         description="Progress is calculated from the goal’s completed tasks."
+        :busy="saving"
     >
         <form id="goal-form" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
             <Input
@@ -131,7 +132,7 @@ async function submit(): Promise<void> {
             />
         </form>
         <template #footer>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" form="goal-form" :loading="saving">{{
                 isEdit ? 'Save changes' : 'Create goal'
             }}</Button>

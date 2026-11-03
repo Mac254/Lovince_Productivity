@@ -162,6 +162,7 @@ async function submit(): Promise<void> {
         size="lg"
         :title="schedule ? 'Edit schedule' : 'New schedule'"
         description="Group your routine by part of the day. Changes apply the next time you plan a day with it."
+        :busy="saving"
     >
         <form :id="fid('form')" class="grid gap-8 lg:grid-cols-3" novalidate @submit.prevent="submit">
             <aside class="flex flex-col gap-6 lg:sticky lg:top-0 lg:self-start lg:border-r lg:border-border lg:pr-8">
@@ -295,7 +296,7 @@ async function submit(): Promise<void> {
             </section>
         </form>
         <template #footer>
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="fid('form')" :loading="saving">{{
                 schedule ? 'Save changes' : 'Create schedule'
             }}</Button>

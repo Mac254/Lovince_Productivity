@@ -95,9 +95,15 @@ async function remove(): Promise<void> {
 </script>
 
 <template>
-    <Dialog v-model:open="open" :title="block ? 'Edit block' : 'Block out time'" size="sm">
+    <Dialog v-model:open="open" :title="block ? 'Edit block' : 'Block out time'" size="sm" :busy="saving">
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
-            <Combobox :id="fid('task')" v-model="form.task" label="Task" :options="taskOptions" :error="errors.task_id" />
+            <Combobox
+                :id="fid('task')"
+                v-model="form.task"
+                label="Task"
+                :options="taskOptions"
+                :error="errors.task_id"
+            />
             <Input
                 :id="fid('title')"
                 v-model="form.title"
@@ -134,7 +140,7 @@ async function remove(): Promise<void> {
                 @click="remove"
                 >Remove</Button
             >
-            <Button variant="outline" @click="open = false">Cancel</Button>
+            <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="fid('form')" :loading="saving">{{
                 block ? 'Save changes' : 'Add block'
             }}</Button>
