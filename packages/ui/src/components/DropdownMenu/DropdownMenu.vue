@@ -10,6 +10,7 @@ import { ref } from 'vue';
 import { useLayer } from '../../composables/useLayer';
 import type { IconName } from '../../icons/registry';
 import Icon from '../../primitives/Icon/Icon.vue';
+import MorphIcon from '../../primitives/MorphIcon/MorphIcon.vue';
 import Tooltip from '../Tooltip/Tooltip.vue';
 import { buttonVariants, controlSquares, interactive, type ButtonSize } from '../Button/variants';
 import type { MenuItem } from './types';
@@ -41,7 +42,8 @@ const layer = useLayer();
                 :class="[interactive, controlSquares[size], buttonVariants[triggerVariant], open && 'bg-border text-fg']"
             >
                 <slot name="trigger">
-                    <Icon :name="icon" />
+                    <MorphIcon v-if="icon === 'more'" :name="open ? 'close' : 'more'" />
+                    <Icon v-else :name="icon" />
                 </slot>
             </LvDropdownMenuTrigger>
         </Tooltip>
