@@ -1,8 +1,10 @@
-import { api, errorMessage } from '@focus/api-client';
+import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { Task, TaskStatus } from '@focus/types';
+import { todayIso } from '@/lib/dates';
 
 export function useTaskActions(onChange: () => void) {
     const toast = useToast();
+    const outbox = useTaskOutboxStore();
 
     async function setStatus(task: Task, status: TaskStatus): Promise<void> {
         try {
@@ -17,7 +19,28 @@ export function useTaskActions(onChange: () => void) {
             );
             onChange();
         } catch (e) {
+            if (isApiError(e) && e.kind === 'network') {
+                outbox.queue({
+                    id: task.id,
+                    title: task.title,
+                    status,
+                    ...(status === 'completed' && { completed_at: todayIso() }),
+                });
+                toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
+                return;
+            }
             toast.error(errorMessage(e, 'Could not update the task.'));
+        }
+    }
+
+    async function moveToToday(tasks: Task[]): Promise<void> {
+        if (!tasks.length) return;
+        try {
+            const moved = await api.tasks.moveToToday(tasks.map((task) => task.id));
+            toast.success(tasks.length === 1 ? `Moved “${tasks[0]!.title}” to today` : `Moved ${moved} tasks to today`);
+            onChange();
+        } catch (e) {
+            toast.error(errorMessage(e, 'Could not move the tasks.'));
         }
     }
 
@@ -43,5 +66,5 @@ export function useTaskActions(onChange: () => void) {
 
     const toggleComplete = (task: Task) => setStatus(task, task.status === 'completed' ? 'not_started' : 'completed');
 
-    return { setStatus, toggleComplete, toggleHighlight, remove };
+    return { setStatus, toggleComplete, toggleHighlight, moveToToday, remove };
 }

@@ -4,6 +4,7 @@ namespace App\Modules\Tasks\Observers;
 
 use App\Modules\Tasks\Actions\ScheduleNextOccurrence;
 use App\Modules\Tasks\Enums\TaskStatus;
+use App\Modules\Tasks\Events\CompletionsChanged;
 use App\Modules\Tasks\Events\WorkLogChanged;
 use App\Modules\Tasks\Models\Task;
 
@@ -19,6 +20,17 @@ class TaskObserver
     {
         if ($task->status === TaskStatus::Completed && ($task->wasRecentlyCreated || $task->wasChanged('status'))) {
             ($this->scheduleNext)($task);
+        }
+
+        if (! $task->wasRecentlyCreated && $task->wasChanged('completed_at')) {
+            $days = collect([$task->getOriginal('completed_at'), $task->completed_at])
+                ->filter(fn ($at) => $at !== null && $at->lt(today()))
+                ->map(fn ($at) => $at->copy()->startOfDay())
+                ->unique(fn ($day) => $day->toDateString());
+
+            if ($days->isNotEmpty()) {
+                CompletionsChanged::dispatch($task->user, $days->values()->all());
+            }
         }
     }
 

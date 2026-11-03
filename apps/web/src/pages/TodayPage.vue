@@ -14,6 +14,20 @@ const refresh = () => {
 const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, confirmDelete } =
     useTaskEditing(refresh);
 const blockerDialog = ref(false);
+const completing = ref<Task | null>(null);
+const completeOpen = ref(false);
+const moving = ref(false);
+
+function completeOn(task: Task): void {
+    completing.value = task;
+    completeOpen.value = true;
+}
+
+async function moveAllOverdue(): Promise<void> {
+    moving.value = true;
+    await actions.moveToToday(dashboard.data?.overdue_tasks ?? []);
+    moving.value = false;
+}
 
 const day = computed(() => (dashboard.data ? dayProgress(dashboard.data.stats) : null));
 const settings = useSettingsStore();
@@ -153,7 +167,17 @@ const plannable = computed<Task[]>(() => {
                             title-id="overdue-heading"
                             icon="warning"
                             :subtitle="`${dashboard.data.stats.overdue} from earlier days`"
-                        />
+                        >
+                            <Button
+                                v-if="dashboard.data.overdue_tasks.length"
+                                variant="outline"
+                                size="sm"
+                                icon-start="calendar-check"
+                                :loading="moving"
+                                @click="moveAllOverdue"
+                                >Move all to today</Button
+                            >
+                        </CardHeader>
                         <ul v-if="dashboard.data.overdue_tasks.length" class="-mx-2 flex flex-col">
                             <TaskRow
                                 v-for="task in dashboard.data.overdue_tasks"
@@ -161,7 +185,24 @@ const plannable = computed<Task[]>(() => {
                                 :task="task"
                                 @toggle="actions.toggleComplete"
                                 @star="actions.toggleHighlight"
-                            />
+                            >
+                                <template #actions>
+                                    <IconButton
+                                        icon="history"
+                                        :label="`Mark “${task.title}” done on an earlier day`"
+                                        size="sm"
+                                        variant="ghost"
+                                        @click="completeOn(task)"
+                                    />
+                                    <IconButton
+                                        icon="arrow-right"
+                                        :label="`Move “${task.title}” to today`"
+                                        size="sm"
+                                        variant="ghost"
+                                        @click="actions.moveToToday([task])"
+                                    />
+                                </template>
+                            </TaskRow>
                         </ul>
                         <Text v-else role="label" tone="muted" class="py-4">You’re all caught up.</Text>
                     </Card>
@@ -202,6 +243,7 @@ const plannable = computed<Task[]>(() => {
 
         <TaskFormDialog v-model:open="dialogOpen" :task="current" :defaults="defaults" @saved="refresh" />
         <BlockerFormDialog v-model:open="blockerDialog" @saved="refresh" />
+        <CompleteOnDialog v-model:open="completeOpen" :task="completing" @saved="refresh" />
         <ConfirmDialog
             :open="!!deleting"
             title="Delete task?"

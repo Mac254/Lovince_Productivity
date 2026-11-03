@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('task-types', TaskTypeController::class)->except('show');
+    Route::post('tasks/move-to-today', [TaskController::class, 'moveToToday']);
     Route::apiResource('tasks', TaskController::class);
     Route::get('tasks/{task}/cover', [TaskCoverController::class, 'show'])->whereNumber('task');
     Route::post('tasks/{task}/cover', [TaskCoverController::class, 'store'])->whereNumber('task')->middleware('throttle:20,1');

@@ -4,6 +4,7 @@ namespace App\Modules\Tasks\Http\Controllers;
 
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Http\Requests\IndexTaskRequest;
+use App\Modules\Tasks\Http\Requests\MoveTasksToTodayRequest;
 use App\Modules\Tasks\Http\Requests\StoreTaskRequest;
 use App\Modules\Tasks\Http\Requests\UpdateTaskRequest;
 use App\Modules\Tasks\Http\Resources\TaskResource;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -73,9 +76,39 @@ class TaskController extends Controller
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
-        $task->update($request->validated());
+        $validated = $request->validated();
+        $task->fill(Arr::except($validated, 'completed_at'));
+        if (isset($validated['completed_at'])) {
+            $day = Carbon::createFromFormat('!Y-m-d', $validated['completed_at']);
+            $task->completed_at = $day->isToday() ? now() : $day->endOfDay()->startOfSecond();
+        }
+        $task->save();
 
         return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes')->loadChecklistCounts());
+    }
+
+    /**
+     * Brings open tasks the user picked onto today's plan, typically after a missed day.
+     */
+    public function moveToToday(MoveTasksToTodayRequest $request): JsonResponse
+    {
+        $today = today()->toDateString();
+
+        $tasks = Task::query()
+            ->whereBelongsTo($request->user())
+            ->open()
+            ->whereIn('id', $request->validated('ids'))
+            ->get();
+
+        DB::transaction(fn () => $tasks->each(function (Task $task) use ($today) {
+            $task->due_date = $today;
+            if ($task->start_date?->toDateString() > $today) {
+                $task->start_date = $today;
+            }
+            $task->save();
+        }));
+
+        return response()->json(['moved' => $tasks->count()]);
     }
 
     public function destroy(Task $task): Response

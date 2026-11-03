@@ -20,6 +20,7 @@ const editOpen = ref(false);
 const blockerOpen = ref(false);
 const deleting = ref(false);
 const deleteBusy = ref(false);
+const completeOnOpen = ref(false);
 
 const id = computed(() => Number(route.params.id));
 
@@ -125,6 +126,14 @@ watch(id, load, { immediate: true });
                 />
                 <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
                 <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
+                <Button
+                    v-if="task.status !== 'cancelled'"
+                    variant="outline"
+                    icon-start="history"
+                    @click="completeOnOpen = true"
+                >
+                    {{ task.status === 'completed' ? 'Change day done' : 'Done earlier' }}
+                </Button>
                 <Button
                     :icon-start="task.status === 'completed' ? 'undo' : 'check'"
                     @click="actions.toggleComplete(task)"
@@ -235,6 +244,7 @@ watch(id, load, { immediate: true });
 
         <TaskFormDialog v-model:open="editOpen" :task="task" @saved="changed" />
         <BlockerFormDialog v-model:open="blockerOpen" :task="task" @saved="changed" />
+        <CompleteOnDialog v-model:open="completeOnOpen" :task="task" @saved="changed" />
         <ConfirmDialog
             v-model:open="deleting"
             title="Delete task?"

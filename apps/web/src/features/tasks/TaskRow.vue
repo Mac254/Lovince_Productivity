@@ -47,6 +47,7 @@ const cover = computed(() => taskCoverUrl(props.task.cover));
                 >
             </p>
         </div>
+        <slot name="actions" :task="task" />
         <span class="hidden shrink-0 @md:inline-flex"><PriorityDots :priority="task.priority" /></span>
         <Pressable
             type="button"

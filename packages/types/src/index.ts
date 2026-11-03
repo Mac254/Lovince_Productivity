@@ -32,6 +32,7 @@ export type {
     LoginInput,
     PasswordInput,
     TaskInput,
+    TaskUpdateInput,
     TaskNoteInput,
     TaskTypeInput,
 } from './api/inputs';

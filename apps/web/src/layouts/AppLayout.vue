@@ -8,6 +8,7 @@ const router = useRouter();
 const toast = useToast();
 const timer = useTimerStore();
 const preferences = usePreferencesStore();
+const outbox = useTaskOutboxStore();
 const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'dark'));
 const themeOptions = [
     { value: 'dark' as const, label: 'Dark theme', icon: 'moon' as const },
@@ -36,12 +37,22 @@ function onShortcut(event: KeyboardEvent): void {
 onMounted(() => {
     window.addEventListener('keydown', onShortcut);
     void dashboard.ensure();
+    void syncOutbox().then((synced) => {
+        if (synced) void dashboard.invalidate();
+    });
 });
 onUnmounted(() => window.removeEventListener('keydown', onShortcut));
 useReminders();
+async function syncOutbox(): Promise<number> {
+    if (!outbox.pending.length) return 0;
+    const synced = await outbox.flush();
+    if (synced) toast.success(synced === 1 ? 'Synced 1 task change' : `Synced ${synced} task changes`);
+    return synced;
+}
+
 const online = useOnline(() => {
     void timer.flush();
-    void dashboard.invalidate();
+    void syncOutbox().finally(() => dashboard.invalidate());
     toast.success('Back online');
 });
 
@@ -55,6 +66,7 @@ async function signOut(): Promise<void> {
     }
     dashboard.reset();
     goals.reset();
+    outbox.clear();
     await router.replace({ name: 'login' });
 }
 

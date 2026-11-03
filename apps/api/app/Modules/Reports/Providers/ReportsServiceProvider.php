@@ -3,8 +3,10 @@
 namespace App\Modules\Reports\Providers;
 
 use App\Modules\Reports\Console\Commands\GenerateDailyReports;
+use App\Modules\Reports\Listeners\RefreshReportCompletions;
 use App\Modules\Reports\Listeners\RefreshReportWorkLogs;
 use App\Modules\Reports\Models\DailyReport;
+use App\Modules\Tasks\Events\CompletionsChanged;
 use App\Modules\Tasks\Events\WorkLogChanged;
 use App\Modules\Users\Models\User;
 use App\Shared\Support\ModuleProvider;
@@ -20,6 +22,7 @@ class ReportsServiceProvider extends ModuleProvider
         User::resolveRelationUsing('dailyReports', fn (User $user) => $user->hasMany(DailyReport::class));
 
         Event::listen(WorkLogChanged::class, RefreshReportWorkLogs::class);
+        Event::listen(CompletionsChanged::class, RefreshReportCompletions::class);
 
         $this->commands([GenerateDailyReports::class]);
 

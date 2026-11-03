@@ -97,6 +97,7 @@ declare global {
   const useStaggerIn: typeof import('@focus/motion').useStaggerIn
   const useSurfaceTone: typeof import('@focus/ui').useSurfaceTone
   const useTabQuery: typeof import('./composables/useTabQuery').useTabQuery
+  const useTaskOutboxStore: typeof import('./stores/taskOutbox').useTaskOutboxStore
   const useTaskTypesStore: typeof import('./stores/taskTypes').useTaskTypesStore
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useTimerStore: typeof import('./stores/timer').useTimerStore
@@ -114,6 +115,9 @@ declare global {
   // @ts-ignore
   export type { ThemeChoice, StartPage, JournalFont } from './stores/preferences'
   import('./stores/preferences')
+  // @ts-ignore
+  export type { QueuedStatus } from './stores/taskOutbox'
+  import('./stores/taskOutbox')
   // @ts-ignore
   export type { SessionKind, TimerStatus, TimerPreset } from './stores/timer'
   import('./stores/timer')
@@ -213,6 +217,7 @@ declare module 'vue' {
     readonly useStaggerIn: UnwrapRef<typeof import('@focus/motion')['useStaggerIn']>
     readonly useSurfaceTone: UnwrapRef<typeof import('@focus/ui')['useSurfaceTone']>
     readonly useTabQuery: UnwrapRef<typeof import('./composables/useTabQuery')['useTabQuery']>
+    readonly useTaskOutboxStore: UnwrapRef<typeof import('./stores/taskOutbox')['useTaskOutboxStore']>
     readonly useTaskTypesStore: UnwrapRef<typeof import('./stores/taskTypes')['useTaskTypesStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useTimerStore: UnwrapRef<typeof import('./stores/timer')['useTimerStore']>

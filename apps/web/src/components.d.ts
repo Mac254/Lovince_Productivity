@@ -29,6 +29,7 @@ declare module 'vue' {
     ChipGroup: typeof import('@focus/ui')['ChipGroup']
     ColorPicker: typeof import('@focus/ui')['ColorPicker']
     CommandPalette: typeof import('./features/palette/CommandPalette.vue')['default']
+    CompleteOnDialog: typeof import('./features/tasks/CompleteOnDialog.vue')['default']
     ConfirmDialog: typeof import('@focus/ui')['ConfirmDialog']
     CoverPicker: typeof import('./features/covers/CoverPicker.vue')['default']
     DailyTrendChart: typeof import('./features/metrics/DailyTrendChart.vue')['default']

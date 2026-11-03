@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios';
-import type { Paginated, Resource, Task, TaskFilters, TaskInput } from '@focus/types';
+import type { Paginated, Resource, Task, TaskFilters, TaskInput, TaskUpdateInput } from '@focus/types';
 import type { RequestOptions } from './types';
 
 export function taskEndpoints(http: AxiosInstance) {
@@ -16,12 +16,16 @@ export function taskEndpoints(http: AxiosInstance) {
             const { data } = await http.post<Resource<Task>>('/tasks', input);
             return data.data;
         },
-        async update(id: number, input: TaskInput): Promise<Task> {
+        async update(id: number, input: TaskUpdateInput): Promise<Task> {
             const { data } = await http.patch<Resource<Task>>(`/tasks/${id}`, input);
             return data.data;
         },
         async remove(id: number): Promise<void> {
             await http.delete(`/tasks/${id}`);
+        },
+        async moveToToday(ids: number[]): Promise<number> {
+            const { data } = await http.post<{ moved: number }>('/tasks/move-to-today', { ids });
+            return data.moved;
         },
         async uploadCover(id: number, file: File): Promise<Task> {
             const form = new FormData();

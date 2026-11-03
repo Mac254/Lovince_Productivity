@@ -2,7 +2,7 @@ import type { Cover } from '../generated/contract';
 import type { Achievement } from '../models/achievement';
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
-import type { Task } from '../models/task';
+import type { IsoDate, Task } from '../models/task';
 import type { TaskNote } from '../models/taskNote';
 import type { TaskType } from '../models/taskType';
 
@@ -23,6 +23,8 @@ export type TaskInput = Partial<
         | 'task_type_id'
     >
 > & { cover?: Cover | null };
+
+export type TaskUpdateInput = TaskInput & { completed_at?: IsoDate };
 
 export type TaskNoteInput = Partial<Pick<TaskNote, 'body' | 'logged_on' | 'minutes'>>;
 
