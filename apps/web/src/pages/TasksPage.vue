@@ -99,6 +99,7 @@ const query = computed<TaskFilters>(() => ({
     priority: filters.priority || undefined,
     category: filters.category || undefined,
     due: filters.due || undefined,
+    hide_planned_ahead: filters.due === 'upcoming' ? undefined : true,
     goal_id: filters.goal_id || undefined,
     task_type_id: filters.task_type_id || undefined,
     sort: filters.sort || undefined,

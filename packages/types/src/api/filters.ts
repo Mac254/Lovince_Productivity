@@ -19,6 +19,7 @@ export interface TaskFilters {
     goal_id?: number;
     task_type_id?: number;
     highlighted?: boolean;
+    hide_planned_ahead?: boolean;
     sort?: TaskSort;
     direction?: 'asc' | 'desc';
     page?: number;

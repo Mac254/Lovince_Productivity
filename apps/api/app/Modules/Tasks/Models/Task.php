@@ -3,6 +3,7 @@
 namespace App\Modules\Tasks\Models;
 
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Planner\Models\TimeBlock;
 use App\Modules\Tasks\Database\Factories\TaskFactory;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
@@ -119,6 +120,14 @@ class Task extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(TaskNote::class);
+    }
+
+    /**
+     * @return HasMany<TimeBlock, $this>
+     */
+    public function timeBlocks(): HasMany
+    {
+        return $this->hasMany(TimeBlock::class);
     }
 
     /**

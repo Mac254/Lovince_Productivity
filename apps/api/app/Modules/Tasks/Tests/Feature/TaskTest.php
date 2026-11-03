@@ -3,6 +3,7 @@
 namespace App\Modules\Tasks\Tests\Feature;
 
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Planner\Models\TimeBlock;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -135,6 +136,25 @@ class TaskTest extends TestCase
             ->assertJsonPath('data.0.is_overdue', true);
         $this->getJson('/api/v1/tasks?status=completed')->assertJsonCount(1, 'data');
         $this->getJson('/api/v1/tasks?status=bogus')->assertUnprocessable();
+    }
+
+    public function test_tomorrows_planned_tasks_stay_hidden_until_their_day(): void
+    {
+        $tomorrow = today()->addDay()->toDateString();
+        $planned = Task::factory()->for($this->user)->create(['title' => 'Exercise', 'due_date' => $tomorrow]);
+        TimeBlock::factory()->for($this->user)->create(['task_id' => $planned->id, 'date' => $tomorrow]);
+        Task::factory()->for($this->user)->create(['title' => 'Send invoice', 'due_date' => $tomorrow]);
+        $today = Task::factory()->for($this->user)->create(['title' => 'Stand-up', 'due_date' => today()->toDateString()]);
+        TimeBlock::factory()->for($this->user)->create(['task_id' => $today->id]);
+        Task::factory()->for($this->user)->create(['title' => 'Someday']);
+
+        $this->getJson('/api/v1/tasks?hide_planned_ahead=true&sort=title')
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('data.*.title', ['Send invoice', 'Someday', 'Stand-up']);
+        $this->getJson('/api/v1/tasks')->assertJsonCount(4, 'data');
+
+        $this->travelTo(today()->addDay());
+        $this->getJson('/api/v1/tasks?hide_planned_ahead=true')->assertJsonCount(4, 'data');
     }
 
     public function test_task_list_is_paginated(): void
