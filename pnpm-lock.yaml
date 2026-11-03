@@ -315,8 +315,8 @@ importers:
         specifier: workspace:*
         version: link:../tokens
       '@lovince/motion':
-        specifier: ^0.4.0
-        version: 0.4.0(gsap@3.15.0)(vue@3.5.44(typescript@6.0.3))
+        specifier: ^1.0.0
+        version: 1.0.0(gsap@3.15.0)(lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)))(react@19.3.1)(vue@3.5.44(typescript@6.0.3))
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -340,8 +340,8 @@ importers:
         specifier: ^1.2.13
         version: 1.2.13
       '@lovince/ui-vue':
-        specifier: ^0.6.0
-        version: 0.6.0(vue@3.5.44(typescript@6.0.3))
+        specifier: ^1.0.0
+        version: 1.0.0(@lovince/icons@1.5.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))
       unplugin-icons:
         specifier: ^24.0.0
         version: 24.0.0(@vue/compiler-sfc@3.5.44)(rolldown@1.2.15)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0))
@@ -553,45 +553,43 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@lovince/motion@0.4.0':
-    resolution: {integrity: sha512-noGV9bCiFqw7tAXJ2INkgwrm146To7Zn+HlZ4kZXSzO1lOWe0CRrmpVxQlfqz/qw00SL9icpEv0bW/m76LjQGA==}
+  '@lovince/icons@1.5.0':
+    resolution: {integrity: sha512-73yILrq8p/v0V4WuHBsB7tmgNMMyiGdZbFrUggAlIlo5ClN90iOEFoF0oQMNmCKSJgGN7OOLOUv++s2wNSdnsg==, tarball: https://registry.npmjs.org/@lovince/icons/-/icons-1.5.0.tgz}
+    engines: {node: '>=18'}
+    deprecated: Moved to the GitLab package registry at https://gitlab.com/Mac254/ui-packages (from 1.0.0). npmjs.org no longer gets updates.
+    peerDependencies:
+      vue: ^3.3.0
+    peerDependenciesMeta:
+      vue:
+        optional: true
+
+  '@lovince/motion@1.0.0':
+    resolution: {integrity: sha1-WsOCQu9l/UtEXjWUpNBGG67p2Zc=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/motion/-/@lovince/motion-1.0.0.tgz}
     engines: {node: '>=18'}
     peerDependencies:
       gsap: ''
       lenis: ''
       react: '>=18.0.0'
       vue: ^3.3.0
-    peerDependenciesMeta:
-      gsap:
-        optional: true
-      lenis:
-        optional: true
-      react:
-        optional: true
-      vue:
-        optional: true
 
-  '@lovince/tokens@0.3.0':
-    resolution: {integrity: sha512-ZCDe49o49qd0YFBY4EnzIassSqfQC8Jci9lZ3NjcTWmS8ah0paxLn7hRTN7HphhZ2+D3fom+OPP/VInxFfGEhQ==}
+  '@lovince/tokens@1.0.0':
+    resolution: {integrity: sha1-VPQS1swFKUYmsv5wj5EMs8T2p9I=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/tokens/-/@lovince/tokens-1.0.0.tgz}
     engines: {node: '>=18'}
 
-  '@lovince/ui-dom@0.2.1':
-    resolution: {integrity: sha512-wRC87aaXqD88ZHVjes4/BJcLTgkoCcIpDu86+xyHkl9zGb8CKKXGY6rfPQQ/KTtixuFpaDcSPgimj+s1rV1Eyg==}
+  '@lovince/ui-dom@1.0.0':
+    resolution: {integrity: sha1-BaiNgM/JUFg4hT823QADP+9lQpc=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-dom/-/@lovince/ui-dom-1.0.0.tgz}
     engines: {node: '>=18'}
 
-  '@lovince/ui-headless@0.5.0':
-    resolution: {integrity: sha512-Idrmre95vW4WagqX+SRvT0KkjHXkrPK+VdvxVBk5Q8MVSxgSKfLiRFNezWRdzSBkN+hLTa+nTOwto36R/eNOMQ==}
+  '@lovince/ui-headless@1.0.0':
+    resolution: {integrity: sha1-Qh44Gl9V/VvlUlkvD7R1FCeyT+A=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-headless/-/@lovince/ui-headless-1.0.0.tgz}
     engines: {node: '>=18'}
 
-  '@lovince/ui-vue@0.6.0':
-    resolution: {integrity: sha512-ZvTaN1Fc6By/QfKwDGpX0oQjNVinYJcv8XP9e9EaliUJ3hGWOo5lI4tmpYrL8f2Op7qB4gLxKBYFjlbnoZau6w==}
+  '@lovince/ui-vue@1.0.0':
+    resolution: {integrity: sha1-fQB9zj0RLt1i8TxQDHR9HMJRauI=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-vue/-/@lovince/ui-vue-1.0.0.tgz}
     engines: {node: '>=18'}
     peerDependencies:
-      '@lovince/icons': ^1.5.0
+      '@lovince/icons': ^1.0.0
       vue: ^3.5.0
-    peerDependenciesMeta:
-      '@lovince/icons':
-        optional: true
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -1516,6 +1514,20 @@ packages:
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
+  lenis@1.3.27:
+    resolution: {integrity: sha512-QIHNH4LIfWyLfgH/5K0aTGZgyFJJ7GfHNcaH/AIgyKjb8gstLh5siNGvrVqz1w5ClLXzOvllBVk7vby8JzUVPQ==}
+    peerDependencies:
+      '@nuxt/kit': '>=3.0.0'
+      react: '>=17.0.0'
+      vue: '>=3.0.0'
+    peerDependenciesMeta:
+      '@nuxt/kit':
+        optional: true
+      react:
+        optional: true
+      vue:
+        optional: true
+
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -1864,6 +1876,10 @@ packages:
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  react@19.3.1:
+    resolution: {integrity: sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==}
+    engines: {node: '>=0.10.0'}
 
   readdirp@5.1.1:
     resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
@@ -2497,25 +2513,31 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@lovince/motion@0.4.0(gsap@3.15.0)(vue@3.5.44(typescript@6.0.3))':
-    dependencies:
-      '@lovince/tokens': 0.3.0
+  '@lovince/icons@1.5.0(vue@3.5.44(typescript@6.0.3))':
     optionalDependencies:
-      gsap: 3.15.0
       vue: 3.5.44(typescript@6.0.3)
 
-  '@lovince/tokens@0.3.0': {}
-
-  '@lovince/ui-dom@0.2.1':
+  '@lovince/motion@1.0.0(gsap@3.15.0)(lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)))(react@19.3.1)(vue@3.5.44(typescript@6.0.3))':
     dependencies:
-      '@lovince/ui-headless': 0.5.0
+      '@lovince/tokens': 1.0.0
+      gsap: 3.15.0
+      lenis: 1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3))
+      react: 19.3.1
+      vue: 3.5.44(typescript@6.0.3)
 
-  '@lovince/ui-headless@0.5.0': {}
+  '@lovince/tokens@1.0.0': {}
 
-  '@lovince/ui-vue@0.6.0(vue@3.5.44(typescript@6.0.3))':
+  '@lovince/ui-dom@1.0.0':
     dependencies:
-      '@lovince/ui-dom': 0.2.1
-      '@lovince/ui-headless': 0.5.0
+      '@lovince/ui-headless': 1.0.0
+
+  '@lovince/ui-headless@1.0.0': {}
+
+  '@lovince/ui-vue@1.0.0(@lovince/icons@1.5.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))':
+    dependencies:
+      '@lovince/icons': 1.5.0(vue@3.5.44(typescript@6.0.3))
+      '@lovince/ui-dom': 1.0.0
+      '@lovince/ui-headless': 1.0.0
       vue: 3.5.44(typescript@6.0.3)
 
   '@nodelib/fs.scandir@2.1.5':
@@ -3432,6 +3454,11 @@ snapshots:
     dependencies:
       '@keyv/serialize': 1.1.1
 
+  lenis@1.3.27(react@19.3.1)(vue@3.5.44(typescript@6.0.3)):
+    optionalDependencies:
+      react: 19.3.1
+      vue: 3.5.44(typescript@6.0.3)
+
   levn@0.4.1:
     dependencies:
       prelude-ls: 1.2.1
@@ -3707,6 +3734,8 @@ snapshots:
   quansync@0.2.11: {}
 
   queue-microtask@1.2.3: {}
+
+  react@19.3.1: {}
 
   readdirp@5.1.1: {}
 
