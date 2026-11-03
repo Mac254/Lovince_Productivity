@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS, type JournalContext, type JournalEntry } from '@focus/types';
+import type { TabItem } from '@focus/ui';
 import JournalEditor from '@/features/journal/JournalEditor.vue';
 import { addMonths, monthGrid, monthOf, shiftDate } from '@/lib/calendar';
 import { formatDate, formatLongDate, todayIso } from '@/lib/dates';
@@ -40,6 +41,14 @@ const monthName = computed(() => formatDate(`${month.value}-01`, { month: 'long'
 const context = ref<JournalContext | null>(null);
 const contextLoading = ref(false);
 let contextRequest: AbortController | null = null;
+
+type JournalTab = 'entry' | 'day' | 'entries';
+const tab = useTabQuery(['entry', 'day', 'entries'] as const, 'entry');
+const tabs = computed<TabItem<JournalTab>[]>(() => [
+    { value: 'entry', label: 'Entry', icon: 'edit' },
+    { value: 'day', label: isToday.value ? 'Today’s work' : 'That day’s work', icon: 'checklist' },
+    { value: 'entries', label: 'All entries', icon: 'calendar' },
+]);
 
 const views = [
     { value: 'write' as const, label: 'Write' },
@@ -119,6 +128,7 @@ async function go(day: string): Promise<void> {
 }
 
 function draft(): void {
+    tab.value = 'entry';
     view.value = 'write';
     editor.value?.append(standupDraft(context.value));
     toast.success('Stand-up draft added — Ctrl+Z undoes it');
@@ -172,8 +182,8 @@ onBeforeUnmount(() => {
             description="A private devlog, one entry a day. It’s included in that day’s report."
         />
 
-        <div class="grid items-start gap-6 xl:grid-cols-12">
-            <div class="flex min-w-0 flex-col gap-6 xl:col-span-8">
+        <Tabs v-model="tab" label="Journal sections" :tabs="tabs">
+            <template #entry>
                 <Card as="section" aria-labelledby="entry-heading" padding="none">
                     <div
                         class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6"
@@ -229,69 +239,77 @@ onBeforeUnmount(() => {
                         </JournalPreview>
                     </div>
                 </Card>
-
+            </template>
+            <template #day>
                 <DayContext :context="context" :loading="contextLoading" :is-today="isToday" @draft="draft" />
-            </div>
+            </template>
+            <template #entries>
+                <div class="grid items-start gap-6 lg:grid-cols-12">
+                    <Card as="section" aria-labelledby="calendar-heading" class="gap-4 lg:col-span-5">
+                        <div class="flex items-center justify-between gap-2">
+                            <IconButton
+                                icon="chevron-left"
+                                label="Previous month"
+                                variant="ghost"
+                                size="sm"
+                                motion="nudge-back"
+                                @click="month = addMonths(month, -1)"
+                            />
+                            <Heading id="calendar-heading" role="lead">
+                                {{ formatDate(`${month}-01`, { month: 'long', year: 'numeric' }) }}
+                            </Heading>
+                            <IconButton
+                                icon="chevron-right"
+                                label="Next month"
+                                variant="ghost"
+                                size="sm"
+                                motion="nudge"
+                                :disabled="month >= monthOf(todayIso())"
+                                @click="month = addMonths(month, 1)"
+                            />
+                        </div>
 
-            <aside aria-label="Your entries" class="flex min-w-0 flex-col gap-6 xl:order-first xl:col-span-4">
-                <Card as="section" aria-labelledby="calendar-heading" class="gap-4">
-                    <div class="flex items-center justify-between gap-2">
-                        <IconButton
-                            icon="chevron-left"
-                            label="Previous month"
-                            variant="ghost"
-                            size="sm"
-                            motion="nudge-back"
-                            @click="month = addMonths(month, -1)"
+                        <JournalCalendar
+                            v-model:month="month"
+                            compact
+                            :selected="date"
+                            :previews="previews"
+                            @select="go"
                         />
-                        <Heading id="calendar-heading" role="lead">
-                            {{ formatDate(`${month}-01`, { month: 'long', year: 'numeric' }) }}
-                        </Heading>
-                        <IconButton
-                            icon="chevron-right"
-                            label="Next month"
-                            variant="ghost"
-                            size="sm"
-                            motion="nudge"
-                            :disabled="month >= monthOf(todayIso())"
-                            @click="month = addMonths(month, 1)"
+                    </Card>
+
+                    <Card as="section" aria-labelledby="entries-heading" class="gap-4 lg:col-span-7">
+                        <div class="flex items-baseline justify-between gap-2">
+                            <Heading id="entries-heading" role="lead">
+                                {{ search.trim() ? 'Search results' : `Entries in ${monthName}` }}
+                            </Heading>
+                            <Text as="span" role="caption" tone="muted" tabular aria-live="polite">
+                                {{ search.trim() ? results.length : monthEntries.length }}
+                                {{ (search.trim() ? results.length : monthEntries.length) === 1 ? 'entry' : 'entries' }}
+                            </Text>
+                        </div>
+
+                        <SearchField
+                            id="journal-search"
+                            v-model="search"
+                            label="Search entries"
+                            placeholder="Search your journal"
+                            :maxlength="LIMITS.search"
                         />
-                    </div>
 
-                    <JournalCalendar v-model:month="month" compact :selected="date" :previews="previews" @select="go" />
-                </Card>
-
-                <Card as="section" aria-labelledby="entries-heading" class="gap-4">
-                    <div class="flex items-baseline justify-between gap-2">
-                        <Heading id="entries-heading" role="lead">
-                            {{ search.trim() ? 'Search results' : `Entries in ${monthName}` }}
-                        </Heading>
-                        <Text as="span" role="caption" tone="muted" tabular aria-live="polite">
-                            {{ search.trim() ? results.length : monthEntries.length }}
-                            {{ (search.trim() ? results.length : monthEntries.length) === 1 ? 'entry' : 'entries' }}
+                        <JournalEntryList
+                            v-if="search.trim() ? results.length : monthEntries.length"
+                            :entries="search.trim() ? results : monthEntries"
+                            :across-months="!!search.trim()"
+                            :selected="date"
+                            @select="go"
+                        />
+                        <Text v-else role="label" tone="muted">
+                            {{ search.trim() ? 'No entries match.' : `Nothing written in ${monthName} yet.` }}
                         </Text>
-                    </div>
-
-                    <SearchField
-                        id="journal-search"
-                        v-model="search"
-                        label="Search entries"
-                        placeholder="Search your journal"
-                        :maxlength="LIMITS.search"
-                    />
-
-                    <JournalEntryList
-                        v-if="search.trim() ? results.length : monthEntries.length"
-                        :entries="search.trim() ? results : monthEntries"
-                        :across-months="!!search.trim()"
-                        :selected="date"
-                        @select="go"
-                    />
-                    <Text v-else role="label" tone="muted">
-                        {{ search.trim() ? 'No entries match.' : `Nothing written in ${monthName} yet.` }}
-                    </Text>
-                </Card>
-            </aside>
-        </div>
+                    </Card>
+                </div>
+            </template>
+        </Tabs>
     </div>
 </template>
