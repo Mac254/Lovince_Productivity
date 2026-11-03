@@ -111,7 +111,8 @@ function onQuickTaskSaved(): void {
                     variant="ghost"
                     class="lg:hidden"
                     @click="drawerOpen = true"
-                />
+                    ><AnimatedIcon kind="menu" :active="drawerOpen"
+                /></IconButton>
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-label font-semibold">{{ greeting() }}, {{ firstName }}</p>
                     <p class="truncate text-caption text-fg-muted">
@@ -160,7 +161,8 @@ function onQuickTaskSaved(): void {
                     motion="spin"
                     class="md:hidden"
                     @click="preferences.prefs.theme = nextTheme"
-                />
+                    ><MorphIcon :name="preferences.resolved === 'dark' ? 'moon' : 'sun'"
+                /></IconButton>
                 <RouterLink
                     v-if="timer.active"
                     :to="{ name: 'focus', query: { mode: 'timer' } }"

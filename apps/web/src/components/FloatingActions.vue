@@ -56,12 +56,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
             class="group inline-flex size-(--control-lg) items-center justify-center rounded-full bg-highlight text-highlight-ink shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             @click="open = !open"
         >
-            <Icon
-                name="add"
-                size="md"
-                class="transition-transform duration-(--duration-normal)"
-                :class="open && 'rotate-45'"
-            />
+            <AnimatedIcon kind="add" :active="open" size="md" />
         </button>
     </div>
 </template>

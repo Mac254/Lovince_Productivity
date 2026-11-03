@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ActivityHeatmap: typeof import('./features/metrics/ActivityHeatmap.vue')['default']
     Alert: typeof import('@focus/ui')['Alert']
+    AnimatedIcon: typeof import('@focus/ui')['AnimatedIcon']
     Avatar: typeof import('@focus/ui')['Avatar']
     Badge: typeof import('@focus/ui')['Badge']
     BlockerFormDialog: typeof import('./features/blockers/BlockerFormDialog.vue')['default']
@@ -56,6 +57,7 @@ declare module 'vue' {
     JournalEntryList: typeof import('./features/journal/JournalEntryList.vue')['default']
     JournalPreview: typeof import('./features/journal/JournalPreview.vue')['default']
     ModuleSettings: typeof import('./features/settings/ModuleSettings.vue')['default']
+    MorphIcon: typeof import('@focus/ui')['MorphIcon']
     PageHeader: typeof import('@focus/ui')['PageHeader']
     Pagination: typeof import('@focus/ui')['Pagination']
     PlainTextarea: typeof import('@focus/ui')['PlainTextarea']
@@ -94,6 +96,7 @@ declare module 'vue' {
     TableRow: typeof import('@focus/ui')['TableRow']
     Tabs: typeof import('@focus/ui')['Tabs']
     TaskCard: typeof import('./features/tasks/TaskCard.vue')['default']
+    TaskCheck: typeof import('./features/tasks/TaskCheck.vue')['default']
     TaskChecklist: typeof import('./features/tasks/TaskChecklist.vue')['default']
     TaskFormDialog: typeof import('./features/tasks/TaskFormDialog.vue')['default']
     TaskListPanel: typeof import('./features/dashboard/TaskListPanel.vue')['default']

@@ -9,6 +9,11 @@
 @custom-variant state-open (&[data-state='open']);
 
 @layer base {
+    .lv-icon {
+        --lv-duration: var(--duration-normal);
+        --lv-ease: var(--ease-in-out);
+    }
+
     [data-text-wrap='balance'] {
         text-wrap: balance;
     }

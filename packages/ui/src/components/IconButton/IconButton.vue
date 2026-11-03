@@ -41,6 +41,6 @@ withDefaults(
             current && 'border-2 border-highlight text-highlight-fg',
         ]"
     >
-        <Icon :name="icon" :size="size === 'lg' ? 'md' : 'sm'" :motion="motion" />
+        <slot><Icon :name="icon" :size="size === 'lg' ? 'md' : 'sm'" :motion="motion" /></slot>
     </LvButton>
 </template>

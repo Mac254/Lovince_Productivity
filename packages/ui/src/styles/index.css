@@ -6,5 +6,6 @@
 @import '@focus/tokens/tailwind.css';
 @import './base.css';
 @import './utilities.css';
+@import '@lovince/icons/style.css';
 @import './lovince.css';
 @import '@focus/motion/styles.css';

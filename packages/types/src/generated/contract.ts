@@ -103,12 +103,16 @@ export interface Settings {
     };
     appearance: {
         theme: 'dark' | 'light' | 'system';
-        accent: 'green' | 'blue' | 'violet' | 'amber' | 'rose' | 'cyan';
+        accent: 'green' | 'blue' | 'violet' | 'amber' | 'rose' | 'cyan' | 'indigo' | 'graphite';
         corners: 'sharp' | 'soft' | 'round';
+        font: 'focus' | 'editorial' | 'modern' | 'studio' | 'classic' | 'friendly' | 'system';
         text_size: 'small' | 'default' | 'large' | 'larger';
         reduce_motion: boolean;
     };
     tasks: {
+        card_density: 'comfortable' | 'compact';
+        card_covers: boolean;
+        card_descriptions: boolean;
         quick_add: boolean;
         estimates: boolean;
         complete_on_checklist: boolean;
@@ -142,7 +146,7 @@ export interface Settings {
         day: 'off' | 'friday' | 'saturday' | 'sunday';
     };
     journal: {
-        font: 'mono' | 'sans';
+        font: 'mono' | 'sans' | 'serif' | 'hand';
         searchable: boolean;
     };
 }
@@ -158,10 +162,14 @@ export const SETTINGS_DEFAULTS: Settings = {
         theme: 'dark',
         accent: 'green',
         corners: 'round',
+        font: 'focus',
         text_size: 'default',
         reduce_motion: false,
     },
     tasks: {
+        card_density: 'comfortable',
+        card_covers: true,
+        card_descriptions: true,
         quick_add: true,
         estimates: true,
         complete_on_checklist: false,

@@ -4,6 +4,8 @@ export { default as Container } from './primitives/Container/Container.vue';
 export { default as Text } from './primitives/Text/Text.vue';
 export { default as Heading } from './primitives/Heading/Heading.vue';
 export { default as Icon, type IconMotion } from './primitives/Icon/Icon.vue';
+export { default as AnimatedIcon, type AnimatedIconKind } from './primitives/AnimatedIcon/AnimatedIcon.vue';
+export { default as MorphIcon, type MorphIconName } from './primitives/MorphIcon/MorphIcon.vue';
 export { default as VisuallyHidden } from './primitives/VisuallyHidden/VisuallyHidden.vue';
 /** Bare Lovince controls for custom-shaped UI (calendar days, list rows, the journal editor); style them with tokens. */
 export { LvButton as Pressable, LvTextarea as PlainTextarea } from '@lovince/ui-vue';

@@ -16,20 +16,7 @@ const cover = computed(() => taskCoverUrl(props.task.cover));
     <li
         class="group/row @container flex items-center gap-3 rounded-md px-2 py-2 transition-colors duration-(--duration-instant) hover:bg-surface-raised"
     >
-        <Pressable
-            type="button"
-            :aria-label="done ? `Mark “${task.title}” as not done` : `Mark “${task.title}” complete`"
-            :aria-pressed="done"
-            :class="[
-                'group inline-flex size-(--icon-lg) shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-                done
-                    ? 'border-highlight bg-highlight text-highlight-ink'
-                    : 'border-border-control text-transparent hover:border-highlight-fg hover:text-highlight-fg',
-            ]"
-            @click="emit('toggle', task)"
-        >
-            <Icon name="check" motion="pop" />
-        </Pressable>
+        <TaskCheck :task="task" @toggle="emit('toggle', task)" />
         <img
             v-if="cover"
             :src="cover"
