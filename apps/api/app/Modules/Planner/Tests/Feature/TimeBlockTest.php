@@ -58,6 +58,30 @@ class TimeBlockTest extends TestCase
         $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today, 'start_minute' => 660])->assertOk();
     }
 
+    public function test_a_carried_block_may_touch_but_not_overlap_finished_blocks(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $today = today()->toDateString();
+        $done = Task::factory()->for($user)->completed()->create();
+        TimeBlock::factory()->for($user)->create(['date' => $today, 'start_minute' => 300, 'minutes' => 270, 'task_id' => $done->id]);
+        TimeBlock::factory()->for($user)->create(['date' => $today, 'start_minute' => 570, 'minutes' => 450]);
+        $open = Task::factory()->for($user)->create();
+        $missed = TimeBlock::factory()->for($user)->create([
+            'date' => today()->subDay()->toDateString(), 'start_minute' => 600, 'minutes' => 60, 'task_id' => $open->id,
+        ]);
+
+        $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today])
+            ->assertUnprocessable()->assertJsonValidationErrors('start_minute');
+        $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today, 'start_minute' => 510])
+            ->assertUnprocessable()->assertJsonValidationErrors('start_minute');
+        $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today, 'start_minute' => 1020])
+            ->assertOk()->assertJsonPath('data.date', $today)->assertJsonPath('data.start_minute', 1020);
+        $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today, 'start_minute' => 240])
+            ->assertOk()->assertJsonPath('data.start_minute', 240);
+        $this->getJson("/api/v1/time-blocks?date={$today}")->assertJsonCount(3, 'data');
+    }
+
     public function test_blocks_are_private(): void
     {
         $block = TimeBlock::factory()->create();

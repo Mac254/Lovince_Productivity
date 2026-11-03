@@ -1,3 +1,7 @@
+<script lang="ts">
+const dismissedMissed = new Set<number>();
+</script>
+
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { Schedule, Task, TimeBlock } from '@focus/types';
@@ -6,7 +10,9 @@ import { formatMinutes, todayIso } from '@/lib/dates';
 import {
     clockTime,
     freeMinutes,
+    freeSlot,
     missedBlocks,
+    missedSummary,
     movedSummary,
     plannedMinutes,
     previousDay,
@@ -35,6 +41,7 @@ const draftMinutes = ref(60);
 const now = ref(new Date());
 const missed = ref<TimeBlock[]>([]);
 const movingMissed = ref(false);
+const stuck = ref(false);
 let carried = false;
 const column = ref<HTMLElement | null>(null);
 let clock: number | undefined;
@@ -75,7 +82,9 @@ async function loadMissed(): Promise<void> {
         return;
     }
     try {
-        missed.value = missedBlocks(await api.timeBlocks.list(previousDay(props.date)));
+        missed.value = missedBlocks(await api.timeBlocks.list(previousDay(props.date))).filter(
+            (block) => !dismissedMissed.has(block.id),
+        );
     } catch {
         missed.value = [];
     }
@@ -89,9 +98,15 @@ async function moveMissed(auto = false): Promise<void> {
     movingMissed.value = true;
     let moved = 0;
     let skipped = 0;
+    const taken = [...blocks.value];
     for (const block of missed.value) {
+        const start = freeSlot(taken, block.minutes, block.start_minute);
+        if (start === null) {
+            skipped++;
+            continue;
+        }
         try {
-            await api.timeBlocks.update(block.id, { date: props.date });
+            taken.push(await api.timeBlocks.update(block.id, { date: props.date, start_minute: start }));
             moved++;
         } catch (e) {
             if (!isApiError(e) || !e.isValidation) {
@@ -102,6 +117,7 @@ async function moveMissed(auto = false): Promise<void> {
         }
     }
     if (moved || (skipped && !auto)) toast.success(movedSummary({ moved, skipped }));
+    stuck.value = skipped > 0;
     movingMissed.value = false;
     await load();
 }
@@ -156,6 +172,12 @@ function newBlock(start = snap(Math.max(nowMinute.value, range.value.start), ste
     dialogOpen.value = true;
 }
 
+function dismissMissed(): void {
+    missed.value.forEach((block) => dismissedMissed.add(block.id));
+    missed.value = [];
+    stuck.value = false;
+}
+
 function edit(block: TimeBlock): void {
     editing.value = block;
     dialogOpen.value = true;
@@ -190,11 +212,12 @@ onBeforeUnmount(() => window.clearInterval(clock));
 
         <Alert v-if="missed.length && !error" icon="history">
             <div class="flex flex-wrap items-center gap-2">
-                <span
-                    >{{ missed.length }} {{ missed.length === 1 ? 'block' : 'blocks' }} from yesterday weren’t
-                    finished</span
+                <span>{{ missedSummary(missed.length, stuck) }}</span>
+                <Button v-if="stuck" variant="outline" size="sm" @click="edit(missed[0]!)">Pick a time</Button>
+                <Button v-else variant="outline" size="sm" :loading="movingMissed" @click="moveMissed()"
+                    >Move to today</Button
                 >
-                <Button variant="outline" size="sm" :loading="movingMissed" @click="moveMissed()">Move to today</Button>
+                <Button variant="ghost" size="sm" @click="dismissMissed">Dismiss</Button>
             </div>
         </Alert>
         <ErrorState v-if="error" :message="error" @retry="load" />

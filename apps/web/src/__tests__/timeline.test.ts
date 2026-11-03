@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
     clockTime,
     freeMinutes,
+    freeSlot,
     missedBlocks,
+    missedSummary,
     movedSummary,
     parseClockTime,
     previousDay,
@@ -65,10 +67,38 @@ describe('timeline helpers', () => {
         expect(previousDay('2026-03-01')).toBe('2026-02-28');
         expect(movedSummary({ moved: 1, skipped: 0 })).toBe('Moved 1 block to today');
         expect(movedSummary({ moved: 2, skipped: 1 })).toBe(
-            'Moved 2 blocks to today. 1 block overlapped today’s plan and stayed put.',
+            'Moved 2 blocks to today. 1 block didn’t fit anywhere in today’s plan and stayed on yesterday.',
         );
         expect(movedSummary({ moved: 0, skipped: 3 })).toBe(
-            'Nothing moved. 3 blocks overlapped today’s plan and stayed put.',
+            'Nothing moved. 3 blocks didn’t fit anywhere in today’s plan and stayed on yesterday.',
         );
+    });
+
+    it('pluralises the missed blocks banner', () => {
+        expect(missedSummary(1, false)).toBe('1 block from yesterday wasn’t finished');
+        expect(missedSummary(2, false)).toBe('2 blocks from yesterday weren’t finished');
+        expect(missedSummary(1, true)).toBe('1 block from yesterday doesn’t fit in today’s plan');
+        expect(missedSummary(3, true)).toBe('3 blocks from yesterday don’t fit in today’s plan');
+    });
+
+    it('keeps a carried block at its time when that time is free', () => {
+        expect(freeSlot([block(540, 60)], 30, 600)).toBe(600);
+        expect(freeSlot([], 30, 600)).toBe(600);
+    });
+
+    it('moves a carried block that overlaps today’s plan to the next free slot', () => {
+        const booked = [block(300, 270), block(570, 450)];
+        expect(freeSlot(booked, 60, 600)).toBe(1020);
+        expect(freeSlot([block(540, 60), block(630, 60)], 30, 560)).toBe(600);
+        expect(freeSlot([block(0, 1380)], 60, 600)).toBe(1380);
+    });
+
+    it('looks earlier in the day when nothing later is free', () => {
+        expect(freeSlot([block(600, 840)], 60, 900)).toBe(0);
+    });
+
+    it('finds no slot when the block fits nowhere today', () => {
+        expect(freeSlot([block(0, 720), block(720, 720)], 30, 600)).toBeNull();
+        expect(freeSlot([block(0, 1200), block(1230, 210)], 60, 600)).toBeNull();
     });
 });

@@ -53,8 +53,30 @@ export function previousDay(date: string): string {
     return todayIso(day);
 }
 
+export function freeSlot(blocks: TimeBlock[], minutes: number, preferred: number): number | null {
+    const ends = [...new Set([0, ...blocks.map((block) => block.start_minute + block.minutes)])].sort((a, b) => a - b);
+    const candidates = [preferred, ...ends.filter((end) => end > preferred), ...ends.filter((end) => end < preferred)];
+    return (
+        candidates.find(
+            (start) =>
+                start + minutes <= DAY_MINUTES &&
+                blocks.every(
+                    (block) => block.start_minute >= start + minutes || block.start_minute + block.minutes <= start,
+                ),
+        ) ?? null
+    );
+}
+
+const countBlocks = (count: number) => `${count} ${count === 1 ? 'block' : 'blocks'}`;
+
+export function missedSummary(count: number, stuck: boolean): string {
+    if (stuck) return `${countBlocks(count)} from yesterday ${count === 1 ? 'doesn’t' : 'don’t'} fit in today’s plan`;
+    return `${countBlocks(count)} from yesterday ${count === 1 ? 'wasn’t' : 'weren’t'} finished`;
+}
+
 export function movedSummary({ moved, skipped }: { moved: number; skipped: number }): string {
-    const blocks = (count: number) => `${count} ${count === 1 ? 'block' : 'blocks'}`;
-    const head = moved ? `Moved ${blocks(moved)} to today` : 'Nothing moved';
-    return skipped ? `${head}. ${blocks(skipped)} overlapped today’s plan and stayed put.` : head;
+    const head = moved ? `Moved ${countBlocks(moved)} to today` : 'Nothing moved';
+    return skipped
+        ? `${head}. ${countBlocks(skipped)} didn’t fit anywhere in today’s plan and stayed on yesterday.`
+        : head;
 }
