@@ -25,7 +25,7 @@ function last<T>(list: T[]): T | undefined {
     return list[list.length - 1];
 }
 
-export function groupByDate(achievements: Achievement[], order: AchievementOrder = 'newest'): AchievementYear[] {
+export function groupByDate(achievements: Achievement[], order: AchievementOrder = 'oldest'): AchievementYear[] {
     const direction = order === 'newest' ? -1 : 1;
     const sorted = [...achievements].sort(
         (a, b) => direction * (a.achieved_on.localeCompare(b.achieved_on) || a.id - b.id),

@@ -14,7 +14,7 @@ const sample = [
 
 describe('groupByDate', () => {
     it('groups by year, month and day, newest first', () => {
-        const years = groupByDate(sample);
+        const years = groupByDate(sample, 'newest');
 
         expect(years.map((y) => [y.year, y.count])).toEqual([
             ['2026', 4],
@@ -29,8 +29,8 @@ describe('groupByDate', () => {
         ]);
     });
 
-    it('can list the oldest first', () => {
-        const years = groupByDate(sample, 'oldest');
+    it('lists the oldest first by default', () => {
+        const years = groupByDate(sample);
 
         expect(years.map((y) => y.year)).toEqual(['2025', '2026']);
         expect(years[1]!.months[0]!.days.map((d) => d.date)).toEqual(['2026-10-02', '2026-10-28']);

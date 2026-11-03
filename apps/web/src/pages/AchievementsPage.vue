@@ -9,8 +9,8 @@ const year = ref<string>('');
 const ORDER_KEY = 'focus.achievements.order';
 const order = ref<AchievementOrder>(readOrder());
 const orderOptions: { value: AchievementOrder; label: string }[] = [
-    { value: 'newest', label: 'Newest first' },
     { value: 'oldest', label: 'Oldest first' },
+    { value: 'newest', label: 'Newest first' },
 ];
 const dialogOpen = ref(false);
 const editing = ref<Achievement | null>(null);
@@ -38,9 +38,9 @@ function edit(achievement: Achievement): void {
 
 function readOrder(): AchievementOrder {
     try {
-        return localStorage.getItem(ORDER_KEY) === 'oldest' ? 'oldest' : 'newest';
+        return localStorage.getItem(ORDER_KEY) === 'newest' ? 'newest' : 'oldest';
     } catch {
-        return 'newest';
+        return 'oldest';
     }
 }
 

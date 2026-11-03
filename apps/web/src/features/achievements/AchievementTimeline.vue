@@ -8,7 +8,7 @@ import { groupByDate, type AchievementDay, type AchievementOrder } from './month
 
 const props = withDefaults(
     defineProps<{ achievements: Achievement[]; showGoal?: boolean; order?: AchievementOrder }>(),
-    { order: 'newest' },
+    { order: 'oldest' },
 );
 const emit = defineEmits<{ edit: [achievement: Achievement]; changed: [] }>();
 
