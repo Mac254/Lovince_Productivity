@@ -8,13 +8,15 @@ import {
     LvDialogRoot,
     LvDialogTitle,
 } from '@lovince/ui-vue';
-import { useTemplateRef } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { provideLayer } from '../../composables/useLayer';
 import IconButton from '../IconButton/IconButton.vue';
+import ScrollArea from '../ScrollArea/ScrollArea.vue';
 
 /**
  * Modal dialog on Lovince: focus trap, Escape, outside click, scroll lock and focus return.
  * `alert` makes it an alertdialog; `initialFocus` names the element id to focus on open.
+ * `busy` keeps it open (no Escape, outside click or close button) while a save is in flight.
  */
 withDefaults(
     defineProps<{
@@ -23,11 +25,13 @@ withDefaults(
         size?: 'sm' | 'md' | 'lg';
         alert?: boolean;
         initialFocus?: string;
+        busy?: boolean;
     }>(),
     { size: 'md' },
 );
 const open = defineModel<boolean>('open', { required: true });
 provideLayer(useTemplateRef<HTMLElement>('layer'));
+const edges = ref({ top: false, bottom: false });
 </script>
 
 <template>
@@ -35,12 +39,19 @@ provideLayer(useTemplateRef<HTMLElement>('layer'));
         <LvDialogPortal>
             <LvDialogOverlay class="dialog-overlay fixed inset-0 z-(--z-overlay) bg-scrim" />
             <LvDialogContent
+                :close-on-escape="!busy"
+                :close-on-outside="!busy"
                 :class="[
                     'dialog fixed inset-0 z-(--z-modal) m-auto flex h-fit max-h-(--dialog-max-height) w-(--dialog-width) flex-col overflow-hidden rounded-lg border border-border bg-surface-overlay text-fg shadow-overlay focus-visible:outline-none',
                     { sm: 'max-w-form', md: 'max-w-modal', lg: 'max-w-dialog-wide' }[size],
                 ]"
             >
-                <header class="flex shrink-0 items-start justify-between gap-4 px-6 pt-6 pb-4 sm:px-8 sm:pt-8">
+                <header
+                    :class="[
+                        'flex shrink-0 items-start justify-between gap-4 border-b px-6 pt-6 pb-4 transition-colors duration-(--duration-fast) sm:px-8 sm:pt-8',
+                        edges.top ? 'border-border' : 'border-transparent',
+                    ]"
+                >
                     <div class="flex flex-col gap-1">
                         <LvDialogTitle class="font-display text-heading font-medium tracking-tight text-balance">
                             {{ title }}
@@ -50,20 +61,22 @@ provideLayer(useTemplateRef<HTMLElement>('layer'));
                         </LvDialogDescription>
                     </div>
                     <LvDialogClose as-child>
-                        <IconButton icon="close" label="Close dialog" size="sm" />
+                        <IconButton icon="close" label="Close dialog" size="sm" :disabled="busy" />
                     </LvDialogClose>
                 </header>
-                <div
-                    :class="[
-                        'dialog-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-2 sm:px-8',
-                        $slots.footer ? 'pb-6' : 'pb-6 sm:pb-8',
-                    ]"
+                <ScrollArea
+                    :label="title"
+                    :viewport-class="['px-6 pt-4 sm:px-8', $slots.footer ? 'pb-6' : 'pb-6 sm:pb-8']"
+                    @edges="edges = $event"
                 >
                     <slot />
-                </div>
+                </ScrollArea>
                 <footer
                     v-if="$slots.footer"
-                    class="flex shrink-0 flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end sm:px-8"
+                    :class="[
+                        'flex shrink-0 flex-col-reverse gap-3 border-t px-6 py-4 transition-colors duration-(--duration-fast) sm:flex-row sm:justify-end sm:px-8',
+                        edges.bottom ? 'border-border' : 'border-transparent',
+                    ]"
                 >
                     <slot name="footer" />
                 </footer>
@@ -74,10 +87,6 @@ provideLayer(useTemplateRef<HTMLElement>('layer'));
 </template>
 
 <style scoped>
-.dialog-body {
-    scrollbar-width: thin;
-}
-
 .dialog[data-state='open'] {
     animation: dialog-in var(--duration-normal) var(--ease-out);
 }

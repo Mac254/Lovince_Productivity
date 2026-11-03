@@ -6,30 +6,26 @@ The shared Vue components (`components/`, `patterns/`, `primitives/`) are built 
 
 Checked against `@lovince/ui-vue` 1.0.0, the version installed now. Many of the gaps below are in our wrappers, not in Lovince: the package ships the part, and we either don't use it or don't pass its props through. Fix these first; they need no new components.
 
-| Gap in `@focus/ui`                                   | Lovince part to use                                                                                                     |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| The Dialog body's native scrollbar                   | `LvScrollAreaRoot` / `Viewport` / `Scrollbar` / `Thumb`                                                                 |
-| Dialog closes while saving or with unsaved edits     | `LvDialogContent`'s `closeOnEscape` and `closeOnOutside` props, and its `escapeKeyDown` and `pointerDownOutside` events |
-| ConfirmDialog is a Dialog with `role="alertdialog"`  | `LvAlertDialogRoot` … `LvAlertDialogAction` / `LvAlertDialogCancel`                                                     |
-| Sheet is a Dialog pinned to the right                | `LvSheetRoot` (`side`, `modal`), `LvSheetContent`, `LvSheetHandle`                                                      |
-| Toasts have no "Undo" button or second line          | `LvToastAction`, `LvToastDescription`, and the viewport's `hotkey`                                                      |
-| Select, Combobox and FacetFilter pick only one value | `multiple` on `LvSelectRoot` and `LvComboboxRoot`                                                                       |
-| An interactive Card isn't clickable as a whole       | `LvCardLink`                                                                                                            |
-| Table can't sort or select rows                      | `LvDataTable` (`sort`, `sortMode`, `selectable`)                                                                        |
-| There's no date range picker                         | `LvDateRangePickerRoot`                                                                                                 |
-| Estimates and times are free-text inputs             | `LvTimeField`, `LvNumberField`                                                                                          |
+| Gap in `@focus/ui`                                   | Lovince part to use                                                 |
+| ---------------------------------------------------- | ------------------------------------------------------------------- |
+| ConfirmDialog is a Dialog with `role="alertdialog"`  | `LvAlertDialogRoot` … `LvAlertDialogAction` / `LvAlertDialogCancel` |
+| Sheet is a Dialog pinned to the right                | `LvSheetRoot` (`side`, `modal`), `LvSheetContent`, `LvSheetHandle`  |
+| Toasts have no "Undo" button or second line          | `LvToastAction`, `LvToastDescription`, and the viewport's `hotkey`  |
+| Select, Combobox and FacetFilter pick only one value | `multiple` on `LvSelectRoot` and `LvComboboxRoot`                   |
+| An interactive Card isn't clickable as a whole       | `LvCardLink`                                                        |
+| Table can't sort or select rows                      | `LvDataTable` (`sort`, `sortMode`, `selectable`)                    |
+| There's no date range picker                         | `LvDateRangePickerRoot`                                             |
+| Estimates and times are free-text inputs             | `LvTimeField`, `LvNumberField`                                      |
 
-Lovince doesn't cover these, so they need work in our wrappers: Textarea growing with its content (`LvTextarea` only takes `modelValue`), a clear button and presets on the DatePicker, a scroll cue on the Dialog, and toast placement next to the floating button.
+Lovince doesn't cover these, so they need work in our wrappers: Textarea growing with its content (`LvTextarea` only takes `modelValue`), a clear button and presets on the DatePicker, and toast placement next to the floating button.
 
 ## Dialog
 
-The header and footer are now pinned and only the body scrolls. Modal widths are `sm` (28rem), `md` (42rem) and `lg` (60rem). What is still weak:
+The header and footer are pinned and only the body scrolls, in Lovince's scroll area with a thin thumb. The header and footer dividers show only while content is hidden behind them, and `busy` blocks Escape, outside clicks and the close button while a save runs. Modal widths are `sm` (28rem), `md` (42rem) and `lg` (60rem). What is still weak:
 
-- **No scroll cue.** The header has no divider or shadow when the body is scrolled, so it isn't obvious that more content sits above. The footer always has a top border, even when nothing is scrolled under it. Fix: show the divider only while the body is scrolled away from the top or bottom.
-- **Closing loses edits.** Escape, the close button and clicks outside all close at once, and a half-filled form is lost (the task, goal, schedule and journal dialogs). Fix: an optional `dirty` prop that asks before closing.
+- **Closing loses edits.** Escape, the close button and clicks outside all close at once, and a half-filled form is lost (the task, goal, schedule and journal dialogs). Fix: an optional `dirty` prop that asks before closing, using `LvDialogContent`'s `escapeKeyDown` and `pointerDownOutside` events.
 - **Fixed sizes only.** The three sizes don't adapt to their content. A dialog with a long form, like the schedule editor, gets tall instead of using its width. There is no full-screen layout on phones either: at 375px a dialog is a centred card with 1rem gutters, and the on-screen keyboard can push the footer out of view. Fix: a `fullscreen-mobile` behaviour below `sm`.
 - **Inconsistent footers.** Most form dialogs put their actions in `#footer`. The Account dialogs (name, password) and the command palette keep their buttons inside the body, so those buttons scroll away and are spaced differently. Fix: move them into `#footer`.
-- **Busy state isn't shared.** Dialogs track `saving` themselves. While a save runs you can still close the dialog or press Cancel, and the request carries on in the background. Fix: a `busy` prop that disables closing.
 - **One layer per dialog.** Popovers opened inside a dialog (Select, Combobox, DatePicker, DropdownMenu) mount in the dialog's `layer`. A dialog opened from inside another dialog works, but its overlay doesn't dim the first dialog's footer.
 
 ## Sheet
@@ -40,7 +36,6 @@ The header and footer are now pinned and only the body scrolls. Modal widths are
 
 ## ConfirmDialog
 
-- `loading` only spins the confirm button. Cancel, Escape and outside clicks still close the dialog while the delete request is in flight.
 - The confirm button is always `destructive`, even for actions that aren't, like "Replace plan" in the day planner.
 
 ## Toast

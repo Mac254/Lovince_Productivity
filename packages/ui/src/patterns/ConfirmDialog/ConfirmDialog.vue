@@ -13,10 +13,10 @@ const cancelId = useId();
 </script>
 
 <template>
-    <Dialog v-model:open="open" :title="title" size="sm" alert :initial-focus="cancelId">
+    <Dialog v-model:open="open" :title="title" size="sm" alert :initial-focus="cancelId" :busy="loading">
         <p class="text-body text-fg-muted">{{ message }}</p>
         <template #footer>
-            <Button :id="cancelId" variant="outline" @click="open = false">Cancel</Button>
+            <Button :id="cancelId" variant="outline" :disabled="loading" @click="open = false">Cancel</Button>
             <Button variant="destructive" :loading="loading" @click="emit('confirm')">{{ confirmLabel }}</Button>
         </template>
     </Dialog>
