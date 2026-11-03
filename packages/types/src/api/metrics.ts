@@ -23,6 +23,13 @@ export interface MetricInsight {
     text: string;
 }
 
+export interface ActivityStreak {
+    current: number;
+    best: number;
+    active_today: boolean;
+    active_days: number;
+}
+
 export interface Metrics {
     range: { days: MetricRange; start: IsoDate; end: IsoDate };
     totals: {
@@ -49,8 +56,8 @@ export interface Metrics {
     /** `logged` counts work log entries for the day; `minutes` is the time recorded on them. */
     daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number; focus: number }[];
     focus: FocusMetrics;
-    /** `count` is `completed` tasks plus `logged` work log entries for the day. */
     heatmap: { date: IsoDate; count: number; completed: number; logged: number; focus_minutes: number }[];
+    consistency: ActivityStreak & { days: number };
     insights: MetricInsight[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];
     by_category: { key: TaskCategory; completed: number; open: number }[];

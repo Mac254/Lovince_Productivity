@@ -24,7 +24,11 @@ use Illuminate\Support\Collection;
  */
 class MetricsService
 {
-    public function __construct(private readonly FocusStats $focus, private readonly Insights $insights) {}
+    public function __construct(
+        private readonly FocusStats $focus,
+        private readonly Insights $insights,
+        private readonly ActivityDays $activity,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -71,6 +75,8 @@ class MetricsService
         $focusInRange = $focus->filter(fn (FocusSession $f) => $f->started_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
         $focusByDay = FocusStats::minutesByDay($focusInRange);
 
+        $heatmap = $this->activity->between($user, today()->startOfWeek()->subWeeks(26), today());
+
         $metrics = [
             'range' => ['days' => $days, 'start' => $start->toDateString(), 'end' => $end->toDateString()],
             'totals' => [
@@ -99,7 +105,8 @@ class MetricsService
                 $this->daily($start, $days, $createdInRange, $completedInRange, $notesInRange),
             ),
             'focus' => $this->focusSummary($user, $focusInRange, $focus->diff($focusInRange), $days),
-            'heatmap' => $this->heatmap($user, $tasks),
+            'heatmap' => $heatmap,
+            'consistency' => ActivityDays::streaks($heatmap, today()->toDateString()) + ['days' => count($heatmap)],
             'by_priority' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => [
                 'key' => $p->value,
                 'completed' => $completedInRange->where('priority', $p)->count(),
@@ -182,38 +189,6 @@ class MetricsService
                 'logged' => isset($notesByDay[$date]) ? $notesByDay[$date]->count() : 0,
                 'minutes' => isset($notesByDay[$date]) ? (int) $notesByDay[$date]->sum('minutes') : 0,
             ];
-        })->all();
-    }
-
-    /**
-     * Activity per day for the last 26 full weeks plus this week, Monday first, independent of the range:
-     * tasks completed, work log entries and each 25 minutes of focus, so steady work on a long task still shows.
-     *
-     * @param  Collection<int, Task>  $tasks
-     * @return list<array{date: string, count: int, completed: int, logged: int, focus_minutes: int}>
-     */
-    private function heatmap(User $user, Collection $tasks): array
-    {
-        $first = today()->startOfWeek()->subWeeks(26);
-        $completed = $tasks
-            ->filter(fn (Task $t) => $t->status === TaskStatus::Completed && $t->completed_at?->greaterThanOrEqualTo($first))
-            ->countBy(fn (Task $t) => $t->completed_at->toDateString());
-        $logged = TaskNote::query()->whereBelongsTo($user)
-            ->whereDate('logged_on', '>=', $first)
-            ->get(['logged_on'])
-            ->countBy(fn (TaskNote $n) => $n->logged_on->toDateString());
-        $focus = FocusStats::minutesByDay($this->focus->between($user, $first, today()->endOfDay()));
-
-        $days = (int) $first->diffInDays(today()) + 1;
-
-        return collect(range(0, $days - 1))->map(function (int $offset) use ($first, $completed, $logged, $focus) {
-            $date = $first->copy()->addDays($offset)->toDateString();
-            $done = $completed[$date] ?? 0;
-            $notes = $logged[$date] ?? 0;
-
-            $minutes = $focus[$date] ?? 0;
-
-            return ['date' => $date, 'count' => $done + $notes + intdiv($minutes, 25), 'completed' => $done, 'logged' => $notes, 'focus_minutes' => $minutes];
         })->all();
     }
 

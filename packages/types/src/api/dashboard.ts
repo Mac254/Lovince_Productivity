@@ -1,3 +1,4 @@
+import type { ActivityStreak } from './metrics';
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Quote } from '../models/quote';
@@ -45,6 +46,7 @@ export interface Dashboard {
     date: IsoDate;
     week: { start: IsoDate; end: IsoDate };
     focus: FocusToday;
+    streak: ActivityStreak;
     review: ReviewPrompt;
     stats: DashboardStats;
     today_tasks: Task[];

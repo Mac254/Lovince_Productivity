@@ -9,7 +9,7 @@ import { useChartTheme } from './useChartTheme';
  * Activity per day over the last six months (tasks completed, work logged and focus time): weeks across, weekdays down (Monday first).
  * One hue, light to dark; days still to come are left empty.
  */
-const props = defineProps<{ days: Metrics['heatmap'] }>();
+const props = defineProps<{ days: Metrics['heatmap']; consistency: Metrics['consistency'] }>();
 const { colors, base } = useChartTheme();
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -29,6 +29,36 @@ const monthStarts = computed(
                 .filter((week) => week.some((day) => day.date.endsWith('-01')) || week === weeks.value[0])
                 .map((week) => (week[0] ? formatDate(week[0].date, { day: 'numeric', month: 'short' }) : '')),
         ),
+);
+
+const stats = computed(() => {
+    const { current, best, active_today: today, active_days: active, days } = props.consistency;
+    const elapsed = props.days.filter((day) => day.date <= todayIso()).length || days;
+    return [
+        {
+            label: 'Current streak',
+            value: `${current} ${current === 1 ? 'day' : 'days'}`,
+            hint: current ? (today ? 'Active today' : 'Do something today to keep it') : 'Start one today',
+        },
+        { label: 'Best streak', value: `${best} ${best === 1 ? 'day' : 'days'}`, hint: 'In the last six months' },
+        {
+            label: 'Active days',
+            value: `${active}/${elapsed}`,
+            hint: `${Math.round((active / elapsed) * 100)}% of days`,
+        },
+        {
+            label: 'Busiest day',
+            value: busiest.value ? formatDate(busiest.value.date, { day: 'numeric', month: 'short' }) : '—',
+            hint: busiest.value ? `${busiest.value.count} activity points` : 'Nothing logged yet',
+        },
+    ];
+});
+
+const busiest = computed(() =>
+    props.days.reduce<Metrics['heatmap'][number] | null>(
+        (top, day) => (day.count > (top?.count ?? 0) ? day : top),
+        null,
+    ),
 );
 
 const max = computed(() => Math.max(1, ...props.days.map((d) => d.count)));
@@ -104,16 +134,28 @@ const options = computed<ApexOptions>(() => ({
 </script>
 
 <template>
-    <div>
-        <VueApexCharts type="heatmap" height="240" :options="options" :series="series" />
-        <div class="mt-2 flex items-center justify-end gap-2 text-caption text-fg-muted" aria-hidden="true">
-            <span>Less</span>
-            <span
-                v-for="n in 5"
-                :key="n"
-                :class="['size-3 rounded-sm', ['bg-heat-0', 'bg-heat-1', 'bg-heat-2', 'bg-heat-3', 'bg-heat-4'][n - 1]]"
-            />
-            <span>More</span>
+    <div class="flex flex-col gap-6">
+        <dl class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div v-for="stat in stats" :key="stat.label" class="flex flex-col gap-1">
+                <dt class="text-label text-fg-muted">{{ stat.label }}</dt>
+                <dd class="font-display text-heading font-semibold tabular">{{ stat.value }}</dd>
+                <dd class="text-caption text-fg-muted">{{ stat.hint }}</dd>
+            </div>
+        </dl>
+        <div>
+            <VueApexCharts type="heatmap" height="240" :options="options" :series="series" />
+            <div class="mt-2 flex items-center justify-end gap-2 text-caption text-fg-muted" aria-hidden="true">
+                <span>Less</span>
+                <span
+                    v-for="n in 5"
+                    :key="n"
+                    :class="[
+                        'size-3 rounded-sm',
+                        ['bg-heat-0', 'bg-heat-1', 'bg-heat-2', 'bg-heat-3', 'bg-heat-4'][n - 1],
+                    ]"
+                />
+                <span>More</span>
+            </div>
         </div>
     </div>
 </template>

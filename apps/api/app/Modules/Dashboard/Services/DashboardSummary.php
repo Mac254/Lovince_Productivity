@@ -9,6 +9,7 @@ use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Http\Resources\GoalResource;
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Metrics\Services\ActivityDays;
 use App\Modules\Quotes\Http\Resources\QuoteResource;
 use App\Modules\Quotes\Models\Quote;
 use App\Modules\Reviews\Services\ReviewPrompt;
@@ -25,7 +26,11 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class DashboardSummary
 {
-    public function __construct(private readonly FocusStats $focus, private readonly ReviewPrompt $review) {}
+    public function __construct(
+        private readonly FocusStats $focus,
+        private readonly ReviewPrompt $review,
+        private readonly ActivityDays $activity,
+    ) {}
 
     private const LIST_LIMIT = 8;
 
@@ -58,6 +63,7 @@ class DashboardSummary
                 'end' => $weekEnd->toDateString(),
             ],
             'focus' => $this->focus->today($user),
+            'streak' => $this->activity->streak($user),
             'review' => $this->review->for($user),
             'stats' => [
                 'due_today' => $tasks()->open()->whereDate('due_date', $today)->count(),

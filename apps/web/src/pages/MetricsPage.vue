@@ -236,12 +236,12 @@ onMounted(run);
 
                     <Card as="section" aria-labelledby="heatmap-heading" class="group">
                         <CardHeader
-                            title="Activity"
+                            title="Consistency"
                             title-id="heatmap-heading"
                             icon="flame"
-                            subtitle="Tasks completed and work logged per day, last six months"
+                            subtitle="A day counts when you finish a task, log work or focus. Last six months."
                         />
-                        <ActivityHeatmap :days="data.heatmap" />
+                        <ActivityHeatmap :days="data.heatmap" :consistency="data.consistency" />
                     </Card>
                 </template>
                 <template #breakdown>

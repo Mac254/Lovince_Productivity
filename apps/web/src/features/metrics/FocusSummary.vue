@@ -28,7 +28,7 @@ const stats = computed(() => [
         value: formatMinutes(props.focus.per_day) || '0m',
         hint: `${props.focus.completed} of ${props.focus.sessions} ran to the end`,
     },
-    { label: 'Streak', value: String(props.focus.streak), hint: streakLabel(props.focus.streak) },
+    { label: 'Focus streak', value: String(props.focus.streak), hint: streakLabel(props.focus.streak) },
     {
         label: 'Goal met',
         value: props.focus.goal_minutes ? `${props.focus.goal_days}/${props.days}` : '—',
