@@ -10,7 +10,7 @@ vi.mock('@focus/api-client', () => ({
     isApiError: () => false,
 }));
 
-function mountEditor(text: string) {
+async function mountEditor(text: string) {
     const body = ref(text);
     const wrapper = mount(JournalEditor, {
         props: {
@@ -22,6 +22,7 @@ function mountEditor(text: string) {
         },
         attachTo: document.body,
     });
+    await nextTick();
     const textarea = wrapper.find('textarea').element;
     return { wrapper, body, textarea };
 }
@@ -34,9 +35,9 @@ describe('JournalEditor', () => {
     });
 
     it('highlights the selection from the toolbar and the keyboard', async () => {
-        const { wrapper, body, textarea } = mountEditor('ship it today');
+        const { wrapper, body, textarea } = await mountEditor('ship it today');
         textarea.setSelectionRange(5, 7);
-        await wrapper.find('button[aria-label="Highlight (Ctrl+Shift+H)"]').trigger('click');
+        await wrapper.find('button[aria-label="Highlight"]').trigger('click');
         expect(body.value).toBe('ship ==it== today');
 
         textarea.setSelectionRange(0, 4);
@@ -46,7 +47,7 @@ describe('JournalEditor', () => {
     });
 
     it('inserts an emoji at the caret', async () => {
-        const { wrapper, body, textarea } = mountEditor('Good day');
+        const { wrapper, body, textarea } = await mountEditor('Good day');
         textarea.setSelectionRange(8, 8);
         await wrapper.find('button[aria-label="Emoji"]').trigger('click');
         await nextTick();

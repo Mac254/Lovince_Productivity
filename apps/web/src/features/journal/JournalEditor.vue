@@ -28,7 +28,7 @@ const activeFont = computed(() => previewFont.value ?? font.value);
 watch(activeFont, (value) => void loadJournalFont(value), { immediate: true });
 
 const emojiOpen = ref(false);
-const emojiButton = ref<{ $el: HTMLElement } | null>(null);
+const emojiButton = ref<{ focus: () => void } | null>(null);
 
 interface Tool {
     icon: IconName;
@@ -65,26 +65,10 @@ const shortcuts: Record<string, Tool> = {
     'shift+x': toolGroups[0]![3]!,
     e: toolGroups[0]![4]!,
 };
-const toolbar = ref<HTMLElement | null>(null);
-const activeTool = ref(0);
-const toolIndex = (group: number, index: number) =>
-    toolGroups.slice(0, group).reduce((sum, tools) => sum + tools.length, 0) + index;
 
 function runTool(tool: Tool): void {
     const el = textarea.value;
     if (el && !props.disabled) apply(tool.run(el));
-}
-
-function onToolbarKeydown(event: KeyboardEvent): void {
-    const buttons = [...(toolbar.value?.querySelectorAll<HTMLElement>('[data-tool]') ?? [])];
-    const current = buttons.indexOf(document.activeElement as HTMLElement);
-    if (current === -1) return;
-    const target = { ArrowLeft: current - 1, ArrowRight: current + 1, Home: 0, End: buttons.length - 1 }[event.key];
-    if (target === undefined) return;
-    event.preventDefault();
-    const next = (target + buttons.length) % buttons.length;
-    activeTool.value = next;
-    buttons[next]?.focus();
 }
 
 function insertEmoji(char: string): void {
@@ -96,7 +80,7 @@ function insertEmoji(char: string): void {
 
 function closeEmoji(): void {
     emojiOpen.value = false;
-    emojiButton.value?.$el.focus();
+    emojiButton.value?.focus();
 }
 
 const editor = ref<{ $el: HTMLTextAreaElement } | null>(null);
@@ -179,44 +163,30 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
 <template>
     <div class="flex min-h-0 flex-1 flex-col">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2 sm:px-4">
-            <div
-                ref="toolbar"
-                role="toolbar"
-                aria-label="Formatting"
-                aria-controls="journal-body"
-                class="flex flex-wrap items-center gap-1"
-                @keydown="onToolbarKeydown"
-            >
+            <Toolbar label="Formatting" aria-controls="journal-body" :disabled="disabled">
                 <template v-for="(tools, group) in toolGroups" :key="group">
-                    <span v-if="group" aria-hidden="true" class="mx-1 h-5 w-px bg-border" />
-                    <IconButton
-                        v-for="(tool, index) in tools"
+                    <ToolbarSeparator v-if="group" />
+                    <ToolbarButton
+                        v-for="tool in tools"
                         :key="tool.label"
-                        data-tool
                         :icon="tool.icon"
-                        :label="tool.shortcut ? `${tool.label} (${tool.shortcut})` : tool.label"
-                        variant="ghost"
-                        size="sm"
+                        :label="tool.label"
+                        :shortcut="tool.shortcut"
                         :disabled="disabled"
-                        :tabindex="toolIndex(group, index) === activeTool ? 0 : -1"
                         @click="runTool(tool)"
                     />
                 </template>
-                <span aria-hidden="true" class="mx-1 h-5 w-px bg-border" />
-                <IconButton
+                <ToolbarSeparator />
+                <ToolbarButton
                     ref="emojiButton"
-                    data-tool
                     icon="emoji"
                     label="Emoji"
-                    variant="ghost"
-                    size="sm"
                     :disabled="disabled"
                     :aria-expanded="emojiOpen"
                     aria-controls="journal-emoji"
-                    :tabindex="toolIndex(toolGroups.length, 0) === activeTool ? 0 : -1"
                     @click="emojiOpen = !emojiOpen"
                 />
-            </div>
+            </Toolbar>
             <Button variant="ghost" size="sm" icon-start="text-format" @click="fontOpen = true">
                 <span :data-journal-font="font" class="font-sample">{{ journalFonts[font].name }}</span>
                 <span class="sr-only">, change writing font</span>
