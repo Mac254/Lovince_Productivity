@@ -36,6 +36,12 @@ class TimerSettings extends SettingsModule
                 '360' => '6 hours',
             ], '120', 'Focus time to aim for each day, shown on the clock and dashboard.'),
             Setting::toggle('sync', 'Sync across devices', true, 'Start, pause or stop the timer on one device and see it on the others.'),
+            Setting::choice('face', 'Timer face', [
+                'ring' => 'Ring',
+                'digital' => 'Digital',
+                'minimal' => 'Minimal',
+                'flip' => 'Flip',
+            ], 'ring')->unlisted(),
             Setting::toggle('auto_break', 'Start breaks automatically', false, 'A 5-minute break begins when a focus session ends.'),
         ];
     }

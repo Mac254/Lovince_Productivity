@@ -141,7 +141,7 @@ export interface Settings {
         ideas_per_day: '1' | '2' | '3' | '5';
     };
     clock: {
-        wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | `custom:${number}`;
+        wallpaper: 'neon' | 'grid' | 'aurora' | 'tones' | 'midnight' | 'paper' | 'dusk' | 'forest' | 'ocean' | 'ember' | 'dots' | 'dawn' | `custom:${number}`;
         time_format: '24h' | '12h';
         show_seconds: boolean;
         ticking: boolean;
@@ -150,6 +150,7 @@ export interface Settings {
         chime: boolean;
         daily_goal: '0' | '60' | '120' | '180' | '240' | '300' | '360';
         sync: boolean;
+        face: 'ring' | 'digital' | 'minimal' | 'flip';
         auto_break: boolean;
     };
     review: {
@@ -210,6 +211,7 @@ export const SETTINGS_DEFAULTS: Settings = {
         chime: true,
         daily_goal: '120',
         sync: true,
+        face: 'ring',
         auto_break: false,
     },
     review: {

@@ -3,6 +3,9 @@ import { api } from '@focus/api-client';
 import type { Task } from '@focus/types';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { formatMinutes } from '@/lib/dates';
+import type { TimerFace } from './wallpapers';
+
+defineProps<{ face: TimerFace }>();
 
 const timer = useTimerStore();
 const dashboard = useDashboardStore();
@@ -147,13 +150,14 @@ onBeforeUnmount(() => {
             </Pressable>
         </div>
 
-        <TimerRing :progress="timer.progress" :size="ringSize" :label="`${statusLine}, ${timer.display} remaining`">
-            <p class="text-label font-semibold tracking-wide uppercase opacity-80">{{ statusLine }}</p>
-            <p class="timer-digits font-display font-semibold" aria-hidden="true">
-                <RollingDigits :text="timer.display" />
-            </p>
-            <p v-if="timer.task" class="mt-1 max-w-56 truncate text-label opacity-90">{{ timer.task.title }}</p>
-        </TimerRing>
+        <TimerFace
+            :face="face"
+            :progress="timer.progress"
+            :display="timer.display"
+            :status="statusLine"
+            :task="timer.task?.title"
+            :size="ringSize"
+        />
         <p class="sr-only" aria-live="assertive">{{ timer.status === 'done' ? statusLine : '' }}</p>
 
         <div class="flex flex-wrap items-center justify-center gap-3">
@@ -253,10 +257,3 @@ onBeforeUnmount(() => {
         </div>
     </section>
 </template>
-
-<style scoped>
-.timer-digits {
-    font-size: clamp(3rem, 9vw, 5.5rem);
-    line-height: 1;
-}
-</style>

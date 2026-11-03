@@ -1,6 +1,6 @@
 import { api, errorMessage } from '@focus/api-client';
 import { LIMITS, type Wallpaper } from '@focus/types';
-import { customWallpaperKey, wallpapers, type ClockPrefs } from './wallpapers';
+import { builtInWallpaper, customWallpaperKey, wallpapers, type ClockPrefs } from './wallpapers';
 
 /** Built-in and uploaded wallpapers, and which one is active for these preferences. */
 export function useWallpapers(prefs: ClockPrefs) {
@@ -14,7 +14,7 @@ export function useWallpapers(prefs: ClockPrefs) {
     const wallpaper = computed(() =>
         activeUpload.value
             ? { id: 'photo', label: activeUpload.value.name, ink: 'light' as const }
-            : (wallpapers.find((w) => w.id === prefs.wallpaper) ?? wallpapers[0]!),
+            : builtInWallpaper(prefs.wallpaper),
     );
 
     async function load(): Promise<void> {

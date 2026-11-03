@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { LIMITS } from '@focus/types';
 import { useWallpapers } from '@/features/clock/useWallpapers';
-import { customWallpaperKey, useClockPrefs, wallpapers } from '@/features/clock/wallpapers';
+import { customWallpaperKey, timerFaces, useClockPrefs, wallpapers } from '@/features/clock/wallpapers';
 import { isoWeek } from '@/lib/dates';
 import { createTicker } from '@/lib/ticker';
 
@@ -59,7 +59,9 @@ const dateLine = computed(
     () =>
         `${new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now.value)} · Week ${isoWeek(now.value)}`,
 );
-const showControls = computed(() => controlsVisible.value || settingsOpen.value || historyOpen.value || mode.value === 'timer');
+const showControls = computed(
+    () => controlsVisible.value || settingsOpen.value || historyOpen.value || mode.value === 'timer',
+);
 
 function wake(): void {
     controlsVisible.value = true;
@@ -155,7 +157,7 @@ onBeforeUnmount(() => {
 
         <header
             :class="[
-                'z-(--z-sticky) flex items-center justify-between gap-3 p-4 transition-opacity duration-(--duration-slow) sm:p-6',
+                'z-(--z-sticky) flex flex-wrap items-center justify-between gap-3 p-4 transition-opacity duration-(--duration-slow) sm:p-6',
                 showControls ? 'opacity-100' : 'pointer-events-none opacity-0',
             ]"
         >
@@ -186,19 +188,22 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div ref="settings" class="relative flex items-center gap-1 rounded-full bg-chrome p-1 shadow-floating">
+            <div
+                ref="settings"
+                class="relative ml-auto flex items-center gap-1 rounded-full bg-chrome p-1 shadow-floating"
+            >
                 <Pressable
                     type="button"
                     :aria-expanded="historyOpen"
                     aria-haspopup="dialog"
                     :class="[
-                        'flex h-(--control-sm) items-center gap-2 rounded-full px-4 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover',
+                        'flex h-(--control-sm) items-center gap-2 rounded-full px-3 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover sm:px-4',
                         historyOpen && 'bg-chrome-hover',
                     ]"
                     @click="openHistory"
                 >
                     <Icon name="history" size="sm" />
-                    History
+                    <span class="sr-only sm:not-sr-only">History</span>
                 </Pressable>
                 <Pressable
                     type="button"
@@ -292,6 +297,36 @@ onBeforeUnmount(() => {
                             </Pressable>
                         </div>
 
+                        <div v-if="mode === 'timer'" class="flex flex-col gap-3">
+                            <p
+                                id="timer-face-label"
+                                class="text-caption font-semibold tracking-wide text-chrome-fg-muted uppercase"
+                            >
+                                Timer face
+                            </p>
+                            <div
+                                role="group"
+                                aria-labelledby="timer-face-label"
+                                class="grid grid-cols-2 gap-2 rounded-lg bg-chrome-hover p-1"
+                            >
+                                <Pressable
+                                    v-for="item in timerFaces"
+                                    :key="item.id"
+                                    type="button"
+                                    :aria-pressed="prefs.face === item.id"
+                                    :class="[
+                                        'h-(--control-sm) rounded-md text-label font-semibold transition-colors',
+                                        prefs.face === item.id
+                                            ? 'bg-highlight text-highlight-ink'
+                                            : 'text-chrome-fg hover:bg-chrome',
+                                    ]"
+                                    @click="prefs.face = item.id"
+                                >
+                                    {{ item.label }}
+                                </Pressable>
+                            </div>
+                        </div>
+
                         <div class="flex flex-col gap-3">
                             <p class="text-caption font-semibold tracking-wide text-chrome-fg-muted uppercase">Time</p>
                             <div
@@ -346,7 +381,7 @@ onBeforeUnmount(() => {
 
         <Transition name="mode" mode="out-in">
             <div v-if="mode === 'timer'" key="timer" class="flex flex-1 justify-center px-4 pb-12">
-                <FocusTimer />
+                <FocusTimer :face="prefs.face" />
             </div>
 
             <div v-else key="clock" class="flex flex-1 flex-col px-4 pb-6 sm:px-12 sm:pb-8">
@@ -564,6 +599,48 @@ onBeforeUnmount(() => {
 .wallpaper-paper {
     background:
         radial-gradient(80% 60% at 50% 0%, var(--surface-inverse-hover), transparent 70%), var(--surface-inverse);
+}
+
+.wallpaper-dusk {
+    background:
+        radial-gradient(90% 60% at 50% 110%, color-mix(in oklab, var(--tone-rose) 60%, transparent), transparent 65%),
+        radial-gradient(70% 50% at 80% 10%, color-mix(in oklab, var(--tone-violet) 45%, transparent), transparent 70%),
+        linear-gradient(180deg, var(--chrome), var(--chrome-hover));
+}
+
+.wallpaper-forest {
+    background:
+        radial-gradient(70% 55% at 25% 100%, color-mix(in oklab, var(--tone-green) 55%, transparent), transparent 70%),
+        radial-gradient(50% 40% at 85% 15%, color-mix(in oklab, var(--tone-green) 25%, transparent), transparent 70%),
+        linear-gradient(200deg, var(--chrome-hover), var(--chrome) 70%);
+}
+
+.wallpaper-ocean {
+    background:
+        radial-gradient(80% 60% at 0% 0%, color-mix(in oklab, var(--tone-cyan) 45%, transparent), transparent 70%),
+        radial-gradient(90% 70% at 100% 100%, color-mix(in oklab, var(--tone-blue) 55%, transparent), transparent 70%),
+        var(--chrome);
+}
+
+.wallpaper-ember {
+    background:
+        radial-gradient(60% 45% at 50% 100%, color-mix(in oklab, var(--tone-amber) 60%, transparent), transparent 70%),
+        radial-gradient(45% 35% at 50% 100%, color-mix(in oklab, var(--tone-rose) 50%, transparent), transparent 70%),
+        var(--chrome);
+}
+
+.wallpaper-dots {
+    background:
+        radial-gradient(color-mix(in oklab, var(--chrome-fg) 16%, transparent) 1px, transparent 1.5px) 0 0 / 24px 24px,
+        radial-gradient(70% 60% at 50% 40%, color-mix(in oklab, var(--highlight) 14%, transparent), transparent 70%),
+        var(--chrome);
+}
+
+.wallpaper-dawn {
+    background:
+        radial-gradient(90% 60% at 50% 110%, color-mix(in oklab, var(--tone-amber) 40%, transparent), transparent 70%),
+        radial-gradient(60% 50% at 15% 0%, color-mix(in oklab, var(--tone-rose) 25%, transparent), transparent 70%),
+        var(--surface-inverse);
 }
 
 /* Photos: a dark scrim keeps the clock readable on any image. */

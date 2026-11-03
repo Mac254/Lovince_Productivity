@@ -50,6 +50,21 @@ class SettingsTest extends TestCase
         $this->patchJson('/api/v1/settings', [])->assertJsonValidationErrors('settings');
     }
 
+    public function test_the_timer_face_and_new_wallpapers_are_saved_and_validated(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $this->getJson('/api/v1/settings')->assertJsonPath('data.values.timer.face', 'ring');
+        $this->patchJson('/api/v1/settings', ['clock' => ['wallpaper' => 'dusk'], 'timer' => ['face' => 'flip']])
+            ->assertOk()
+            ->assertJsonPath('data.values.clock.wallpaper', 'dusk')
+            ->assertJsonPath('data.values.timer.face', 'flip');
+
+        $this->assertSame(['clock' => ['wallpaper' => 'dusk'], 'timer' => ['face' => 'flip']], $user->fresh()->settings);
+        $this->patchJson('/api/v1/settings', ['timer' => ['face' => 'analog']])->assertJsonValidationErrors('timer.face');
+    }
+
     public function test_a_module_or_everything_resets_to_the_defaults(): void
     {
         $user = User::factory()->create();
