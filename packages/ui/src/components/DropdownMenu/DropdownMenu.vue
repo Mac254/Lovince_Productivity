@@ -26,7 +26,7 @@ withDefaults(
         size?: ButtonSize;
         triggerVariant?: 'outline' | 'ghost';
     }>(),
-    { icon: 'more', size: 'md', triggerVariant: 'outline' },
+    { icon: 'more', size: 'md', triggerVariant: 'ghost' },
 );
 
 const open = ref(false);
@@ -38,7 +38,7 @@ const layer = useLayer();
         <Tooltip :label="label" :disabled="open">
             <LvDropdownMenuTrigger
                 :aria-label="label"
-                :class="[interactive, controlSquares[size], buttonVariants[triggerVariant], open && 'bg-surface']"
+                :class="[interactive, controlSquares[size], buttonVariants[triggerVariant], open && 'bg-border text-fg']"
             >
                 <slot name="trigger">
                     <Icon :name="icon" />
