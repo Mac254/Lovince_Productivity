@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { Schedule, Task, TimeBlock } from '@focus/types';
+import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { formatMinutes, todayIso } from '@/lib/dates';
 import {
     clockTime,
@@ -14,9 +15,14 @@ import {
 } from './timeline';
 
 const props = defineProps<{ date: string; tasks: Task[] }>();
+const emit = defineEmits<{ changed: [] }>();
 
 const settings = useSettingsStore();
 const toast = useToast();
+const actions = useTaskActions(() => {
+    void load();
+    emit('changed');
+});
 const blocks = ref<TimeBlock[]>([]);
 const schedules = ref<Schedule[]>([]);
 const replacing = ref<{ schedule: Schedule; message: string } | null>(null);
@@ -205,45 +211,77 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     aria-hidden="true"
                     class="pointer-events-none h-20 border-t border-border"
                 />
-                <Pressable
+                <div
                     v-for="block in blocks"
                     :key="block.id"
-                    type="button"
                     :class="[
-                        'absolute inset-x-1 flex cursor-pointer overflow-clip rounded-sm border-l-4 border-highlight bg-surface-raised px-2 text-left ring-1 ring-border transition-colors hover:bg-surface-overlay focus-visible:outline-2 focus-visible:outline-focus-ring',
-                        block.minutes < 30 ? 'items-center gap-2' : 'flex-col py-1',
+                        'absolute inset-x-1 flex gap-2 overflow-clip rounded-sm border-l-4 border-highlight bg-surface-raised pl-2 ring-1 ring-border transition-colors hover:bg-surface-overlay',
+                        block.minutes < 30 ? 'items-center' : 'items-start py-1',
                         block.task?.status === 'completed' && 'opacity-60',
                     ]"
                     :style="{
                         top: percent(block.start_minute),
                         height: `calc(${(block.minutes / span) * 100}% - 2px)`,
                     }"
-                    :aria-label="`${block.title ?? 'Block'}, ${clockTime(block.start_minute)} to ${clockTime(block.start_minute + block.minutes)}`"
-                    @click="edit(block)"
                 >
-                    <span
+                    <Pressable
+                        v-if="block.task"
+                        type="button"
+                        :aria-label="
+                            block.task.status === 'completed'
+                                ? `Mark “${block.task.title}” as not done`
+                                : `Mark “${block.task.title}” complete`
+                        "
+                        :aria-pressed="block.task.status === 'completed'"
                         :class="[
-                            'flex min-w-0 flex-col',
+                            'group inline-flex size-(--icon-md) shrink-0 items-center justify-center rounded-full border-2 transition-colors focus-visible:outline-2 focus-visible:outline-focus-ring',
+                            block.task.status === 'completed'
+                                ? 'border-highlight bg-highlight text-highlight-ink'
+                                : 'border-border-control text-transparent hover:border-highlight-fg hover:text-highlight-fg',
                             block.minutes >= 120 && 'sticky top-16',
-                            block.minutes < 30 && 'flex-row items-baseline gap-2',
                         ]"
+                        @click="
+                            actions.setStatus(
+                                block.task,
+                                block.task.status === 'completed' ? 'not_started' : 'completed',
+                            )
+                        "
+                    >
+                        <Icon name="check" size="sm" motion="pop" />
+                    </Pressable>
+                    <Pressable
+                        type="button"
+                        :class="[
+                            'flex min-w-0 flex-1 cursor-pointer self-stretch pr-2 text-left focus-visible:outline-2 focus-visible:outline-focus-ring',
+                            block.minutes < 30 ? 'items-center gap-2' : 'flex-col',
+                        ]"
+                        :aria-label="`${block.title ?? 'Block'}, ${clockTime(block.start_minute)} to ${clockTime(block.start_minute + block.minutes)}`"
+                        @click="edit(block)"
                     >
                         <span
                             :class="[
-                                'truncate font-semibold',
-                                block.minutes < 30 ? 'text-caption' : 'text-label',
-                                block.task?.status === 'completed' && 'line-through',
+                                'flex min-w-0 flex-col',
+                                block.minutes >= 120 && 'sticky top-16',
+                                block.minutes < 30 && 'flex-row items-baseline gap-2',
                             ]"
-                            >{{ block.title ?? 'Untitled' }}</span
                         >
-                        <span class="shrink-0 truncate text-caption text-fg-muted tabular"
-                            >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
-                            }}<template v-if="block.minutes >= 120">
-                                · {{ formatMinutes(block.minutes) }}</template
-                            ></span
-                        >
-                    </span>
-                </Pressable>
+                            <span
+                                :class="[
+                                    'truncate font-semibold',
+                                    block.minutes < 30 ? 'text-caption' : 'text-label',
+                                    block.task?.status === 'completed' && 'line-through',
+                                ]"
+                                >{{ block.title ?? 'Untitled' }}</span
+                            >
+                            <span class="shrink-0 truncate text-caption text-fg-muted tabular"
+                                >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
+                                }}<template v-if="block.minutes >= 120">
+                                    · {{ formatMinutes(block.minutes) }}</template
+                                ></span
+                            >
+                        </span>
+                    </Pressable>
+                </div>
                 <div
                     v-if="showNow"
                     aria-hidden="true"

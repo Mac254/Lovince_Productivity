@@ -6,7 +6,10 @@ export function useTaskActions(onChange: () => void) {
     const toast = useToast();
     const outbox = useTaskOutboxStore();
 
-    async function setStatus(task: Task, status: TaskStatus): Promise<void> {
+    async function setStatus(
+        task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'next_occurrence_id'>>,
+        status: TaskStatus,
+    ): Promise<void> {
         try {
             const saved = await api.tasks.update(task.id, { status });
             const repeats = status === 'completed' && saved.next_occurrence_id && !task.next_occurrence_id;

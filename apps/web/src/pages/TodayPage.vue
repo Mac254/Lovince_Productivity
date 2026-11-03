@@ -218,7 +218,7 @@ const plannable = computed<Task[]>(() => {
                         <Text v-else role="label" tone="muted" class="py-4">You’re all caught up.</Text>
                     </Card>
                 </div>
-                <DayPlanner v-if="plannerOn" :date="dashboard.data.date" :tasks="plannable" />
+                <DayPlanner v-if="plannerOn" :date="dashboard.data.date" :tasks="plannable" @changed="refresh" />
             </div>
 
             <div class="grid gap-6 lg:grid-cols-3">
