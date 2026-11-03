@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Suggestion } from '@focus/types';
-import type { IconName } from '@focus/ui';
 import { sortSuggestions, type SuggestionSort, type SuggestionSortKey } from './catalogue';
 
 const props = defineProps<{ suggestions: Suggestion[]; fresh: number[] }>();
@@ -22,23 +21,6 @@ watch(
     () => [sort.value.key, sort.value.direction, props.suggestions.length],
     () => (paged.page = 1),
 );
-
-function toggle(key: SuggestionSortKey): void {
-    sort.value =
-        sort.value.key === key
-            ? { key, direction: sort.value.direction === 'asc' ? 'desc' : 'asc' }
-            : { key, direction: key === 'created' ? 'desc' : 'asc' };
-}
-
-function ariaSort(key: SuggestionSortKey): 'ascending' | 'descending' | 'none' {
-    if (sort.value.key !== key) return 'none';
-    return sort.value.direction === 'asc' ? 'ascending' : 'descending';
-}
-
-function sortIcon(key: SuggestionSortKey): IconName {
-    if (sort.value.key !== key) return 'sort';
-    return sort.value.direction === 'asc' ? 'chevron-up' : 'chevron-down';
-}
 </script>
 
 <template>
@@ -47,23 +29,15 @@ function sortIcon(key: SuggestionSortKey): IconName {
             <Table caption="Suggestions" label="Suggestions">
                 <TableHeader>
                     <TableRow>
-                        <TableHead
+                        <SortableHead
                             v-for="column in columns"
                             :key="column.key"
-                            :aria-sort="ariaSort(column.key)"
+                            v-model:sort="sort"
+                            :column="column.key"
+                            :label="column.label"
+                            :desc-first="column.key === 'created'"
                             :class="column.key === 'title' && 'w-full'"
-                        >
-                            <Pressable
-                                :class="[
-                                    'inline-flex items-center gap-1 rounded-sm whitespace-nowrap transition-colors duration-(--duration-instant) hover:text-fg focus-visible:outline-2 focus-visible:outline-focus-ring',
-                                    sort.key === column.key && 'text-fg',
-                                ]"
-                                @click="toggle(column.key)"
-                            >
-                                {{ column.label }}
-                                <Icon :name="sortIcon(column.key)" size="sm" />
-                            </Pressable>
-                        </TableHead>
+                        />
                         <TableHead align="end"><VisuallyHidden>Actions</VisuallyHidden></TableHead>
                     </TableRow>
                 </TableHeader>
