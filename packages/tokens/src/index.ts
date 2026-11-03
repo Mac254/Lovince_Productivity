@@ -6,3 +6,4 @@ export { contrastPairs, darkTheme, defaultTheme, lightTheme, themes, type ColorR
 export { componentTokens } from './component/index.ts';
 export { resolveColor } from './build/resolve.ts';
 export { renderTailwindCss, renderVariablesCss } from './build/render.ts';
+export { accentRamp, accentSwatch, customAccentPattern, isLightColor } from './accent.ts';

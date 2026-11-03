@@ -26,7 +26,7 @@ class AppearanceSettings extends SettingsModule
     {
         return [
             Setting::choice('theme', 'Theme', ['dark' => 'Dark', 'light' => 'Light', 'system' => 'System'], 'dark'),
-            Setting::choice('accent', 'Accent colour', ['green' => 'Green', 'blue' => 'Blue', 'violet' => 'Violet', 'amber' => 'Amber', 'rose' => 'Rose', 'cyan' => 'Cyan', 'indigo' => 'Indigo', 'graphite' => 'Graphite'], 'green'),
+            Setting::choice('accent', 'Accent colour', ['green' => 'Green', 'blue' => 'Blue', 'violet' => 'Violet', 'amber' => 'Amber', 'rose' => 'Rose', 'cyan' => 'Cyan', 'indigo' => 'Indigo', 'graphite' => 'Graphite'], 'green', 'A preset, or any colour from the picker.')->orMatching('/^#[0-9a-f]{6}$/i', '`#${string}`'),
             Setting::choice('corners', 'Corners', ['sharp' => 'Sharp', 'soft' => 'Soft', 'round' => 'Round'], 'round'),
             Setting::choice('font', 'Typeface', [
                 'focus' => 'Outfit & Inter',

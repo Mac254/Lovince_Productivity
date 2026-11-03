@@ -110,7 +110,7 @@ export interface Settings {
     };
     appearance: {
         theme: 'dark' | 'light' | 'system';
-        accent: 'green' | 'blue' | 'violet' | 'amber' | 'rose' | 'cyan' | 'indigo' | 'graphite';
+        accent: 'green' | 'blue' | 'violet' | 'amber' | 'rose' | 'cyan' | 'indigo' | 'graphite' | `#${string}`;
         corners: 'sharp' | 'soft' | 'round';
         font: 'focus' | 'editorial' | 'modern' | 'studio' | 'classic' | 'friendly' | 'system';
         text_size: 'small' | 'default' | 'large' | 'larger';

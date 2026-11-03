@@ -1,3 +1,4 @@
+import { accentRamp, customAccentPattern, isLightColor } from '@focus/tokens';
 import type { Settings } from '@focus/types';
 
 export type ThemeChoice = Settings['appearance']['theme'];
@@ -39,7 +40,14 @@ export const usePreferencesStore = defineStore('preferences', () => {
     watchEffect(() => {
         const root = document.documentElement;
         root.dataset.theme = resolved.value;
-        root.dataset.accent = prefs.accent;
+        const custom = customAccentPattern.test(prefs.accent) ? prefs.accent : null;
+        root.dataset.accent = custom ? 'custom' : prefs.accent;
+        for (const [name, value] of Object.entries(accentRamp(custom ?? ''))) {
+            if (custom) root.style.setProperty(name, value);
+            else root.style.removeProperty(name);
+        }
+        if (custom && !isLightColor(custom)) root.style.setProperty('--highlight-ink', 'var(--focus-neutral-50)');
+        else root.style.removeProperty('--highlight-ink');
         root.dataset.corners = prefs.corners;
         root.dataset.textSize = prefs.textSize;
         root.dataset.font = prefs.font;

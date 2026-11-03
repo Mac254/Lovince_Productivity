@@ -44,6 +44,8 @@ class SettingsTest extends TestCase
         $this->patchJson('/api/v1/settings', ['timer' => ['chime' => 'yes']])->assertJsonValidationErrors('timer.chime');
         $this->patchJson('/api/v1/settings', ['clock' => ['wallpaper' => 'custom:x']])->assertJsonValidationErrors('clock.wallpaper');
         $this->patchJson('/api/v1/settings', ['appearance' => ['font' => 'mono']])->assertJsonValidationErrors('appearance.font');
+        $this->patchJson('/api/v1/settings', ['appearance' => ['accent' => '#33aaff']])->assertOk()->assertJsonPath('data.values.appearance.accent', '#33aaff');
+        $this->patchJson('/api/v1/settings', ['appearance' => ['accent' => '#33aaf']])->assertJsonValidationErrors('appearance.accent');
         $this->patchJson('/api/v1/settings', ['billing' => ['plan' => 'pro']])->assertJsonValidationErrors('billing');
         $this->patchJson('/api/v1/settings', [])->assertJsonValidationErrors('settings');
     }

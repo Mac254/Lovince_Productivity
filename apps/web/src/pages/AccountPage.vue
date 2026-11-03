@@ -2,6 +2,7 @@
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { IconName, TabItem } from '@focus/ui';
 import type { BackupImportResult } from '@focus/types';
+import { accentSwatch } from '@focus/tokens';
 import { LIMITS, type Settings } from '@focus/types';
 import { useAsync } from '@/composables/useAsync';
 import { useClockPrefs } from '@/features/clock/wallpapers';
@@ -31,11 +32,20 @@ const themeOptions: { value: ThemeChoice; label: string; icon: IconName }[] = [
     { value: 'light', label: 'Light', icon: 'sun' },
     { value: 'system', label: 'System', icon: 'monitor' },
 ];
-const accentOptions = (['green', 'blue', 'indigo', 'violet', 'rose', 'amber', 'cyan', 'graphite'] as const).map((value) => ({
-    value,
-    label: value[0]!.toUpperCase() + value.slice(1),
-    color: `var(--swatch-${value})`,
+const accentNames = ['green', 'blue', 'indigo', 'violet', 'rose', 'amber', 'cyan', 'graphite'] as const;
+const accentPresets = accentNames.map((name) => ({
+    name,
+    value: accentSwatch(name),
+    label: name[0]!.toUpperCase() + name.slice(1),
 }));
+const accentColor = computed({
+    get: () =>
+        accentPresets.find((preset) => preset.name === preferences.prefs.accent)?.value ?? preferences.prefs.accent,
+    set: (value: string) => {
+        const preset = accentPresets.find((item) => item.value.toLowerCase() === value.toLowerCase());
+        preferences.prefs.accent = preset ? preset.name : (value.toLowerCase() as `#${string}`);
+    },
+});
 const cornerOptions = [
     { value: 'sharp' as const, label: 'Sharp' },
     { value: 'soft' as const, label: 'Soft' },
@@ -388,10 +398,11 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                         <SegmentedControl v-model="preferences.prefs.theme" label="Theme" :options="themeOptions" />
                     </SettingRow>
                     <SettingRow label="Accent colour" description="Buttons, highlights, charts and the focus ring.">
-                        <SwatchGroup
-                            v-model="preferences.prefs.accent"
+                        <ColorPicker
+                            v-model="accentColor"
                             label="Accent colour"
-                            :options="accentOptions"
+                            :presets="accentPresets"
+                            class="w-full sm:w-80"
                         />
                     </SettingRow>
                     <SettingRow label="Corners" description="How rounded cards, fields and buttons are.">
@@ -413,7 +424,9 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                         <template #option="{ option }">
                             <span :data-font="option.value" class="flex w-full flex-col gap-1 text-fg">
                                 <span class="font-display text-heading font-semibold tracking-tight">Aa</span>
-                                <span class="font-sans text-label font-medium text-fg-muted">Plan the day, finish the work.</span>
+                                <span class="font-sans text-label font-medium text-fg-muted"
+                                    >Plan the day, finish the work.</span
+                                >
                             </span>
                         </template>
                     </RadioGroup>
