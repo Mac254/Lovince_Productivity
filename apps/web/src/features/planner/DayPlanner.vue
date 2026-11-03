@@ -19,8 +19,9 @@ import {
     snap,
     visibleRange,
 } from './timeline';
+import { scheduleFor } from './schedules';
 
-const props = defineProps<{ date: string; tasks: Task[] }>();
+const props = defineProps<{ date: string; tasks: Task[]; focusNow?: boolean }>();
 const emit = defineEmits<{ changed: [] }>();
 
 const settings = useSettingsStore();
@@ -64,12 +65,22 @@ const showNow = computed(
         props.date === todayIso(now.value) && nowMinute.value >= range.value.start && nowMinute.value < range.value.end,
 );
 const planned = computed(() => formatMinutes(plannedMinutes(blocks.value)));
+const loaded = ref(false);
+const offered = computed(() =>
+    loaded.value && !blocks.value.length && props.date === todayIso(now.value)
+        ? scheduleFor(schedules.value, props.date)
+        : undefined,
+);
+const offerBusy = ref(false);
 const percent = (minute: number) => `${((minute - range.value.start) / span.value) * 100}%`;
 
 async function load(): Promise<void> {
     error.value = null;
     try {
         blocks.value = await api.timeBlocks.list(props.date);
+        if (props.focusNow && !loaded.value)
+            void nextTick(() => column.value?.querySelector('[data-now]')?.scrollIntoView({ block: 'center' }));
+        loaded.value = true;
     } catch (e) {
         error.value = errorMessage(e, 'Could not load the day plan.');
     }
@@ -151,6 +162,12 @@ async function applySchedule(schedule: Schedule, replace = false): Promise<void>
     }
 }
 
+async function planWith(schedule: Schedule): Promise<void> {
+    offerBusy.value = true;
+    await applySchedule(schedule);
+    offerBusy.value = false;
+}
+
 async function confirmReplace(): Promise<void> {
     if (!replacing.value) return;
     replaceBusy.value = true;
@@ -218,6 +235,14 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     >Move to today</Button
                 >
                 <Button variant="ghost" size="sm" @click="dismissMissed">Dismiss</Button>
+            </div>
+        </Alert>
+        <Alert v-if="offered && !error" icon="calendar-clock">
+            <div class="flex flex-wrap items-center gap-2">
+                <span>Nothing planned yet. Your “{{ offered.name }}” schedule fits today.</span>
+                <Button variant="outline" size="sm" :loading="offerBusy" @click="planWith(offered)"
+                    >Plan today with it</Button
+                >
             </div>
         </Alert>
         <ErrorState v-if="error" :message="error" @retry="load" />
@@ -307,6 +332,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
                 </div>
                 <div
                     v-if="showNow"
+                    data-now
                     aria-hidden="true"
                     class="pointer-events-none absolute inset-x-0 border-t-2 border-highlight"
                     :style="{ top: percent(nowMinute) }"

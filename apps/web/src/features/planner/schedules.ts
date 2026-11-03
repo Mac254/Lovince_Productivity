@@ -1,11 +1,18 @@
 import type { Schedule } from '@focus/types';
 
-export type DayPreset = 'every' | 'weekdays' | 'weekends';
+export const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
+
+export type DayPreset = 'every' | 'weekdays' | 'weekends' | `day-${number}`;
 
 export const dayPresets: { value: DayPreset; label: string; days: number[] }[] = [
     { value: 'every', label: 'Every day', days: [] },
     { value: 'weekdays', label: 'Weekdays', days: [1, 2, 3, 4, 5] },
     { value: 'weekends', label: 'Weekends', days: [6, 7] },
+    ...weekdays.map((name, index) => ({
+        value: `day-${index + 1}` as DayPreset,
+        label: name.slice(0, 3),
+        days: [index + 1],
+    })),
 ];
 
 export function presetOf(days: number[]): DayPreset {
@@ -20,6 +27,12 @@ export function isoWeekday(date: string): number {
 
 export function fitsDay(schedule: Schedule, date: string): boolean {
     return !schedule.days.length || schedule.days.includes(isoWeekday(date));
+}
+
+export function scheduleFor(schedules: Schedule[], date: string): Schedule | undefined {
+    return schedules
+        .filter((schedule) => fitsDay(schedule, date))
+        .sort((a, b) => (a.days.length || 8) - (b.days.length || 8))[0];
 }
 
 export type DaySection = 'morning' | 'afternoon' | 'evening';
