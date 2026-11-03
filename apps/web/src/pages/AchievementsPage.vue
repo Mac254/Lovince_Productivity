@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { api } from '@focus/api-client';
 import type { Achievement, AchievementCategory } from '@focus/types';
+import type { AchievementOrder } from '@/features/achievements/months';
 import { suggestionCategoryOptions } from '@/lib/labels';
 
 const category = ref<AchievementCategory | ''>('');
 const year = ref<string>('');
+const ORDER_KEY = 'focus.achievements.order';
+const order = ref<AchievementOrder>(readOrder());
+const orderOptions: { value: AchievementOrder; label: string }[] = [
+    { value: 'newest', label: 'Newest first' },
+    { value: 'oldest', label: 'Oldest first' },
+];
 const dialogOpen = ref(false);
 const editing = ref<Achievement | null>(null);
 
@@ -29,6 +36,21 @@ function edit(achievement: Achievement): void {
     dialogOpen.value = true;
 }
 
+function readOrder(): AchievementOrder {
+    try {
+        return localStorage.getItem(ORDER_KEY) === 'oldest' ? 'oldest' : 'newest';
+    } catch {
+        return 'newest';
+    }
+}
+
+watch(order, (value) => {
+    try {
+        localStorage.setItem(ORDER_KEY, value);
+    } catch {
+        return;
+    }
+});
 watch([category, year], run);
 onMounted(run);
 </script>
@@ -45,9 +67,12 @@ onMounted(run);
             </template>
         </PageHeader>
 
-        <div class="flex flex-wrap gap-2">
-            <FacetFilter v-model="year" label="Year" :options="yearOptions" />
-            <FacetFilter v-model="category" label="Category" :options="suggestionCategoryOptions" />
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-2">
+                <FacetFilter v-model="year" label="Year" :options="yearOptions" />
+                <FacetFilter v-model="category" label="Category" :options="suggestionCategoryOptions" />
+            </div>
+            <SegmentedControl v-model="order" label="Order" size="sm" :options="orderOptions" />
         </div>
 
         <ErrorState v-if="error" :message="error" @retry="run" />
@@ -55,6 +80,7 @@ onMounted(run);
         <AchievementTimeline
             v-else-if="data && data.length"
             :achievements="data"
+            :order="order"
             show-goal
             :class="loading && 'opacity-60'"
             @edit="edit"
