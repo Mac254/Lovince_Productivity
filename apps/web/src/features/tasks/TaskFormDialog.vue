@@ -157,7 +157,7 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-    <Dialog v-model:open="open" :title="isEdit ? 'Edit task' : 'New task'">
+    <Dialog v-model:open="open" :title="isEdit ? 'Edit task' : 'New task'" size="lg">
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
             <Input
                 :id="fid('title')"
@@ -177,7 +177,7 @@ async function submit(): Promise<void> {
                 :maxlength="LIMITS.task.description"
                 :error="errors.description"
             />
-            <div class="grid gap-6 sm:grid-cols-2">
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <Select
                     :id="fid('status')"
                     v-model="form.status"
