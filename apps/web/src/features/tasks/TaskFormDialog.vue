@@ -210,7 +210,7 @@ async function submit(): Promise<void> {
                     />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <Select
+                    <Combobox
                         :id="fid('goal')"
                         v-model="form.goal_id"
                         label="Goal"

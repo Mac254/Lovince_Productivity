@@ -131,7 +131,7 @@ async function submit(): Promise<void> {
                     :options="categoryOptions"
                     :error="errors.category"
                 />
-                <Select
+                <Combobox
                     id="achievement-goal"
                     v-model="form.goal_id"
                     label="Goal"
@@ -139,7 +139,7 @@ async function submit(): Promise<void> {
                     :options="goalOptions"
                     :error="errors.goal_id"
                 />
-                <Select
+                <Combobox
                     id="achievement-task"
                     v-model="form.task_id"
                     label="Task"

@@ -28,6 +28,7 @@ declare module 'vue' {
     Checkbox: typeof import('@focus/ui')['Checkbox']
     ChipGroup: typeof import('@focus/ui')['ChipGroup']
     ColorPicker: typeof import('@focus/ui')['ColorPicker']
+    Combobox: typeof import('@focus/ui')['Combobox']
     CommandPalette: typeof import('./features/palette/CommandPalette.vue')['default']
     CompleteOnDialog: typeof import('./features/tasks/CompleteOnDialog.vue')['default']
     ConfirmDialog: typeof import('@focus/ui')['ConfirmDialog']

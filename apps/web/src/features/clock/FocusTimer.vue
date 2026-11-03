@@ -211,7 +211,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="grid w-full gap-3 rounded-lg bg-chrome p-4 text-chrome-fg shadow-floating sm:grid-cols-2">
-            <Select id="timer-task" v-model="taskId" label="Focusing on" :options="taskOptions" surface="chrome" />
+            <Combobox id="timer-task" v-model="taskId" label="Focusing on" :options="taskOptions" surface="chrome" />
             <form class="flex items-end gap-2" @submit.prevent="applyCustom">
                 <div class="min-w-0 flex-1">
                     <Input

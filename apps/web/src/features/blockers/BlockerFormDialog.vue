@@ -75,7 +75,7 @@ async function submit(): Promise<void> {
                 :error="errors.description"
                 autofocus
             />
-            <Select
+            <Combobox
                 v-if="!task"
                 id="blocker-task"
                 v-model="taskId"

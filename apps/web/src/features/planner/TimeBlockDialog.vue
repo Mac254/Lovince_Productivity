@@ -97,7 +97,7 @@ async function remove(): Promise<void> {
 <template>
     <Dialog v-model:open="open" :title="block ? 'Edit block' : 'Block out time'" size="sm">
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
-            <Select :id="fid('task')" v-model="form.task" label="Task" :options="taskOptions" :error="errors.task_id" />
+            <Combobox :id="fid('task')" v-model="form.task" label="Task" :options="taskOptions" :error="errors.task_id" />
             <Input
                 :id="fid('title')"
                 v-model="form.title"

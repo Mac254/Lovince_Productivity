@@ -269,7 +269,7 @@ async function submit(): Promise<void> {
                                 />
                             </div>
                             <div class="min-w-48 flex-1">
-                                <Select
+                                <Combobox
                                     :id="fid(`goal-${row.key}`)"
                                     v-model="row.goal"
                                     label="Goal"

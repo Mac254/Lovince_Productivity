@@ -20,6 +20,7 @@ export { default as Field } from './components/Field/Field.vue';
 export { default as Input } from './components/Input/Input.vue';
 export { default as Textarea } from './components/Textarea/Textarea.vue';
 export { default as Select } from './components/Select/Select.vue';
+export { default as Combobox } from './components/Combobox/Combobox.vue';
 export { default as DatePicker } from './components/DatePicker/DatePicker.vue';
 export { default as Checkbox } from './components/Checkbox/Checkbox.vue';
 export { default as RadioGroup } from './components/RadioGroup/RadioGroup.vue';
