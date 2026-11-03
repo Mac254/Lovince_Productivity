@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { LvTooltipContent, LvTooltipPortal, LvTooltipRoot, LvTooltipTrigger } from '@lovince/ui-vue';
 import { useLayer } from '../../composables/useLayer';
-import TooltipAnchor from './TooltipAnchor';
 
 /** A short hint on hover and keyboard focus. The trigger is the slotted element itself. */
 withDefaults(
@@ -20,7 +19,7 @@ const layer = useLayer();
 <template>
     <LvTooltipRoot :disabled="disabled">
         <LvTooltipTrigger as-child>
-            <TooltipAnchor><slot /></TooltipAnchor>
+            <slot />
         </LvTooltipTrigger>
         <LvTooltipPortal :to="layer">
             <LvTooltipContent
