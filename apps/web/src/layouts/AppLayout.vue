@@ -9,6 +9,18 @@ const toast = useToast();
 const timer = useTimerStore();
 const preferences = usePreferencesStore();
 const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'dark'));
+const themeOptions = [
+    { value: 'dark' as const, label: 'Dark theme', icon: 'moon' as const },
+    { value: 'light' as const, label: 'Light theme', icon: 'sun' as const },
+    { value: 'system' as const, label: 'Match your device', icon: 'monitor' as const },
+];
+const streak = computed(() => dashboard.data?.streak ?? null);
+const streakLabel = computed(() => {
+    if (!streak.value) return '';
+    const days = `${streak.value.current}-day streak`;
+    if (!streak.value.current) return 'No streak yet. Finish a task, log work or focus to start one';
+    return streak.value.active_today ? `${days}, active today` : `${days}. Do something today to keep it`;
+});
 
 const drawerOpen = ref(false);
 const quickTaskOpen = ref(false);
@@ -21,7 +33,10 @@ function onShortcut(event: KeyboardEvent): void {
     paletteOpen.value = !paletteOpen.value;
 }
 
-onMounted(() => window.addEventListener('keydown', onShortcut));
+onMounted(() => {
+    window.addEventListener('keydown', onShortcut);
+    void dashboard.ensure();
+});
 onUnmounted(() => window.removeEventListener('keydown', onShortcut));
 useReminders();
 const online = useOnline(() => {
@@ -110,11 +125,40 @@ function onQuickTaskSaved(): void {
                     motion="pop"
                     @click="paletteOpen = true"
                 />
+                <RouterLink
+                    v-if="streak"
+                    :to="{ name: 'metrics', query: { tab: 'focus' } }"
+                    :aria-label="streakLabel"
+                    :title="streakLabel"
+                    :class="[
+                        'group inline-flex h-(--control-sm) items-center gap-1 rounded-full px-3 text-label font-bold tabular ring-1 transition-colors duration-(--duration-fast)',
+                        streak.active_today
+                            ? 'bg-highlight text-highlight-ink ring-transparent'
+                            : 'text-fg ring-border hover:ring-border-hover',
+                    ]"
+                >
+                    <Icon
+                        name="flame"
+                        size="sm"
+                        motion="pop"
+                        :class="!streak.active_today && streak.current && 'text-highlight-fg'"
+                    />
+                    <span aria-hidden="true">{{ streak.current }}</span>
+                </RouterLink>
+                <SegmentedControl
+                    v-model="preferences.prefs.theme"
+                    label="Theme"
+                    :options="themeOptions"
+                    icon-only
+                    size="sm"
+                    class="max-md:hidden"
+                />
                 <IconButton
                     :icon="nextTheme === 'light' ? 'sun' : 'moon'"
                     :label="`Switch to ${nextTheme} theme`"
                     variant="ghost"
                     motion="spin"
+                    class="md:hidden"
                     @click="preferences.prefs.theme = nextTheme"
                 />
                 <RouterLink
