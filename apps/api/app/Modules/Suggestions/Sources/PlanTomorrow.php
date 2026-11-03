@@ -4,6 +4,7 @@ namespace App\Modules\Suggestions\Sources;
 
 use App\Modules\Planner\Models\Schedule;
 use App\Modules\Planner\Models\TimeBlock;
+use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Contracts\Suggester;
 use App\Modules\Suggestions\Contracts\SuggestionDraft;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
@@ -12,8 +13,14 @@ use Carbon\CarbonImmutable;
 
 class PlanTomorrow implements Suggester
 {
+    public function __construct(private readonly SettingsRegistry $settings) {}
+
     public function drafts(User $user, CarbonImmutable $now): iterable
     {
+        if (! $this->settings->resolve($user->settings)['planner']['plan_ahead']) {
+            return;
+        }
+
         $tomorrow = $now->addDay();
         if (TimeBlock::query()->whereBelongsTo($user)->whereDate('date', $tomorrow->toDateString())->exists()) {
             return;
@@ -23,7 +30,9 @@ class PlanTomorrow implements Suggester
             ->whereBelongsTo($user)
             ->orderBy('name')
             ->get()
-            ->first(fn (Schedule $schedule) => empty($schedule->days) || in_array($tomorrow->isoWeekday(), $schedule->days, true));
+            ->filter(fn (Schedule $schedule) => empty($schedule->days) || in_array($tomorrow->isoWeekday(), $schedule->days, true))
+            ->sortBy(fn (Schedule $schedule) => empty($schedule->days) ? 8 : count($schedule->days))
+            ->first();
         if (! $schedule) {
             return;
         }

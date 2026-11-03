@@ -133,6 +133,7 @@ export interface Settings {
         day_end: '16' | '17' | '18' | '19' | '20' | '21' | '22' | '23';
         step: '15' | '30' | '60';
         carry_over: boolean;
+        plan_ahead: boolean;
         reminder: 'off' | '5' | '10' | '15';
     };
     suggestions: {
@@ -192,6 +193,7 @@ export const SETTINGS_DEFAULTS: Settings = {
         day_end: '18',
         step: '30',
         carry_over: false,
+        plan_ahead: false,
         reminder: '5',
     },
     suggestions: {

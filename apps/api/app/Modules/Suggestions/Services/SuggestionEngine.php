@@ -99,7 +99,7 @@ class SuggestionEngine
     private function sources(int $ideasPerDay, array $resting): array
     {
         return [
-            new PlanTomorrow,
+            app(PlanTomorrow::class),
             new OverdueTasks,
             new StalledTasks,
             new QuietGoals,

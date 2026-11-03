@@ -4,6 +4,7 @@ namespace App\Modules\Planner\Actions;
 
 use App\Modules\Planner\Models\Schedule;
 use App\Modules\Planner\Models\TimeBlock;
+use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Tasks\Models\Task;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 class ApplySchedule
 {
+    public function __construct(private readonly SettingsRegistry $settings) {}
+
     /**
      * Lays a schedule onto a day: each item becomes a task due that day (reusing one with the same
      * title) and a time block. Existing blocks either make it fail on overlap or are replaced.
@@ -21,6 +24,12 @@ class ApplySchedule
     {
         $user = $schedule->user;
         $items = $schedule->items;
+
+        if ($date > today()->toDateString() && ! $this->settings->resolve($user->settings)['planner']['plan_ahead']) {
+            throw ValidationException::withMessages([
+                'date' => 'Schedules only fill today. Turn on “Plan days ahead” in Settings to plan a later day.',
+            ]);
+        }
 
         return DB::transaction(function () use ($user, $items, $date, $replace) {
             $existing = TimeBlock::query()->whereBelongsTo($user)->whereDate('date', $date);

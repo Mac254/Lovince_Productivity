@@ -4,8 +4,11 @@ namespace App\Modules\Planner\Tests\Feature;
 
 use App\Modules\Planner\Models\Schedule;
 use App\Modules\Planner\Models\TimeBlock;
+use App\Modules\Suggestions\Models\Suggestion;
+use App\Modules\Suggestions\Services\SuggestionEngine;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -62,7 +65,7 @@ class ScheduleTest extends TestCase
 
     public function test_applying_creates_tasks_and_blocks_once(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['settings' => ['planner' => ['plan_ahead' => true]]]);
         $this->actingAs($user);
         $date = today()->addDay()->toDateString();
         Task::factory()->for($user)->create(['title' => 'Exercise', 'due_date' => $date]);
@@ -80,6 +83,42 @@ class ScheduleTest extends TestCase
         $this->postJson("/api/v1/schedules/{$id}/apply", ['date' => $date, 'replace' => true])->assertOk();
         $this->assertSame(2, TimeBlock::count());
         $this->assertSame(2, Task::count());
+    }
+
+    public function test_schedules_only_fill_later_days_when_planning_ahead_is_on(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $id = $this->postJson('/api/v1/schedules', $this->routine())->json('data.id');
+        $tomorrow = today()->addDay()->toDateString();
+
+        $this->postJson("/api/v1/schedules/{$id}/apply", ['date' => $tomorrow])
+            ->assertUnprocessable()->assertJsonValidationErrors('date');
+        $this->assertSame(0, TimeBlock::count());
+        $this->assertSame(0, Task::count());
+
+        $this->postJson("/api/v1/schedules/{$id}/apply", ['date' => today()->toDateString()])->assertOk();
+
+        $this->patchJson('/api/v1/settings', ['planner' => ['plan_ahead' => true]])->assertOk();
+        $this->postJson("/api/v1/schedules/{$id}/apply", ['date' => $tomorrow])->assertOk();
+        $this->assertSame(2, TimeBlock::whereDate('date', $tomorrow)->count());
+    }
+
+    public function test_tomorrow_is_only_suggested_when_planning_ahead_is_on(): void
+    {
+        $user = User::factory()->create();
+        $now = CarbonImmutable::parse('2026-11-02 19:00');
+        $user->schedules()->create(['name' => 'Every day'])->items()->create(['title' => 'Wake up', 'start_minute' => 300, 'minutes' => 15]);
+        $tuesday = $user->schedules()->create(['name' => 'Tuesday', 'days' => [2]]);
+        $tuesday->items()->create(['title' => 'Wake up', 'start_minute' => 300, 'minutes' => 15]);
+        $engine = $this->app->make(SuggestionEngine::class);
+
+        $engine->refresh($user, $now);
+        $this->assertSame(0, Suggestion::where('key', 'plan:2026-11-03')->count());
+
+        $user->forceFill(['settings' => ['planner' => ['plan_ahead' => true]]])->save();
+        $engine->refresh($user->fresh(), $now);
+        $this->assertSame(['type' => 'apply_schedule', 'schedule_id' => $tuesday->id, 'date' => '2026-11-03'], Suggestion::where('key', 'plan:2026-11-03')->first()?->action);
     }
 
     public function test_schedules_are_private(): void

@@ -38,6 +38,7 @@ class SuggestionTest extends TestCase
     public function test_insights_come_from_the_users_data_and_are_withdrawn_when_resolved(): void
     {
         $user = User::factory()->create();
+        $user->forceFill(['settings' => ['planner' => ['plan_ahead' => true]]])->save();
         $now = CarbonImmutable::parse('2026-11-02 19:00');
         $task = Task::factory()->for($user)->create(['due_date' => '2026-10-30']);
         $goal = Goal::factory()->for($user)->create(['title' => 'Get fit']);
@@ -60,7 +61,8 @@ class SuggestionTest extends TestCase
 
     public function test_accepting_adds_a_task_or_applies_a_schedule(): void
     {
-        $user = User::factory()->create();
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 19:00'));
+        $user = User::factory()->create(['settings' => ['planner' => ['plan_ahead' => true]]]);
         $this->actingAs($user);
         $schedule = $user->schedules()->create(['name' => 'Workday']);
         $schedule->items()->create(['title' => 'Wake up', 'start_minute' => 300, 'minutes' => 15]);

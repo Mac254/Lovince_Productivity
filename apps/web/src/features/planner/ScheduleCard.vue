@@ -10,7 +10,9 @@ const emit = defineEmits<{ edit: []; changed: [] }>();
 
 const toast = useToast();
 const uid = useId();
-const date = ref(todayIso(new Date(Date.now() + 86_400_000)));
+const settings = useSettingsStore();
+const date = ref(todayIso());
+const latest = computed(() => (settings.values.planner.plan_ahead ? undefined : todayIso()));
 const applying = ref(false);
 const clash = ref('');
 const deleting = ref(false);
@@ -115,7 +117,7 @@ async function remove(): Promise<void> {
 
         <form class="mt-4 flex flex-wrap items-end gap-3" novalidate @submit.prevent="apply()">
             <div class="min-w-48 flex-1">
-                <DatePicker :id="`${uid}-date`" v-model="date" label="Plan a day" />
+                <DatePicker :id="`${uid}-date`" v-model="date" label="Plan a day" :max="latest" />
             </div>
             <Button type="submit" icon-start="calendar-check" :loading="applying">Apply</Button>
         </form>
