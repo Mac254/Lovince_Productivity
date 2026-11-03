@@ -51,6 +51,11 @@ class TimeBlockTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors('title');
         $this->postJson('/api/v1/time-blocks', ['title' => 'Next', 'date' => $today, 'start_minute' => 600, 'minutes' => 30])->assertCreated();
         $this->patchJson("/api/v1/time-blocks/{$block->id}", ['minutes' => 30])->assertOk();
+
+        $missed = TimeBlock::factory()->for($user)->create(['date' => today()->subDay()->toDateString(), 'start_minute' => 600, 'minutes' => 30]);
+        $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today])
+            ->assertUnprocessable()->assertJsonValidationErrors('start_minute');
+        $this->patchJson("/api/v1/time-blocks/{$missed->id}", ['date' => $today, 'start_minute' => 660])->assertOk();
     }
 
     public function test_blocks_are_private(): void

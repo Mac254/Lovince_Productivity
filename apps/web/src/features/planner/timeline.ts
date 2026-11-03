@@ -1,4 +1,5 @@
 import type { TimeBlock } from '@focus/types';
+import { parseDate, todayIso } from '@/lib/dates';
 
 export const DAY_MINUTES = 1440;
 
@@ -38,4 +39,22 @@ export function freeMinutes(blocks: TimeBlock[], start: number, step: number): n
 
 export function plannedMinutes(blocks: TimeBlock[]): number {
     return blocks.reduce((total, block) => total + block.minutes, 0);
+}
+
+export function missedBlocks(blocks: TimeBlock[]): TimeBlock[] {
+    return blocks.filter(
+        (block) => block.task && block.task.status !== 'completed' && block.task.status !== 'cancelled',
+    );
+}
+
+export function previousDay(date: string): string {
+    const day = parseDate(date);
+    day.setDate(day.getDate() - 1);
+    return todayIso(day);
+}
+
+export function movedSummary({ moved, skipped }: { moved: number; skipped: number }): string {
+    const blocks = (count: number) => `${count} ${count === 1 ? 'block' : 'blocks'}`;
+    const head = moved ? `Moved ${blocks(moved)} to today` : 'Nothing moved';
+    return skipped ? `${head}. ${blocks(skipped)} overlapped today’s plan and stayed put.` : head;
 }

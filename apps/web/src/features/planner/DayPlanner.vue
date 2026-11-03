@@ -2,7 +2,16 @@
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import type { Schedule, Task, TimeBlock } from '@focus/types';
 import { formatMinutes, todayIso } from '@/lib/dates';
-import { clockTime, freeMinutes, plannedMinutes, snap, visibleRange } from './timeline';
+import {
+    clockTime,
+    freeMinutes,
+    missedBlocks,
+    movedSummary,
+    plannedMinutes,
+    previousDay,
+    snap,
+    visibleRange,
+} from './timeline';
 
 const props = defineProps<{ date: string; tasks: Task[] }>();
 
@@ -18,6 +27,8 @@ const editing = ref<TimeBlock | null>(null);
 const draftStart = ref(0);
 const draftMinutes = ref(60);
 const now = ref(new Date());
+const missed = ref<TimeBlock[]>([]);
+const movingMissed = ref(false);
 const column = ref<HTMLElement | null>(null);
 let clock: number | undefined;
 
@@ -42,6 +53,40 @@ async function load(): Promise<void> {
     } catch (e) {
         error.value = errorMessage(e, 'Could not load the day plan.');
     }
+    await loadMissed();
+}
+
+async function loadMissed(): Promise<void> {
+    if (props.date !== todayIso()) {
+        missed.value = [];
+        return;
+    }
+    try {
+        missed.value = missedBlocks(await api.timeBlocks.list(previousDay(props.date)));
+    } catch {
+        missed.value = [];
+    }
+}
+
+async function moveMissed(): Promise<void> {
+    movingMissed.value = true;
+    let moved = 0;
+    let skipped = 0;
+    for (const block of missed.value) {
+        try {
+            await api.timeBlocks.update(block.id, { date: props.date });
+            moved++;
+        } catch (e) {
+            if (!isApiError(e) || !e.isValidation) {
+                toast.error(errorMessage(e, 'Could not move the blocks.'));
+                break;
+            }
+            skipped++;
+        }
+    }
+    if (moved || skipped) toast.success(movedSummary({ moved, skipped }));
+    movingMissed.value = false;
+    await load();
 }
 
 const scheduleMenu = computed(() =>
@@ -126,6 +171,15 @@ onBeforeUnmount(() => window.clearInterval(clock));
             <Button variant="ghost" size="sm" icon-start="add" @click="newBlock()">Block</Button>
         </CardHeader>
 
+        <Alert v-if="missed.length && !error" icon="history">
+            <div class="flex flex-wrap items-center gap-2">
+                <span
+                    >{{ missed.length }} {{ missed.length === 1 ? 'block' : 'blocks' }} from yesterday weren’t
+                    finished</span
+                >
+                <Button variant="outline" size="sm" :loading="movingMissed" @click="moveMissed">Move to today</Button>
+            </div>
+        </Alert>
         <ErrorState v-if="error" :message="error" @retry="load" />
         <div v-else class="flex gap-3">
             <ol aria-hidden="true" class="flex shrink-0 flex-col">
@@ -149,7 +203,10 @@ onBeforeUnmount(() => window.clearInterval(clock));
                         block.minutes < 30 ? 'items-center gap-2' : 'flex-col py-1',
                         block.task?.status === 'completed' && 'opacity-60',
                     ]"
-                    :style="{ top: percent(block.start_minute), height: `calc(${(block.minutes / span) * 100}% - 2px)` }"
+                    :style="{
+                        top: percent(block.start_minute),
+                        height: `calc(${(block.minutes / span) * 100}% - 2px)`,
+                    }"
                     :aria-label="`${block.title ?? 'Block'}, ${clockTime(block.start_minute)} to ${clockTime(block.start_minute + block.minutes)}`"
                     @click="edit(block)"
                 >
@@ -170,7 +227,9 @@ onBeforeUnmount(() => window.clearInterval(clock));
                         >
                         <span class="shrink-0 truncate text-caption text-fg-muted tabular"
                             >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
-                            }}<template v-if="block.minutes >= 120"> · {{ formatMinutes(block.minutes) }}</template></span
+                            }}<template v-if="block.minutes >= 120">
+                                · {{ formatMinutes(block.minutes) }}</template
+                            ></span
                         >
                     </span>
                 </Pressable>

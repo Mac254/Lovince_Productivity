@@ -1,6 +1,15 @@
 import type { TimeBlock } from '@focus/types';
 import { describe, expect, it } from 'vitest';
-import { clockTime, freeMinutes, parseClockTime, snap, visibleRange } from '@/features/planner/timeline';
+import {
+    clockTime,
+    freeMinutes,
+    missedBlocks,
+    movedSummary,
+    parseClockTime,
+    previousDay,
+    snap,
+    visibleRange,
+} from '@/features/planner/timeline';
 
 const block = (start_minute: number, minutes: number): TimeBlock => ({
     id: start_minute,
@@ -34,5 +43,32 @@ describe('timeline helpers', () => {
     it('fits a new block before the next one', () => {
         expect(freeMinutes([block(600, 60)], 570, 30)).toBe(30);
         expect(freeMinutes([], 570, 30)).toBe(60);
+    });
+
+    it('finds blocks for tasks left unfinished', () => {
+        const withTask = (id: number, status: NonNullable<TimeBlock['task']>['status']): TimeBlock => ({
+            ...block(id, 30),
+            task: { id, title: 'Task', status, priority: 'medium' },
+        });
+        const blocks = [
+            block(0, 30),
+            withTask(60, 'in_progress'),
+            withTask(120, 'completed'),
+            withTask(180, 'cancelled'),
+        ];
+
+        expect(missedBlocks(blocks).map((entry) => entry.id)).toEqual([60]);
+    });
+
+    it('steps back a calendar day and summarises a move', () => {
+        expect(previousDay('2026-11-01')).toBe('2026-10-31');
+        expect(previousDay('2026-03-01')).toBe('2026-02-28');
+        expect(movedSummary({ moved: 1, skipped: 0 })).toBe('Moved 1 block to today');
+        expect(movedSummary({ moved: 2, skipped: 1 })).toBe(
+            'Moved 2 blocks to today. 1 block overlapped today’s plan and stayed put.',
+        );
+        expect(movedSummary({ moved: 0, skipped: 3 })).toBe(
+            'Nothing moved. 3 blocks overlapped today’s plan and stayed put.',
+        );
     });
 });
