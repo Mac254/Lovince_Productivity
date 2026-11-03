@@ -259,7 +259,7 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
                 >
             </span>
             <span class="flex items-center gap-4">
-                <span class="max-sm:hidden">Markdown · ==highlight== · *italic*</span>
+                <span class="max-md:hidden">Markdown</span>
                 <span aria-live="polite">{{ saveState }}</span>
             </span>
         </div>

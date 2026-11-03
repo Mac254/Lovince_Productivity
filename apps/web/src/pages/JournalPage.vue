@@ -246,7 +246,7 @@ onBeforeUnmount(() => {
                         @previous="go(shiftDate(date, -1))"
                         @next="go(shiftDate(date, 1))"
                     />
-                    <div v-if="view === 'preview'" class="min-h-96 px-6 py-6">
+                    <div v-if="view === 'preview'" class="mx-auto min-h-96 w-full max-w-prose px-6 py-8">
                         <JournalPreview :source="body" :font="preferences.prefs.journalFont">
                             <template #empty>
                                 <Text tone="muted">Nothing written for this day yet.</Text>

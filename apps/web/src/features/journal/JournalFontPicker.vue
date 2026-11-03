@@ -64,7 +64,7 @@ function apply(): void {
                 <template #option="{ option }">
                     <span
                         :data-journal-font="option.value"
-                        :class="['sample w-full text-fg', journalFonts[option.value]?.size ?? 'text-body']"
+                        :class="['sample w-full font-medium text-fg', journalFonts[option.value]?.size ?? 'text-body']"
                     >
                         Today I shipped the thing I’d been circling all week.
                     </span>
