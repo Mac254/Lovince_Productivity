@@ -1,6 +1,6 @@
-import type { TaskCategory, TaskPriority } from '../generated/contract';
+import type { AchievementCategory, SuggestionCategory, TaskCategory, TaskPriority } from '../generated/contract';
 import type { IsoDate } from '../models/task';
-import type { ReportGoal, TypeBreakdownRow } from './reports';
+import type { ReportAchievement, ReportGoal, TypeBreakdownRow } from './reports';
 
 export type MetricRange = 7 | 30 | 90;
 
@@ -28,6 +28,26 @@ export interface ActivityStreak {
     best: number;
     active_today: boolean;
     active_days: number;
+}
+
+export interface SuggestionMetrics {
+    offered: number;
+    acted: number;
+    acted_previous: number;
+    accepted: number;
+    done: number;
+    dismissed: number;
+    open_now: number;
+    acceptance_rate: number | null;
+    by_category: { key: SuggestionCategory; acted: number; dismissed: number }[];
+}
+
+export interface AchievementMetrics {
+    count: number;
+    previous: number;
+    from_goals: number;
+    by_category: { key: AchievementCategory; count: number }[];
+    latest: (ReportAchievement & { achieved_on: IsoDate })[];
 }
 
 export interface Metrics {
@@ -63,4 +83,6 @@ export interface Metrics {
     by_category: { key: TaskCategory; completed: number; open: number }[];
     by_type: TypeBreakdownRow[];
     goals: ReportGoal[];
+    suggestions: SuggestionMetrics;
+    achievements: AchievementMetrics;
 }

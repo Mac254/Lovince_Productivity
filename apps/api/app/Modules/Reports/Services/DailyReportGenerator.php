@@ -2,12 +2,14 @@
 
 namespace App\Modules\Reports\Services;
 
+use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Reports\Models\DailyReport;
+use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Models\Task;
@@ -77,6 +79,17 @@ class DailyReportGenerator
             ->whereBetween('resolved_at', [$date, $asOf])
             ->get();
 
+        $suggestions = Suggestion::query()->whereBelongsTo($user)
+            ->where(fn (Builder $q) => $q->whereBetween('accepted_at', [$date, $asOf])->orWhereBetween('done_at', [$date, $asOf]))
+            ->orderBy('updated_at')
+            ->orderBy('id')
+            ->get();
+        $achievements = Achievement::query()->whereBelongsTo($user)->with('goal:id,title')
+            ->whereDate('achieved_on', $date)
+            ->where('created_at', '<=', $asOf)
+            ->orderBy('id')
+            ->get();
+
         $summary = [
             'completed' => $completed->count(),
             'created' => $tasks()->where('created_at', '>=', $date)->count(),
@@ -94,6 +107,9 @@ class DailyReportGenerator
             'notes_logged' => $workLog->count(),
             'minutes_logged' => (int) $workLog->sum('minutes'),
             'high_priority_completed' => $completed->filter(fn (Task $task) => in_array($task->priority->value, ['high', 'urgent'], true))->count(),
+            'suggestions_accepted' => $suggestions->filter(fn (Suggestion $s) => $s->accepted_at?->between($date, $asOf))->count(),
+            'suggestions_done' => $suggestions->filter(fn (Suggestion $s) => $s->done_at?->between($date, $asOf))->count(),
+            'achievements' => $achievements->count(),
         ];
 
         $data = [
@@ -125,6 +141,19 @@ class DailyReportGenerator
                 'development_completed' => $tasks()->where('category', TaskCategory::Development)->where($doneBy)->count(),
                 'integration_pending' => $openThen()->where('category', TaskCategory::Integration)->count(),
             ],
+            'suggestions' => $suggestions->take(self::LIST_LIMIT)->map(fn (Suggestion $s) => [
+                'id' => $s->id,
+                'title' => $s->title,
+                'category' => $s->category->value,
+                'source' => $s->source->value,
+                'status' => $s->done_at?->between($date, $asOf) ? 'done' : 'accepted',
+            ])->values()->all(),
+            'achievements' => $achievements->map(fn (Achievement $a) => [
+                'id' => $a->id,
+                'title' => $a->title,
+                'category' => $a->category?->value,
+                'goal' => $a->goal ? ['id' => $a->goal->id, 'title' => $a->goal->title] : null,
+            ])->values()->all(),
             'journal' => JournalEntry::query()->whereBelongsTo($user)->whereDate('date', $date)->value('body'),
         ];
 
@@ -280,6 +309,13 @@ class DailyReportGenerator
         if (($s['notes_logged'] ?? 0) > 0) {
             $parts[] = "{$s['notes_logged']} work ".($s['notes_logged'] === 1 ? 'note was' : 'notes were').' logged'
                 .($s['minutes_logged'] > 0 ? ' ('.$this->duration($s['minutes_logged']).')' : '').'.';
+        }
+        $actedOn = ($s['suggestions_accepted'] ?? 0) + ($s['suggestions_done'] ?? 0);
+        if ($actedOn > 0) {
+            $parts[] = "{$actedOn} ".($actedOn === 1 ? 'suggestion was' : 'suggestions were').' acted on.';
+        }
+        if (($s['achievements'] ?? 0) > 0) {
+            $parts[] = "{$s['achievements']} ".($s['achievements'] === 1 ? 'achievement was' : 'achievements were').' recorded.';
         }
         if ($s['due'] > 0) {
             $parts[] = "{$s['due_completed']} of {$s['due']} tasks due today were done.";

@@ -2,12 +2,16 @@
 
 namespace App\Modules\Metrics\Services;
 
+use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
 use App\Modules\Clock\Models\FocusSession;
 use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Suggestions\Enums\SuggestionCategory;
+use App\Modules\Suggestions\Enums\SuggestionStatus;
+use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
 use App\Modules\Tasks\Enums\TaskStatus;
@@ -132,9 +136,73 @@ class MetricsService
                     'completed' => (int) $g->completed_tasks_count,
                     'total' => (int) $g->eligible_tasks_count,
                 ])->all(),
+            'suggestions' => $this->suggestions($user, $start, $end, $previousStart),
+            'achievements' => $this->achievements($user, $start, $end, $previousStart),
         ];
 
         return $metrics + ['insights' => $this->insights->for($metrics)];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function suggestions(User $user, Carbon $start, Carbon $end, Carbon $previousStart): array
+    {
+        $all = Suggestion::query()->whereBelongsTo($user)->get(['id', 'category', 'status', 'created_at', 'accepted_at', 'done_at', 'dismissed_at']);
+        $in = fn (?Carbon $at, Carbon $from, Carbon $to) => $at?->between($from, $to) ?? false;
+        $acted = fn (Suggestion $s, Carbon $from, Carbon $to) => $in($s->accepted_at, $from, $to) || $in($s->done_at, $from, $to);
+        $dismissed = fn (Suggestion $s) => $s->status === SuggestionStatus::Dismissed && $in($s->dismissed_at, $start, $end);
+
+        $actedInRange = $all->filter(fn (Suggestion $s) => $acted($s, $start, $end));
+        $dismissedInRange = $all->filter($dismissed);
+        $decided = $actedInRange->count() + $dismissedInRange->count();
+
+        return [
+            'offered' => $all->filter(fn (Suggestion $s) => $in($s->created_at, $start, $end))->count(),
+            'acted' => $actedInRange->count(),
+            'acted_previous' => $all->filter(fn (Suggestion $s) => $acted($s, $previousStart, $start->copy()->subSecond()))->count(),
+            'accepted' => $all->filter(fn (Suggestion $s) => $in($s->accepted_at, $start, $end))->count(),
+            'done' => $all->filter(fn (Suggestion $s) => $in($s->done_at, $start, $end))->count(),
+            'dismissed' => $dismissedInRange->count(),
+            'open_now' => $all->where('status', SuggestionStatus::New)->count(),
+            'acceptance_rate' => $decided > 0 ? (int) round($actedInRange->count() / $decided * 100) : null,
+            'by_category' => collect(SuggestionCategory::cases())->map(fn (SuggestionCategory $c) => [
+                'key' => $c->value,
+                'acted' => $actedInRange->where('category', $c)->count(),
+                'dismissed' => $dismissedInRange->where('category', $c)->count(),
+            ])->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function achievements(User $user, Carbon $start, Carbon $end, Carbon $previousStart): array
+    {
+        $recent = Achievement::query()->whereBelongsTo($user)->with('goal:id,title')
+            ->whereDate('achieved_on', '>=', $previousStart->toDateString())
+            ->whereDate('achieved_on', '<=', $end->toDateString())
+            ->orderByDesc('achieved_on')
+            ->orderByDesc('id')
+            ->get();
+        $inRange = $recent->filter(fn (Achievement $a) => $a->achieved_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
+
+        return [
+            'count' => $inRange->count(),
+            'previous' => $recent->count() - $inRange->count(),
+            'from_goals' => $inRange->whereNotNull('goal_id')->count(),
+            'by_category' => collect(SuggestionCategory::cases())->map(fn (SuggestionCategory $c) => [
+                'key' => $c->value,
+                'count' => $inRange->where('category', $c)->count(),
+            ])->all(),
+            'latest' => $inRange->take(5)->map(fn (Achievement $a) => [
+                'id' => $a->id,
+                'title' => $a->title,
+                'achieved_on' => $a->achieved_on->toDateString(),
+                'category' => $a->category?->value,
+                'goal' => $a->goal ? ['id' => $a->goal->id, 'title' => $a->goal->title] : null,
+            ])->values()->all(),
+        ];
     }
 
     /**

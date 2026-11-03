@@ -3,7 +3,15 @@ import { api, errorMessage } from '@focus/api-client';
 import type { TabItem } from '@focus/ui';
 import type { DailyReport } from '@focus/types';
 import { dueLabel, formatDate, formatMinutes, todayIso } from '@/lib/dates';
-import { taskPriorityLabels, taskPriorityTones } from '@/lib/labels';
+import {
+    suggestionCategoryIcons,
+    suggestionCategoryLabels,
+    suggestionCategoryTones,
+    suggestionStatusLabels,
+    suggestionStatusTones,
+    taskPriorityLabels,
+    taskPriorityTones,
+} from '@/lib/labels';
 
 const route = useRoute();
 const toast = useToast();
@@ -56,11 +64,17 @@ const carriedPage = usePagedList(() => report.value?.carried_over ?? [], 8);
 const overduePage = usePagedList(() => report.value?.overdue_tasks ?? [], 8);
 const logPage = usePagedList(() => report.value?.work_log ?? [], 10);
 
-const tab = useTabQuery(['tasks', 'log', 'blockers', 'goals'] as const, 'tasks');
+const tab = useTabQuery(['tasks', 'log', 'blockers', 'wins', 'goals'] as const, 'tasks');
 const tabs = computed<TabItem<typeof tab.value>[]>(() => [
     { value: 'tasks', label: 'Tasks', icon: 'tasks', count: report.value?.completed_tasks.length },
     { value: 'log', label: 'Work log', icon: 'history', count: report.value?.work_log?.length },
     { value: 'blockers', label: 'Blockers', icon: 'blocker', count: report.value?.blockers_open.length },
+    {
+        value: 'wins',
+        label: 'Wins',
+        icon: 'star',
+        count: (report.value?.achievements?.length ?? 0) + (report.value?.suggestions?.length ?? 0),
+    },
     { value: 'goals', label: 'Goals & journal', icon: 'target' },
 ]);
 
@@ -298,6 +312,76 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                 completed-label="done"
                             />
                             <Text v-else role="label" tone="muted">Nothing was completed this day.</Text>
+                        </Card>
+                    </div>
+                </template>
+                <template #wins>
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <Card as="section" aria-labelledby="achievements-heading" class="group">
+                            <CardHeader
+                                title="Achievements"
+                                title-id="achievements-heading"
+                                icon="star"
+                                :subtitle="plural(report.achievements?.length ?? 0, 'achievement')"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'achievements' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <ul v-if="report.achievements?.length" class="flex flex-col divide-y divide-border">
+                                <li
+                                    v-for="achievement in report.achievements"
+                                    :key="achievement.id"
+                                    class="flex items-center justify-between gap-3 py-2"
+                                >
+                                    <span class="flex min-w-0 flex-col">
+                                        <span class="truncate font-semibold">{{ achievement.title }}</span>
+                                        <Text v-if="achievement.goal" as="span" role="caption" tone="muted">{{
+                                            achievement.goal.title
+                                        }}</Text>
+                                    </span>
+                                    <Badge
+                                        v-if="achievement.category"
+                                        :tone="suggestionCategoryTones[achievement.category]"
+                                        :icon="suggestionCategoryIcons[achievement.category]"
+                                        >{{ suggestionCategoryLabels[achievement.category] }}</Badge
+                                    >
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted">No achievements were recorded this day.</Text>
+                        </Card>
+
+                        <Card as="section" aria-labelledby="suggestions-heading" class="group">
+                            <CardHeader
+                                title="Suggestions acted on"
+                                title-id="suggestions-heading"
+                                icon="lightbulb"
+                                :subtitle="`${report.summary.suggestions_done ?? 0} done · ${report.summary.suggestions_accepted ?? 0} accepted`"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'suggestions' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <ul v-if="report.suggestions?.length" class="flex flex-col divide-y divide-border">
+                                <li
+                                    v-for="suggestion in report.suggestions"
+                                    :key="suggestion.id"
+                                    class="flex items-center justify-between gap-3 py-2"
+                                >
+                                    <span class="min-w-0 truncate font-semibold">{{ suggestion.title }}</span>
+                                    <span class="flex shrink-0 gap-1">
+                                        <Badge
+                                            :tone="suggestionCategoryTones[suggestion.category]"
+                                            :icon="suggestionCategoryIcons[suggestion.category]"
+                                            >{{ suggestionCategoryLabels[suggestion.category] }}</Badge
+                                        >
+                                        <Badge :tone="suggestionStatusTones[suggestion.status]" dot>{{
+                                            suggestionStatusLabels[suggestion.status]
+                                        }}</Badge>
+                                    </span>
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted">No suggestions were acted on this day.</Text>
                         </Card>
                     </div>
                 </template>

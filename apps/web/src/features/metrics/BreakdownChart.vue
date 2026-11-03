@@ -4,12 +4,15 @@ import VueApexCharts from 'vue3-apexcharts';
 import { useChartTheme } from './useChartTheme';
 
 /** Completed in the range vs. open now, per category, as horizontal bars from one baseline. */
-const props = defineProps<{ rows: { label: string; completed: number; open: number }[] }>();
+const props = withDefaults(
+    defineProps<{ rows: { label: string; completed: number; open: number }[]; names?: [string, string] }>(),
+    { names: () => ['Completed in range', 'Open now'] },
+);
 const { colors, base } = useChartTheme();
 
 const series = computed(() => [
-    { name: 'Completed in range', data: props.rows.map((r) => r.completed) },
-    { name: 'Open now', data: props.rows.map((r) => r.open) },
+    { name: props.names[0], data: props.rows.map((r) => r.completed) },
+    { name: props.names[1], data: props.rows.map((r) => r.open) },
 ]);
 
 const options = computed<ApexOptions>(() => ({

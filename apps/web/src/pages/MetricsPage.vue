@@ -3,7 +3,13 @@ import { api } from '@focus/api-client';
 import type { TabItem } from '@focus/ui';
 import type { MetricRange } from '@focus/types';
 import { formatDate, formatMinutes } from '@/lib/dates';
-import { taskCategoryLabels, taskPriorityLabels } from '@/lib/labels';
+import {
+    suggestionCategoryIcons,
+    suggestionCategoryLabels,
+    suggestionCategoryTones,
+    taskCategoryLabels,
+    taskPriorityLabels,
+} from '@/lib/labels';
 
 const range = ref<'7' | '30' | '90'>('30');
 const ranges = [
@@ -16,13 +22,31 @@ const { data, loading, error, run } = useAsync((signal) =>
     api.metrics.get(Number(range.value) as MetricRange, { signal }),
 );
 
-const tab = useTabQuery(['trend', 'focus', 'breakdown', 'goals'] as const, 'trend');
+const tab = useTabQuery(['trend', 'focus', 'breakdown', 'wins', 'goals'] as const, 'trend');
 const tabs: TabItem<typeof tab.value>[] = [
     { value: 'trend', label: 'Trend', icon: 'metrics' },
     { value: 'focus', label: 'Focus', icon: 'clock' },
     { value: 'breakdown', label: 'Breakdown', icon: 'tag' },
+    { value: 'wins', label: 'Wins', icon: 'star' },
     { value: 'goals', label: 'Goals', icon: 'target' },
 ];
+const suggestionRows = computed(() =>
+    (data.value?.suggestions?.by_category ?? [])
+        .filter((row) => row.acted + row.dismissed > 0)
+        .map((row) => ({ label: suggestionCategoryLabels[row.key], completed: row.acted, open: row.dismissed })),
+);
+const suggestionStats = computed(() => {
+    const s = data.value?.suggestions;
+    if (!s) return [];
+    return [
+        { label: 'Offered', value: s.offered },
+        { label: 'Acted on', value: s.acted },
+        { label: 'Done', value: s.done },
+        { label: 'Dismissed', value: s.dismissed },
+        { label: 'Follow-through', value: s.acceptance_rate === null ? '—' : `${s.acceptance_rate}%` },
+        { label: 'Waiting now', value: s.open_now },
+    ];
+});
 const goalPage = usePagedList(() => data.value?.goals ?? [], 10);
 
 const delta = computed(() => {
@@ -275,6 +299,73 @@ onMounted(run);
                                     </div>
                                 </dl>
                             </div>
+                        </Card>
+                    </div>
+                </template>
+                <template #wins>
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <Card as="section" aria-labelledby="suggestion-metrics-heading" class="group">
+                            <CardHeader
+                                title="Suggestions"
+                                title-id="suggestion-metrics-heading"
+                                icon="lightbulb"
+                                :subtitle="`${data.suggestions.acted} acted on, ${data.suggestions.acted_previous} in the ${range} days before`"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'suggestions' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                                <div v-for="stat in suggestionStats" :key="stat.label" class="flex flex-col gap-1">
+                                    <dt class="text-caption text-fg-muted">{{ stat.label }}</dt>
+                                    <dd class="text-title font-semibold tabular">{{ stat.value }}</dd>
+                                </div>
+                            </dl>
+                            <div class="border-t border-border pt-4">
+                                <BreakdownChart
+                                    v-if="suggestionRows.length"
+                                    :rows="suggestionRows"
+                                    :names="['Acted on', 'Dismissed']"
+                                />
+                                <Text v-else role="label" tone="muted" class="py-4"
+                                    >No suggestions acted on or dismissed in this range.</Text
+                                >
+                            </div>
+                        </Card>
+                        <Card as="section" aria-labelledby="achievement-metrics-heading" class="group">
+                            <CardHeader
+                                title="Achievements"
+                                title-id="achievement-metrics-heading"
+                                icon="star"
+                                :subtitle="`${data.achievements.count} recorded · ${data.achievements.from_goals} from goals · ${data.achievements.previous} in the ${range} days before`"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'achievements' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <ul v-if="data.achievements.latest.length" class="flex flex-col divide-y divide-border">
+                                <li
+                                    v-for="achievement in data.achievements.latest"
+                                    :key="achievement.id"
+                                    class="flex items-center justify-between gap-3 py-2"
+                                >
+                                    <span class="flex min-w-0 flex-col">
+                                        <span class="truncate font-semibold">{{ achievement.title }}</span>
+                                        <Text as="span" role="caption" tone="muted">{{
+                                            [formatDate(achievement.achieved_on), achievement.goal?.title]
+                                                .filter(Boolean)
+                                                .join(' · ')
+                                        }}</Text>
+                                    </span>
+                                    <Badge
+                                        v-if="achievement.category"
+                                        :tone="suggestionCategoryTones[achievement.category]"
+                                        :icon="suggestionCategoryIcons[achievement.category]"
+                                        >{{ suggestionCategoryLabels[achievement.category] }}</Badge
+                                    >
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted">No achievements recorded in this range.</Text>
                         </Card>
                     </div>
                 </template>

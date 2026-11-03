@@ -42,6 +42,8 @@ class DailyReportResource extends JsonResource
                 'blockers_resolved' => $data['blockers_resolved'] ?? [],
                 'goals' => $data['goals'] ?? [],
                 'integration' => $data['integration'] ?? null,
+                'suggestions' => $data['suggestions'] ?? [],
+                'achievements' => $data['achievements'] ?? [],
                 'journal' => $data['journal'] ?? null,
             ] : []),
         ];

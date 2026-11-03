@@ -41,14 +41,24 @@ export type { Dashboard, DashboardStats, FocusToday, IntegrationSummary } from '
 export type {
     DailyReport,
     DailyReportSummary,
+    ReportAchievement,
     ReportBlocker,
     ReportGoal,
+    ReportSuggestion,
     ReportSummary,
     ReportTask,
     ReportWorkLogEntry,
     TypeBreakdownRow,
 } from './api/reports';
-export type { ActivityStreak, FocusMetrics, MetricInsight, MetricRange, Metrics } from './api/metrics';
+export type {
+    AchievementMetrics,
+    ActivityStreak,
+    FocusMetrics,
+    MetricInsight,
+    MetricRange,
+    Metrics,
+    SuggestionMetrics,
+} from './api/metrics';
 export type { SearchKind, SearchResult } from './api/search';
 export type { BackupImportResult } from './api/backup';
 export type {

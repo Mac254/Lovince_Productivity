@@ -1,4 +1,12 @@
-import type { GoalTimeframe, TaskCategory, TaskPriority, TaskStatus } from '../generated/contract';
+import type {
+    AchievementCategory,
+    GoalTimeframe,
+    SuggestionCategory,
+    SuggestionSource,
+    TaskCategory,
+    TaskPriority,
+    TaskStatus,
+} from '../generated/contract';
 import type { IsoDate, IsoDateTime } from '../models/task';
 import type { TaskTypeRef } from '../models/taskType';
 import type { GoalTone } from '../generated/contract';
@@ -38,6 +46,24 @@ export interface ReportSummary {
     /** Work log entries for the day; absent on older reports. */
     notes_logged?: number;
     minutes_logged?: number;
+    suggestions_accepted?: number;
+    suggestions_done?: number;
+    achievements?: number;
+}
+
+export interface ReportSuggestion {
+    id: number;
+    title: string;
+    category: SuggestionCategory;
+    source: SuggestionSource;
+    status: 'accepted' | 'done';
+}
+
+export interface ReportAchievement {
+    id: number;
+    title: string;
+    category: AchievementCategory | null;
+    goal: { id: number; title: string } | null;
 }
 
 export interface ReportTask {
@@ -94,4 +120,6 @@ export interface DailyReport extends DailyReportSummary {
     goals: ReportGoal[];
     integration: { development_completed: number; integration_pending: number } | null;
     journal: string | null;
+    suggestions?: ReportSuggestion[];
+    achievements?: ReportAchievement[];
 }

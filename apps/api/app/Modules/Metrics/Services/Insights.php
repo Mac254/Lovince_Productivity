@@ -27,6 +27,8 @@ class Insights
             $this->bestHour($focus['best_hour'], $focus['sessions']),
             $this->bestWeekday($metrics['daily'], $totals['completed']),
             $this->topCategory($metrics['by_category'], $totals['completed']),
+            $this->suggestions($metrics['suggestions'] ?? null),
+            $this->achievements($metrics['achievements'] ?? null, $days),
         ]));
     }
 
@@ -119,6 +121,32 @@ class Insights
         return $share >= 50
             ? $this->insight('category', 'neutral', "{$share}% of what you finish is ".ucfirst($top['key']).' work.')
             : null;
+    }
+
+    /**
+     * @param  array{acted: int, dismissed: int, acceptance_rate: int|null}|null  $suggestions
+     */
+    private function suggestions(?array $suggestions): ?array
+    {
+        if ($suggestions === null || $suggestions['acceptance_rate'] === null || $suggestions['acted'] + $suggestions['dismissed'] < 3) {
+            return null;
+        }
+        $rate = $suggestions['acceptance_rate'];
+
+        return $this->insight('suggestions', $rate >= 50 ? 'positive' : 'neutral', "You acted on {$suggestions['acted']} suggestions, {$rate}% of the ones you decided on.");
+    }
+
+    /**
+     * @param  array{count: int, previous: int}|null  $achievements
+     */
+    private function achievements(?array $achievements, int $days): ?array
+    {
+        if ($achievements === null || $achievements['count'] === 0) {
+            return null;
+        }
+        $count = $achievements['count'];
+
+        return $this->insight('achievements', 'positive', ($count === 1 ? '1 achievement' : "{$count} achievements")." recorded in the last {$days} days.");
     }
 
     /**
