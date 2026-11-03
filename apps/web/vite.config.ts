@@ -30,6 +30,7 @@ export default defineConfig(({ command, mode }) => {
         build: {
             outDir: fileURLToPath(new URL('../api/public/app', import.meta.url)),
             emptyOutDir: true,
+            assetsInlineLimit: (file) => (/\.(woff2?|ttf|otf)$/.test(file) ? false : undefined),
         },
     };
 });
