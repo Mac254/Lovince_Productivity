@@ -31,7 +31,7 @@ export type TaskDueFilter = (typeof TASK_DUE_FILTERS)[number];
 export const TASK_SORTS = ['due_date', 'priority', 'created_at', 'updated_at', 'title'] as const;
 export type TaskSort = (typeof TASK_SORTS)[number];
 
-export const COVERS = ['focus-1', 'focus-2', 'growth-1', 'growth-2', 'health-1', 'health-2', 'wellbeing-1', 'wellbeing-2', 'social-1', 'social-2', 'fun-1', 'fun-2'] as const;
+export const COVERS = ['focus-1', 'focus-2', 'focus-3', 'focus-4', 'growth-1', 'growth-2', 'growth-3', 'growth-4', 'health-1', 'health-2', 'health-3', 'health-4', 'wellbeing-1', 'wellbeing-2', 'wellbeing-3', 'wellbeing-4', 'social-1', 'social-2', 'social-3', 'social-4', 'fun-1', 'fun-2', 'fun-3', 'fun-4'] as const;
 export type Cover = (typeof COVERS)[number];
 
 export const BLOCKER_STATUSES = ['open', 'resolved'] as const;
@@ -103,6 +103,9 @@ export interface Settings {
     };
     appearance: {
         theme: 'dark' | 'light' | 'system';
+        accent: 'green' | 'blue' | 'violet' | 'amber' | 'rose' | 'cyan';
+        corners: 'sharp' | 'soft' | 'round';
+        text_size: 'small' | 'default' | 'large' | 'larger';
         reduce_motion: boolean;
     };
     tasks: {
@@ -153,6 +156,9 @@ export const SETTINGS_DEFAULTS: Settings = {
     },
     appearance: {
         theme: 'dark',
+        accent: 'green',
+        corners: 'round',
+        text_size: 'default',
         reduce_motion: false,
     },
     tasks: {

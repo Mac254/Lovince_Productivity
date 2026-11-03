@@ -60,10 +60,7 @@ final class Contract
 
     public const COVER_MAX_KB = 8192;
 
-    public const COVERS = [
-        'focus-1', 'focus-2', 'growth-1', 'growth-2', 'health-1', 'health-2',
-        'wellbeing-1', 'wellbeing-2', 'social-1', 'social-2', 'fun-1', 'fun-2',
-    ];
+    public const COVERS = ['focus-1', 'focus-2', 'focus-3', 'focus-4', 'growth-1', 'growth-2', 'growth-3', 'growth-4', 'health-1', 'health-2', 'health-3', 'health-4', 'wellbeing-1', 'wellbeing-2', 'wellbeing-3', 'wellbeing-4', 'social-1', 'social-2', 'social-3', 'social-4', 'fun-1', 'fun-2', 'fun-3', 'fun-4'];
 
     public const WALLPAPER_LIMIT = 12;
 
