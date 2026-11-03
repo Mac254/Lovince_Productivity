@@ -85,6 +85,18 @@ class ScheduleTest extends TestCase
         $this->assertSame(2, Task::count());
     }
 
+    public function test_schedules_are_listed_in_week_order(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        foreach ([['Sunday', [7]], ['Friday', [5]], ['Every day', []], ['Monday', [1]], ['Weekdays', [1, 2, 3, 4, 5]], ['Weekends', [6, 7]], ['Tuesday', [2]]] as [$name, $days]) {
+            $user->schedules()->create(['name' => $name, 'days' => $days]);
+        }
+
+        $this->getJson('/api/v1/schedules')
+            ->assertJsonPath('data.*.name', ['Every day', 'Monday', 'Weekdays', 'Tuesday', 'Friday', 'Weekends', 'Sunday']);
+    }
+
     public function test_schedules_only_fill_later_days_when_planning_ahead_is_on(): void
     {
         $user = User::factory()->create();

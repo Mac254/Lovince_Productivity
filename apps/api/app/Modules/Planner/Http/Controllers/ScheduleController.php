@@ -22,6 +22,8 @@ class ScheduleController extends Controller
     {
         return ScheduleResource::collection(
             Schedule::query()->whereBelongsTo($request->user())->with('items')->orderBy('name')->get()
+                ->sortBy(fn (Schedule $schedule) => [empty($schedule->days) ? 0 : min($schedule->days), count($schedule->days ?? [])])
+                ->values()
         );
     }
 
