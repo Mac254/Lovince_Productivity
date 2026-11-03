@@ -1,10 +1,10 @@
 /**
  * A small, safe subset of Markdown for the journal preview: headings, lists (with task boxes),
- * quotes, fenced code, rules and paragraphs; inline `code` and **bold**. It produces data for the
+ * quotes, fenced code, rules and paragraphs; inline `code`, **bold**, *italic*, ==highlight== and ~~strike~~. It produces data for the
  * template to render as text, so nothing written can become HTML.
  */
 export interface Inline {
-    kind: 'text' | 'code' | 'strong';
+    kind: 'text' | 'code' | 'strong' | 'em' | 'mark' | 'strike';
     text: string;
 }
 
@@ -21,11 +21,14 @@ const TASK = /^\[( |x|X)\]\s+(.*)$/;
 
 export function parseInline(text: string): Inline[] {
     const parts: Inline[] = [];
-    const pattern = /`([^`]+)`|\*\*([^*]+)\*\*/g;
+    const pattern =
+        /`([^`]+)`|\*\*(?!\s)([^*]+?)\*\*|==(?!\s)([^=]+?)==|~~(?!\s)([^~]+?)~~|(?<![\w*])[*_](?![\s*_])([^*_]+?)(?<!\s)[*_](?![\w*])/g;
+    const kinds = ['code', 'strong', 'mark', 'strike', 'em'] as const;
     let last = 0;
     for (const match of text.matchAll(pattern)) {
         if (match.index > last) parts.push({ kind: 'text', text: text.slice(last, match.index) });
-        parts.push(match[1] !== undefined ? { kind: 'code', text: match[1] } : { kind: 'strong', text: match[2]! });
+        const group = match.slice(1).findIndex((value) => value !== undefined);
+        parts.push({ kind: kinds[group]!, text: match[group + 1]! });
         last = match.index + match[0].length;
     }
     if (last < text.length) parts.push({ kind: 'text', text: text.slice(last) });

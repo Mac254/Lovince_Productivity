@@ -627,3 +627,99 @@
     --font-display: system-ui, -apple-system, 'Segoe UI', Roboto, ui-sans-serif, sans-serif;
     --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, ui-sans-serif, sans-serif;
 }
+
+[data-journal-font='mono'] {
+    --journal-font: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-journal-font='sans'] {
+    --journal-font: var(--font-sans);
+}
+
+[data-journal-font='serif'] {
+    --journal-font: 'Source Serif 4 Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='literata'] {
+    --journal-font: 'Literata Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='newsreader'] {
+    --journal-font: 'Newsreader Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='lora'] {
+    --journal-font: 'Lora Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='garamond'] {
+    --journal-font: 'EB Garamond Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='merriweather'] {
+    --journal-font: 'Merriweather Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='crimson'] {
+    --journal-font: 'Crimson Pro Variable', ui-serif, Georgia, Cambria, serif;
+}
+
+[data-journal-font='atkinson'] {
+    --journal-font: 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-journal-font='lexend'] {
+    --journal-font: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-journal-font='quicksand'] {
+    --journal-font: 'Quicksand Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-journal-font='nunito'] {
+    --journal-font: 'Nunito Variable', ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-journal-font='fira_code'] {
+    --journal-font: 'Fira Code Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-journal-font='geist_mono'] {
+    --journal-font: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-journal-font='source_code'] {
+    --journal-font: 'Source Code Pro Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-journal-font='courier'] {
+    --journal-font: 'Courier Prime', 'Courier New', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-journal-font='typewriter'] {
+    --journal-font: 'Special Elite', 'Courier New', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+[data-journal-font='hand'] {
+    --journal-font: 'Caveat Variable', 'Segoe Print', 'Bradley Hand', cursive;
+}
+
+[data-journal-font='patrick_hand'] {
+    --journal-font: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+}
+
+[data-journal-font='kalam'] {
+    --journal-font: 'Kalam', 'Segoe Print', 'Bradley Hand', cursive;
+}
+
+[data-journal-font='indie_flower'] {
+    --journal-font: 'Indie Flower', 'Segoe Print', 'Bradley Hand', cursive;
+}
+
+[data-journal-font='dancing'] {
+    --journal-font: 'Dancing Script Variable', 'Segoe Print', 'Bradley Hand', cursive;
+}
+
+[data-journal-font='architects'] {
+    --journal-font: 'Architects Daughter', 'Segoe Print', 'Bradley Hand', cursive;
+}

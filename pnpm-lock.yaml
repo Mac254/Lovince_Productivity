@@ -271,6 +271,9 @@ importers:
       '@fontsource-variable/crimson-pro':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource-variable/dancing-script':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource-variable/dm-sans':
         specifier: ^5.3.0
         version: 5.3.0
@@ -401,6 +404,24 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/work-sans':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/architects-daughter':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/courier-prime':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/indie-flower':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/kalam':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/patrick-hand':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/special-elite':
         specifier: ^5.3.0
         version: 5.3.0
       apexcharts:
@@ -670,6 +691,9 @@ packages:
   '@fontsource-variable/crimson-pro@5.3.0':
     resolution: {integrity: sha512-CmtGOKsw1H/JcXOcncu8SWOnhWlyLaAMbCVlG9yR5kz95hrxYU3A1+0DxdRbz/MFhCJGxchgqwPxLAlL0cWvdQ==}
 
+  '@fontsource-variable/dancing-script@5.3.0':
+    resolution: {integrity: sha512-5Z/flvW1UPkznr0hzejY+Wq72GV3hmtJiDGw2hWMu7n6TmCTB6O2jsfySl7+xuMp6R6bWyuNrKjdpT0yt91sfw==}
+
   '@fontsource-variable/dm-sans@5.3.0':
     resolution: {integrity: sha512-BpUG5bqePiDFMBM4ZtLSlPdAIOM990uB1dlXzIf4aw21yQR7BmykedLXXXMqGWsR18aMLOsbWccwJNh3ztTQaA==}
 
@@ -801,6 +825,24 @@ packages:
 
   '@fontsource-variable/work-sans@5.3.0':
     resolution: {integrity: sha512-le8h/OIIuhm5Z7TdvuMw0yKg2gaCZUiMec8zaumsVVjzeJRBPEF0bQI/MkaZDHCVzZDvZoP/O2LiGOSfDLSbaw==}
+
+  '@fontsource/architects-daughter@5.3.0':
+    resolution: {integrity: sha512-uezOgAlbhmf9nDW69VYq31lXNA+0uRFWXBGCSFWLXVcrNESFHpNjvu11kJss1PMsfH/YKz1hnnYB+JSNI/t+ew==}
+
+  '@fontsource/courier-prime@5.3.0':
+    resolution: {integrity: sha512-KIi1k4VG1Wv+/CGpb1AUpLkUuOAQA6zmvthqxOZGN0AV8BEgQgbK7qAtquv14zsBJAY1bb5BHIEbWVFLgENh0w==}
+
+  '@fontsource/indie-flower@5.3.0':
+    resolution: {integrity: sha512-Wo5eN/ruEQcyC3+ArzhlpqWQgph3VuCNbJlEkVw17LUd0uyTHOb9bTec4g9njQzjiL/ijACF27sSwy90L6kZBg==}
+
+  '@fontsource/kalam@5.3.0':
+    resolution: {integrity: sha512-FDkVoDfPDCSN/eO81FOYtUI67eMgpVBJmjBtAqSL0PmEhJyeFY2biC+CR+yEttksgXR9+swpFdYmQTyjwBq80Q==}
+
+  '@fontsource/patrick-hand@5.3.0':
+    resolution: {integrity: sha512-V8C38IlIFfdWg0Xtri3F7sLCVpm069rUwn6w4n+oyn38gt7H4arOJmuReg3tAw1Q6jHqZp89wTnAAJagq4Atxw==}
+
+  '@fontsource/special-elite@5.3.0':
+    resolution: {integrity: sha512-fOQ9XU8m4KnqzcLibAXCxTsKzbxePNDjPqVss5GSMcPVCY1TuCv+Wq8gm1ebqIR6XS1rhMbQ7ECP9ocKVEEpTA==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2773,6 +2815,8 @@ snapshots:
 
   '@fontsource-variable/crimson-pro@5.3.0': {}
 
+  '@fontsource-variable/dancing-script@5.3.0': {}
+
   '@fontsource-variable/dm-sans@5.3.0': {}
 
   '@fontsource-variable/eb-garamond@5.3.0': {}
@@ -2860,6 +2904,18 @@ snapshots:
   '@fontsource-variable/unbounded@5.3.0': {}
 
   '@fontsource-variable/work-sans@5.3.0': {}
+
+  '@fontsource/architects-daughter@5.3.0': {}
+
+  '@fontsource/courier-prime@5.3.0': {}
+
+  '@fontsource/indie-flower@5.3.0': {}
+
+  '@fontsource/kalam@5.3.0': {}
+
+  '@fontsource/patrick-hand@5.3.0': {}
+
+  '@fontsource/special-elite@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

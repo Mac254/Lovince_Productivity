@@ -130,6 +130,38 @@ export const fontPairings = {
 
 export type FontPairing = keyof typeof fontPairings;
 
+const script = (name: string) => `'${name}', 'Segoe Print', 'Bradley Hand', cursive`;
+const typed = (name: string) => `'${name}', 'Courier New', ${fallback.mono}`;
+
+export const journalFonts = {
+    mono: fontFamily.mono,
+    sans: 'var(--font-sans)',
+    serif: fontFamily.serif,
+    literata: families.literata,
+    newsreader: families.newsreader,
+    lora: families.lora,
+    garamond: families.garamond,
+    merriweather: families.merriweather,
+    crimson: families.crimson,
+    atkinson: families.atkinson,
+    lexend: families.lexend,
+    quicksand: families.quicksand,
+    nunito: families.nunito,
+    fira_code: families.firaCode,
+    geist_mono: families.geistMono,
+    source_code: families.sourceCode,
+    courier: typed('Courier Prime'),
+    typewriter: typed('Special Elite'),
+    hand: fontFamily.hand,
+    patrick_hand: script('Patrick Hand'),
+    kalam: script('Kalam'),
+    indie_flower: script('Indie Flower'),
+    dancing: script('Dancing Script Variable'),
+    architects: script('Architects Daughter'),
+} as const;
+
+export type JournalFontName = keyof typeof journalFonts;
+
 /** Weight 500 is the floor in this system; only these weights are used. */
 export const fontWeight = {
     medium: 500,

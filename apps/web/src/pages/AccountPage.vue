@@ -499,7 +499,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
             <template #features>
                 <ModuleSettings
                     :modules="['tasks', 'planner', 'timer', 'review', 'journal']"
-                    :skip="['timer.chime', 'timer.auto_break']"
+                    :skip="['timer.chime', 'timer.auto_break', 'journal.font']"
                 />
             </template>
             <template #data>

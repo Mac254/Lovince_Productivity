@@ -13,13 +13,16 @@ export const fontGroups: { value: FontGroup; label: string }[] = [
 
 const faces = {
     albertSans: () => import('@fontsource-variable/albert-sans'),
+    architects: () => import('@fontsource/architects-daughter/400.css'),
     archivo: () => import('@fontsource-variable/archivo'),
     atkinson: () => import('@fontsource-variable/atkinson-hyperlegible-next'),
     baloo: () => import('@fontsource-variable/baloo-2'),
     bitter: () => import('@fontsource-variable/bitter'),
     bricolage: () => import('@fontsource-variable/bricolage-grotesque'),
     comfortaa: () => import('@fontsource-variable/comfortaa'),
+    courierPrime: () => Promise.all([import('@fontsource/courier-prime/400.css'), import('@fontsource/courier-prime/700.css')]),
     crimson: () => import('@fontsource-variable/crimson-pro'),
+    dancing: () => import('@fontsource-variable/dancing-script'),
     dmSans: () => import('@fontsource-variable/dm-sans'),
     garamond: () => import('@fontsource-variable/eb-garamond'),
     figtree: () => import('@fontsource-variable/figtree'),
@@ -31,8 +34,10 @@ const faces = {
     hanken: () => import('@fontsource-variable/hanken-grotesk'),
     plex: () => import('@fontsource-variable/ibm-plex-sans'),
     instrument: () => import('@fontsource-variable/instrument-sans'),
+    indieFlower: () => import('@fontsource/indie-flower/400.css'),
     interTight: () => import('@fontsource-variable/inter-tight'),
     jakarta: () => import('@fontsource-variable/plus-jakarta-sans'),
+    kalam: () => Promise.all([import('@fontsource/kalam/400.css'), import('@fontsource/kalam/700.css')]),
     karla: () => import('@fontsource-variable/karla'),
     lexend: () => import('@fontsource-variable/lexend'),
     literata: () => import('@fontsource-variable/literata'),
@@ -45,6 +50,7 @@ const faces = {
     nunito: () => import('@fontsource-variable/nunito'),
     onest: () => import('@fontsource-variable/onest'),
     openSans: () => import('@fontsource-variable/open-sans'),
+    patrickHand: () => import('@fontsource/patrick-hand/400.css'),
     playfair: () => import('@fontsource-variable/playfair-display'),
     publicSans: () => import('@fontsource-variable/public-sans'),
     quicksand: () => import('@fontsource-variable/quicksand'),
@@ -57,12 +63,13 @@ const faces = {
     sourceCode: () => import('@fontsource-variable/source-code-pro'),
     sourceSans: () => import('@fontsource-variable/source-sans-3'),
     spaceGrotesk: () => import('@fontsource-variable/space-grotesk'),
+    specialElite: () => import('@fontsource/special-elite/400.css'),
     syne: () => import('@fontsource-variable/syne'),
     unbounded: () => import('@fontsource-variable/unbounded'),
     workSans: () => import('@fontsource-variable/work-sans'),
 } satisfies Record<string, () => Promise<unknown>>;
 
-type Face = keyof typeof faces;
+export type Face = keyof typeof faces;
 
 const font = (group: FontGroup, ...files: Face[]) => ({ group, faces: files });
 
@@ -135,7 +142,10 @@ function loadFace(face: Face): Promise<void> {
     return promise;
 }
 
+export function loadFaces(list: readonly Face[]): Promise<void> {
+    return Promise.all(list.map(loadFace)).then(() => undefined);
+}
+
 export function loadFont(key: string): Promise<void> {
-    const entry = fonts[key as FontKey];
-    return entry ? Promise.all(entry.faces.map(loadFace)).then(() => undefined) : Promise.resolve();
+    return loadFaces(fonts[key as FontKey]?.faces ?? []);
 }

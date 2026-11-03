@@ -155,7 +155,7 @@ export interface Settings {
         day: 'off' | 'friday' | 'saturday' | 'sunday';
     };
     journal: {
-        font: 'mono' | 'sans' | 'serif' | 'hand';
+        font: 'mono' | 'sans' | 'serif' | 'literata' | 'newsreader' | 'lora' | 'garamond' | 'merriweather' | 'crimson' | 'atkinson' | 'lexend' | 'quicksand' | 'nunito' | 'fira_code' | 'geist_mono' | 'source_code' | 'courier' | 'typewriter' | 'hand' | 'patrick_hand' | 'kalam' | 'indie_flower' | 'dancing' | 'architects';
         searchable: boolean;
     };
 }

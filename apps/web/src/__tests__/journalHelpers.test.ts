@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseInline, parseMarkdown, summarizeEntry } from '@/lib/markdownLite';
 import { standupDraft } from '@/lib/standup';
-import { caretPosition, continueList, indentList } from '@/lib/textEditing';
+import { caretPosition, continueList, indentList, toggleLinePrefix, wrapSelection } from '@/lib/textEditing';
 
 describe('markdown preview', () => {
     it('parses headings, lists, task boxes, quotes, code and paragraphs', () => {
@@ -46,10 +46,44 @@ describe('markdown preview', () => {
         ]);
     });
 
+    it('parses italic, highlight and strikethrough inline', () => {
+        expect(parseInline('a *soft* ==key== ~~old~~ **bold** `x`')).toEqual([
+            { kind: 'text', text: 'a ' },
+            { kind: 'em', text: 'soft' },
+            { kind: 'text', text: ' ' },
+            { kind: 'mark', text: 'key' },
+            { kind: 'text', text: ' ' },
+            { kind: 'strike', text: 'old' },
+            { kind: 'text', text: ' ' },
+            { kind: 'strong', text: 'bold' },
+            { kind: 'text', text: ' ' },
+            { kind: 'code', text: 'x' },
+        ]);
+    });
+
+    it('leaves snake_case and spaced stars alone', () => {
+        expect(parseInline('my_var_name and 2 * 3 * 4')).toEqual([{ kind: 'text', text: 'my_var_name and 2 * 3 * 4' }]);
+    });
+
     it('keeps markup as text', () => {
         expect(parseInline('<img src=x onerror=alert(1)>')).toEqual([
             { kind: 'text', text: '<img src=x onerror=alert(1)>' },
         ]);
+    });
+});
+
+describe('formatting', () => {
+    it('wraps a selection and unwraps it again', () => {
+        expect(wrapSelection('say hi', 4, 6, '==')).toEqual({ from: 4, to: 6, text: '==hi==', anchor: 6, caret: 8 });
+        expect(wrapSelection('say ==hi==', 6, 8, '==')).toEqual({ from: 4, to: 10, text: 'hi', anchor: 4, caret: 6 });
+        expect(wrapSelection('', 0, 0, '**')).toMatchObject({ text: '****', caret: 2 });
+    });
+
+    it('toggles line prefixes across the selected lines', () => {
+        expect(toggleLinePrefix('one\ntwo', 0, 7, '1. ').text).toBe('1. one\n2. two');
+        expect(toggleLinePrefix('1. one\n2. two', 0, 13, '1. ').text).toBe('one\ntwo');
+        expect(toggleLinePrefix('- item', 2, 2, '- [ ] ').text).toBe('- [ ] item');
+        expect(toggleLinePrefix('## Title', 3, 3, '## ').text).toBe('Title');
     });
 });
 

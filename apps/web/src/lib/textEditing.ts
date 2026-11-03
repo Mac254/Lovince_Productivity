@@ -4,6 +4,7 @@ export interface Edit {
     to: number;
     text: string;
     caret: number;
+    anchor?: number;
 }
 
 const LIST_LINE = /^(\s*)([-*+]|(\d+)([.)]))\s+(\[[ xX]\]\s+)?/;
@@ -44,4 +45,39 @@ export function caretPosition(value: string, position: number): { line: number; 
     const before = value.slice(0, position);
     const line = before.split('\n').length;
     return { line, column: position - before.lastIndexOf('\n') };
+}
+
+export function wrapSelection(value: string, from: number, to: number, marker: string): Edit {
+    const size = marker.length;
+    const inner = value.slice(from, to);
+    if (value.slice(from - size, from) === marker && value.slice(to, to + size) === marker) {
+        return { from: from - size, to: to + size, text: inner, anchor: from - size, caret: to - size };
+    }
+    if (inner.length > size * 2 && inner.startsWith(marker) && inner.endsWith(marker)) {
+        const text = inner.slice(size, -size);
+        return { from, to, text, anchor: from, caret: from + text.length };
+    }
+    return { from, to, text: `${marker}${inner}${marker}`, anchor: from + size, caret: to + size };
+}
+
+export function toggleLinePrefix(value: string, from: number, to: number, prefix: string): Edit {
+    const start = value.lastIndexOf('\n', from - 1) + 1;
+    const lineEnd = value.indexOf('\n', to);
+    const end = lineEnd === -1 ? value.length : lineEnd;
+    const lines = value.slice(start, end).split('\n');
+    const ordered = prefix === '1. ';
+    const own = ordered ? /^\d+\. / : new RegExp(`^${prefix.replace(/[[\]]/g, '\\$&')}`);
+    const remove = lines.every((line) => own.test(line));
+    const text = lines
+        .map((line, index) =>
+            remove
+                ? line.replace(own, '')
+                : `${ordered ? `${index + 1}. ` : prefix}${line.replace(/^(#{1,3} |> |- \[[ xX]\] |[-*+] |\d+[.)] )/, '')}`,
+        )
+        .join('\n');
+    return { from: start, to: end, text, caret: start + text.length };
+}
+
+export function insertAt(from: number, to: number, text: string): Edit {
+    return { from, to, text, caret: from + text.length };
 }

@@ -1,7 +1,7 @@
 import { accentRamps, ramps } from '../primitives/color.ts';
 import { duration, easing } from '../primitives/motion.ts';
 import { container, lightShadow, radius, radiusScales, shadow, spacingBase, zIndex } from '../primitives/scale.ts';
-import { fontFamily, textRoles, textScales, tracking, fontPairings } from '../primitives/typography.ts';
+import { fontFamily, textRoles, textScales, tracking, fontPairings, journalFonts } from '../primitives/typography.ts';
 import { componentTokens } from '../component/index.ts';
 import { defaultTheme, themes } from '../semantic/color.ts';
 import { cssReference, rampVar } from './resolve.ts';
@@ -63,6 +63,10 @@ export function renderVariablesCss(): string {
         block(`[data-font='${name}']`, [`--font-display: ${pair.display};`, `--font-sans: ${pair.sans};`]),
     );
 
+    const journal = Object.entries(journalFonts).map(([name, stack]) =>
+        block(`[data-journal-font='${name}']`, [`--journal-font: ${stack};`]),
+    );
+
     return [
         HEADER,
         block(':root', ['/* Primitives — never referenced by components */', ...primitives]),
@@ -72,6 +76,7 @@ export function renderVariablesCss(): string {
         ...corners,
         ...textSizes,
         ...fonts,
+        ...journal,
     ].join('\n');
 }
 

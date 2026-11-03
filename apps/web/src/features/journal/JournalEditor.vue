@@ -1,6 +1,16 @@
 <script setup lang="ts">
-import { LIMITS, type Settings } from '@focus/types';
-import { caretPosition, continueList, indentList, type Edit } from '@/lib/textEditing';
+import { LIMITS } from '@focus/types';
+import type { IconName } from '@focus/ui';
+import {
+    caretPosition,
+    continueList,
+    indentList,
+    insertAt,
+    toggleLinePrefix,
+    wrapSelection,
+    type Edit,
+} from '@/lib/textEditing';
+import { journalFonts, loadJournalFont, type JournalFont } from './journalFonts';
 
 /**
  * The journal's writing surface: a plain textarea with editor manners. Enter continues lists,
@@ -10,16 +20,84 @@ import { caretPosition, continueList, indentList, type Edit } from '@/lib/textEd
 const props = defineProps<{ label: string; disabled?: boolean; saveState: string }>();
 const emit = defineEmits<{ save: []; previous: []; next: [] }>();
 const body = defineModel<string>({ required: true });
-const font = defineModel<Settings['journal']['font']>('font', { required: true });
+const font = defineModel<JournalFont>('font', { required: true });
 
-const fonts = {
-    mono: { label: 'Mono', name: 'monospace', class: 'font-mono text-label' },
-    sans: { label: 'Sans', name: 'sans serif', class: 'font-sans text-body' },
-    serif: { label: 'Serif', name: 'serif', class: 'font-serif text-lead' },
-    hand: { label: 'Hand', name: 'handwriting', class: 'font-hand text-title' },
-} as const;
-const fontOrder = Object.keys(fonts) as (keyof typeof fonts)[];
-const nextFont = computed(() => fontOrder[(fontOrder.indexOf(font.value) + 1) % fontOrder.length]!);
+const fontOpen = ref(false);
+const previewFont = ref<JournalFont | null>(null);
+const activeFont = computed(() => previewFont.value ?? font.value);
+watch(activeFont, (value) => void loadJournalFont(value), { immediate: true });
+
+const emojiOpen = ref(false);
+const emojiButton = ref<{ $el: HTMLElement } | null>(null);
+
+interface Tool {
+    icon: IconName;
+    label: string;
+    shortcut?: string;
+    run: (el: HTMLTextAreaElement) => Edit;
+}
+
+const wrap = (marker: string) => (el: HTMLTextAreaElement) =>
+    wrapSelection(el.value, el.selectionStart, el.selectionEnd, marker);
+const prefix = (text: string) => (el: HTMLTextAreaElement) =>
+    toggleLinePrefix(el.value, el.selectionStart, el.selectionEnd, text);
+
+const toolGroups: Tool[][] = [
+    [
+        { icon: 'bold', label: 'Bold', shortcut: 'Ctrl+B', run: wrap('**') },
+        { icon: 'italic', label: 'Italic', shortcut: 'Ctrl+I', run: wrap('*') },
+        { icon: 'highlight', label: 'Highlight', shortcut: 'Ctrl+Shift+H', run: wrap('==') },
+        { icon: 'strikethrough', label: 'Strikethrough', shortcut: 'Ctrl+Shift+X', run: wrap('~~') },
+        { icon: 'code', label: 'Inline code', shortcut: 'Ctrl+E', run: wrap('`') },
+    ],
+    [
+        { icon: 'heading', label: 'Heading', run: prefix('## ') },
+        { icon: 'list-bullet', label: 'Bulleted list', run: prefix('- ') },
+        { icon: 'list-ordered', label: 'Numbered list', run: prefix('1. ') },
+        { icon: 'checklist', label: 'Checklist', run: prefix('- [ ] ') },
+        { icon: 'quote', label: 'Quote', run: prefix('> ') },
+    ],
+];
+const shortcuts: Record<string, Tool> = {
+    b: toolGroups[0]![0]!,
+    i: toolGroups[0]![1]!,
+    'shift+h': toolGroups[0]![2]!,
+    'shift+x': toolGroups[0]![3]!,
+    e: toolGroups[0]![4]!,
+};
+const toolbar = ref<HTMLElement | null>(null);
+const activeTool = ref(0);
+const toolIndex = (group: number, index: number) =>
+    toolGroups.slice(0, group).reduce((sum, tools) => sum + tools.length, 0) + index;
+
+function runTool(tool: Tool): void {
+    const el = textarea.value;
+    if (el && !props.disabled) apply(tool.run(el));
+}
+
+function onToolbarKeydown(event: KeyboardEvent): void {
+    const buttons = [...(toolbar.value?.querySelectorAll<HTMLElement>('[data-tool]') ?? [])];
+    const current = buttons.indexOf(document.activeElement as HTMLElement);
+    if (current === -1) return;
+    const target = { ArrowLeft: current - 1, ArrowRight: current + 1, Home: 0, End: buttons.length - 1 }[event.key];
+    if (target === undefined) return;
+    event.preventDefault();
+    const next = (target + buttons.length) % buttons.length;
+    activeTool.value = next;
+    buttons[next]?.focus();
+}
+
+function insertEmoji(char: string): void {
+    const el = textarea.value;
+    if (!el) return;
+    apply(insertAt(el.selectionStart, el.selectionEnd, char));
+    emojiOpen.value = false;
+}
+
+function closeEmoji(): void {
+    emojiOpen.value = false;
+    emojiButton.value?.$el.focus();
+}
 
 const editor = ref<{ $el: HTMLTextAreaElement } | null>(null);
 const textarea = computed(() => editor.value?.$el ?? null);
@@ -47,7 +125,10 @@ function apply(edit: Edit): void {
         el.setRangeText(edit.text, edit.from, edit.to, 'end');
         el.dispatchEvent(new Event('input', { bubbles: true }));
     }
-    el.setSelectionRange(edit.caret, edit.caret);
+    el.setSelectionRange(
+        Math.min(edit.anchor ?? edit.caret, edit.caret),
+        Math.max(edit.anchor ?? edit.caret, edit.caret),
+    );
     trackCaret();
 }
 
@@ -65,9 +146,14 @@ function onKeydown(event: KeyboardEvent): void {
     const el = event.target as HTMLTextAreaElement;
     const mod = event.ctrlKey || event.metaKey;
 
+    const tool = mod && !event.altKey ? shortcuts[`${event.shiftKey ? 'shift+' : ''}${event.key.toLowerCase()}`] : null;
+
     if (mod && event.key.toLowerCase() === 's') {
         event.preventDefault();
         emit('save');
+    } else if (tool) {
+        event.preventDefault();
+        runTool(tool);
     } else if (event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
         event.preventDefault();
         if (event.key === 'ArrowLeft') emit('previous');
@@ -92,6 +178,53 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
 
 <template>
     <div class="flex min-h-0 flex-1 flex-col">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2 sm:px-4">
+            <div
+                ref="toolbar"
+                role="toolbar"
+                aria-label="Formatting"
+                aria-controls="journal-body"
+                class="flex flex-wrap items-center gap-1"
+                @keydown="onToolbarKeydown"
+            >
+                <template v-for="(tools, group) in toolGroups" :key="group">
+                    <span v-if="group" aria-hidden="true" class="mx-1 h-5 w-px bg-border" />
+                    <IconButton
+                        v-for="(tool, index) in tools"
+                        :key="tool.label"
+                        data-tool
+                        :icon="tool.icon"
+                        :label="tool.shortcut ? `${tool.label} (${tool.shortcut})` : tool.label"
+                        variant="ghost"
+                        size="sm"
+                        :disabled="disabled"
+                        :tabindex="toolIndex(group, index) === activeTool ? 0 : -1"
+                        @click="runTool(tool)"
+                    />
+                </template>
+                <span aria-hidden="true" class="mx-1 h-5 w-px bg-border" />
+                <IconButton
+                    ref="emojiButton"
+                    data-tool
+                    icon="emoji"
+                    label="Emoji"
+                    variant="ghost"
+                    size="sm"
+                    :disabled="disabled"
+                    :aria-expanded="emojiOpen"
+                    aria-controls="journal-emoji"
+                    :tabindex="toolIndex(toolGroups.length, 0) === activeTool ? 0 : -1"
+                    @click="emojiOpen = !emojiOpen"
+                />
+            </div>
+            <Button variant="ghost" size="sm" icon-start="text-format" @click="fontOpen = true">
+                <span :data-journal-font="font" class="font-sample">{{ journalFonts[font].name }}</span>
+                <span class="sr-only">, change writing font</span>
+            </Button>
+        </div>
+
+        <EmojiPanel v-if="emojiOpen" id="journal-emoji" @pick="insertEmoji" @close="closeEmoji" />
+
         <label for="journal-body" class="sr-only">{{ props.label }}</label>
         <PlainTextarea
             id="journal-body"
@@ -100,12 +233,13 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
             :maxlength="LIMITS.journal"
             :disabled="disabled"
             :rows="22"
+            :data-journal-font="activeFont"
             style="field-sizing: fixed"
             spellcheck="true"
             placeholder="## Done&#10;- &#10;&#10;## Learned&#10;- &#10;&#10;## Next&#10;- "
             :class="[
-                'editor min-h-96 w-full flex-1 resize-y bg-transparent px-6 py-6 text-fg placeholder:text-fg-subtle focus-visible:outline-none',
-                fonts[font].class,
+                'editor mx-auto min-h-96 w-full max-w-prose flex-1 resize-y bg-transparent px-6 py-8 text-fg placeholder:text-fg-subtle focus-visible:outline-none',
+                journalFonts[activeFont].size,
             ]"
             @keydown="onKeydown"
             @keyup="trackCaret"
@@ -125,24 +259,23 @@ defineExpose({ append, focus: () => textarea.value?.focus() });
                 >
             </span>
             <span class="flex items-center gap-4">
-                <Pressable
-                    type="button"
-                    class="rounded-sm underline-offset-4 hover:text-fg hover:underline"
-                    :aria-label="`Writing font: ${fonts[font].name}. Switch to ${fonts[nextFont].name}`"
-                    @click="font = nextFont"
-                >
-                    {{ fonts[font].label }}
-                </Pressable>
-                <span class="max-sm:hidden">Markdown</span>
+                <span class="max-sm:hidden">Markdown · ==highlight== · *italic*</span>
                 <span aria-live="polite">{{ saveState }}</span>
             </span>
         </div>
+
+        <JournalFontPicker v-model:open="fontOpen" v-model:font="font" v-model:preview="previewFont" />
     </div>
 </template>
 
 <style scoped>
 .editor {
+    font-family: var(--journal-font);
     line-height: 1.75;
     tab-size: 2;
+}
+
+.font-sample {
+    font-family: var(--journal-font);
 }
 </style>

@@ -26,6 +26,9 @@ import IconClock from '~icons/solar/clock-circle-linear';
 import IconClose from '~icons/solar/close-linear';
 import IconCloseCircle from '~icons/solar/close-circle-linear';
 import IconDashboard from '~icons/solar/widget-linear';
+import IconGrid from '~icons/solar/widget-4-linear';
+import IconSort from '~icons/solar/sort-vertical-linear';
+import IconTable from '~icons/solar/table-linear';
 import IconDownload from '~icons/solar/download-linear';
 import IconEdit from '~icons/solar/pen-linear';
 import IconExitFullscreen from '~icons/solar/minimize-square-linear';
@@ -67,6 +70,16 @@ import IconTarget from '~icons/solar/target-linear';
 import IconTasks from '~icons/solar/list-check-linear';
 import IconTrash from '~icons/solar/trash-bin-minimalistic-linear';
 import IconUndo from '~icons/solar/undo-left-round-linear';
+import IconBold from '~icons/solar/text-bold-linear';
+import IconItalic from '~icons/solar/text-italic-linear';
+import IconStrike from '~icons/solar/text-cross-linear';
+import IconHighlight from '~icons/solar/text-selection-linear';
+import IconHeading from '~icons/solar/hashtag-linear';
+import IconListBullet from '~icons/solar/list-linear';
+import IconListOrdered from '~icons/solar/list-ordered-linear';
+import IconEmoji from '~icons/solar/smile-circle-linear';
+import IconCode from '~icons/solar/code-linear';
+import IconTextFormat from '~icons/solar/text-format-linear';
 import IconUpload from '~icons/solar/upload-linear';
 import IconUser from '~icons/solar/user-circle-linear';
 import IconWarning from '~icons/solar/danger-triangle-linear';
@@ -96,6 +109,9 @@ export const icons = {
     close: IconClose,
     'close-circle': IconCloseCircle,
     dashboard: IconDashboard,
+    grid: IconGrid,
+    table: IconTable,
+    sort: IconSort,
     download: IconDownload,
     edit: IconEdit,
     'exit-fullscreen': IconExitFullscreen,
@@ -140,6 +156,16 @@ export const icons = {
     upload: IconUpload,
     user: IconUser,
     warning: IconWarning,
+    bold: IconBold,
+    italic: IconItalic,
+    strikethrough: IconStrike,
+    highlight: IconHighlight,
+    heading: IconHeading,
+    'list-bullet': IconListBullet,
+    'list-ordered': IconListOrdered,
+    emoji: IconEmoji,
+    code: IconCode,
+    'text-format': IconTextFormat,
 } as const;
 
 export type IconName = keyof typeof icons;

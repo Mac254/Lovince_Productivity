@@ -46,6 +46,7 @@
     --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
     --container-app: 90rem;
     --container-form: 28rem;
+    --container-prose: 44rem;
     --container-dialog: 36rem;
     --container-dialog-wide: 60rem;
 }

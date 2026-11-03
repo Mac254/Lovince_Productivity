@@ -45,6 +45,7 @@ export const zIndex = {
 export const container = {
     app: '90rem',
     form: '28rem',
+    prose: '44rem',
     dialog: '36rem',
     'dialog-wide': '60rem',
 } as const;

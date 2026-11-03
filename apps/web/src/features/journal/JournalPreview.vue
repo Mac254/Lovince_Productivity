@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { parseMarkdown, type Inline } from '@/lib/markdownLite';
+import { journalFonts, type JournalFont } from './journalFonts';
+import { parseMarkdown } from '@/lib/markdownLite';
 
 /** The entry rendered from its Markdown subset. Everything is text interpolation — never HTML. */
-const props = defineProps<{ source: string }>();
+const props = defineProps<{ source: string; font?: JournalFont }>();
 const blocks = computed(() => parseMarkdown(props.source));
 const headingTag = (level: number) => `h${level + 2}`;
 defineSlots<{ empty?: () => unknown }>();
 const isEmpty = computed(() => !blocks.value.length);
-const key = (inline: Inline, index: number) => `${index}-${inline.kind}`;
 </script>
 
 <template>
-    <div class="journal-preview flex flex-col gap-4 text-body leading-relaxed text-fg">
+    <div
+        :data-journal-font="font"
+        :class="[
+            'journal-preview flex flex-col gap-4 leading-relaxed text-fg',
+            font ? journalFonts[font].size : 'text-body',
+        ]"
+    >
         <slot v-if="isEmpty" name="empty" />
         <template v-for="(block, b) in blocks" :key="b">
             <component
@@ -22,11 +28,7 @@ const key = (inline: Inline, index: number) => `${index}-${inline.kind}`;
                     block.level === 1 ? 'text-heading' : block.level === 2 ? 'text-title' : 'text-lead',
                 ]"
             >
-                <template v-for="(part, p) in block.inline" :key="key(part, p)">
-                    <code v-if="part.kind === 'code'" class="inline-code">{{ part.text }}</code>
-                    <strong v-else-if="part.kind === 'strong'" class="font-semibold">{{ part.text }}</strong>
-                    <template v-else>{{ part.text }}</template>
-                </template>
+                <JournalInline :parts="block.inline" />
             </component>
 
             <component :is="block.ordered ? 'ol' : 'ul'" v-else-if="block.kind === 'list'" class="flex flex-col gap-1">
@@ -53,11 +55,7 @@ const key = (inline: Inline, index: number) => `${index}-${inline.kind}`;
                     >
                     <span v-else aria-hidden="true" class="mt-2 size-1.5 shrink-0 rounded-full bg-highlight-fg" />
                     <span :class="['min-w-0 break-words', item.checked && 'text-fg-muted line-through']">
-                        <template v-for="(part, p) in item.inline" :key="key(part, p)">
-                            <code v-if="part.kind === 'code'" class="inline-code">{{ part.text }}</code>
-                            <strong v-else-if="part.kind === 'strong'" class="font-semibold">{{ part.text }}</strong>
-                            <template v-else>{{ part.text }}</template>
-                        </template>
+                        <JournalInline :parts="item.inline" />
                     </span>
                 </li>
             </component>
@@ -66,11 +64,7 @@ const key = (inline: Inline, index: number) => `${index}-${inline.kind}`;
                 v-else-if="block.kind === 'quote'"
                 class="border-l-2 border-highlight-fg pl-4 whitespace-pre-line text-fg-muted"
             >
-                <template v-for="(part, p) in block.inline" :key="key(part, p)">
-                    <code v-if="part.kind === 'code'" class="inline-code">{{ part.text }}</code>
-                    <strong v-else-if="part.kind === 'strong'" class="font-semibold">{{ part.text }}</strong>
-                    <template v-else>{{ part.text }}</template>
-                </template>
+                <JournalInline :parts="block.inline" />
             </blockquote>
 
             <figure v-else-if="block.kind === 'code'" class="overflow-hidden rounded-md border border-border">
@@ -88,23 +82,15 @@ const key = (inline: Inline, index: number) => `${index}-${inline.kind}`;
             <hr v-else-if="block.kind === 'rule'" class="border-border" />
 
             <p v-else class="break-words whitespace-pre-line">
-                <template v-for="(part, p) in block.inline" :key="key(part, p)">
-                    <code v-if="part.kind === 'code'" class="inline-code">{{ part.text }}</code>
-                    <strong v-else-if="part.kind === 'strong'" class="font-semibold">{{ part.text }}</strong>
-                    <template v-else>{{ part.text }}</template>
-                </template>
+                <JournalInline :parts="block.inline" />
             </p>
         </template>
     </div>
 </template>
 
 <style scoped>
-.inline-code {
-    border-radius: var(--radius-sm);
-    background: var(--surface-raised);
-    padding: 0.1em 0.35em;
-    font-family: var(--font-mono);
-    font-size: 0.875em;
+.journal-preview[data-journal-font] {
+    font-family: var(--journal-font);
 }
 
 .depth-1 {
