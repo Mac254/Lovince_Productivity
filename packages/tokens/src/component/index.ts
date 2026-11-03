@@ -15,4 +15,6 @@ export const componentTokens = {
     'topbar-height': '4.5rem',
     'dialog-width': 'calc(100% - 2rem)',
     'dialog-max-height': 'calc(100dvh - 2rem)',
+    'floating-panel-width': 'min(28rem, calc(100vw - 2rem))',
+    'floating-panel-max-height': 'calc(100dvh - 15rem)',
 } as const;
