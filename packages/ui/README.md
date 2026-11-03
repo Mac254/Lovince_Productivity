@@ -26,7 +26,6 @@ The header and footer are now pinned and only the body scrolls. Modal widths are
 
 ## Toast
 
-- **Errors look like successes.** Error toasts use the green `highlight` fill, the same colour as primary actions and the featured card. Fix: use the `danger` roles.
 - **Covers the launcher button.** On phones the stack sits at `bottom-24`, and on desktop at `bottom-6` on the right. On desktop that is exactly where the floating quick-action button is, so toasts cover it.
 - **Silent for screen readers?** Unconfirmed: we haven't checked that `loading` toasts and toasts updated in place are announced.
 

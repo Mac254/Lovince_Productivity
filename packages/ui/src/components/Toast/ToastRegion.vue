@@ -29,13 +29,16 @@ const isLoading = (toast: Toast): boolean => toast.tone === 'loading';
             :toast="item"
             :class="[
                 'toast pointer-events-auto flex w-full max-w-form items-center gap-3 rounded-md py-2 pr-2 pl-4 text-label font-semibold shadow-floating',
-                isError(item) ? 'bg-highlight text-highlight-ink' : 'bg-surface-inverse text-fg-inverse',
+                isError(item) ? 'bg-danger text-danger-ink' : 'bg-surface-inverse text-fg-inverse',
             ]"
         >
             <Icon :name="iconFor(item)" :class="isLoading(item) && 'animate-spin'" />
             <LvToastTitle class="flex-1" />
             <LvToastClose
-                class="inline-flex size-(--control-sm) items-center justify-center rounded-full transition-colors duration-(--duration-instant) hover:bg-fg-inverse hover:text-surface-inverse"
+                :class="[
+                    'inline-flex size-(--control-sm) items-center justify-center rounded-full transition-colors duration-(--duration-instant)',
+                    isError(item) ? 'hover:bg-danger-hover' : 'hover:bg-fg-inverse hover:text-surface-inverse',
+                ]"
             >
                 <Icon name="close" />
             </LvToastClose>
