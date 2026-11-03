@@ -73,7 +73,7 @@ export const useTimerStore = defineStore('timer', () => {
     const pending = ref<FocusSessionInput[]>(saved.pending ?? []);
     const recorded = ref(0);
     const now = ref(Date.now());
-    const baseTitle = ref('Focus');
+    const baseTitle = ref('LovinceTracker');
     let ticker: number | undefined;
 
     const remainingMs = computed(() => {

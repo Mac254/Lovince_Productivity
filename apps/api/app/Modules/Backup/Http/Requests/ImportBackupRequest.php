@@ -28,10 +28,10 @@ class ImportBackupRequest extends FormRequest
         $data = json_decode((string) file_get_contents($this->file('file')->getRealPath()), true);
 
         if (! is_array($data)) {
-            throw ValidationException::withMessages(['file' => 'This file isn’t a Focus backup.']);
+            throw ValidationException::withMessages(['file' => 'This file isn’t a LovinceTracker backup.']);
         }
 
-        $validator = Validator::make($data, $rules->rules(), ['format.in' => 'This file isn’t a Focus backup.']);
+        $validator = Validator::make($data, $rules->rules(), ['format.in' => 'This file isn’t a LovinceTracker backup.']);
 
         if ($validator->fails()) {
             throw ValidationException::withMessages(['file' => $validator->errors()->first()]);

@@ -107,7 +107,7 @@ function onQuickTaskSaved(): void {
     >
         <RouterLink :to="{ name: 'dashboard' }" class="group flex items-center gap-3 rounded-md px-2 text-chrome-fg">
             <BrandMark />
-            <span class="font-display text-title font-semibold tracking-tight">Focus</span>
+            <span class="font-display text-title font-semibold tracking-tight">LovinceTracker</span>
         </RouterLink>
         <SidebarNav />
         <div class="mt-auto flex flex-col gap-3">
@@ -243,7 +243,7 @@ function onQuickTaskSaved(): void {
         </main>
     </div>
 
-    <Dialog v-model:open="drawerOpen" title="Focus" size="sm">
+    <Dialog v-model:open="drawerOpen" title="LovinceTracker" size="sm">
         <div class="-mx-2 rounded-md bg-chrome p-4">
             <SidebarNav @navigate="drawerOpen = false" />
         </div>

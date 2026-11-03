@@ -25,11 +25,11 @@ class GeneralSettings extends SettingsModule
     public function settings(): array
     {
         return [
-            Setting::choice('start_page', 'Open Focus on', [
+            Setting::choice('start_page', 'Open LovinceTracker on', [
                 'dashboard' => 'Dashboard',
                 'today' => 'Today',
                 'focus' => 'Focus clock',
-            ], 'dashboard', 'Where you land when you open Focus or sign in.'),
+            ], 'dashboard', 'Where you land when you open LovinceTracker or sign in.'),
             Setting::toggle('show_quotes', 'Daily quote', true, 'On the dashboard and the focus clock.'),
         ];
     }

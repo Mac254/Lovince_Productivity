@@ -11,19 +11,19 @@ const updated = computed(() => reason.value === 'update');
 const copy = computed(() =>
     updated.value
         ? {
-              title: 'Focus was updated',
+              title: 'LovinceTracker was updated',
               message: 'A newer version of the app is available. Reload to continue — nothing you saved is lost.',
           }
         : offline.value
           ? {
                 title: 'Can’t reach the server',
                 message:
-                    'Focus couldn’t connect to its API. Check that the server is running and your connection is up.',
+                    'LovinceTracker couldn’t connect to its API. Check that the server is running and your connection is up.',
             }
           : {
                 title: 'The server ran into a problem',
                 message:
-                    'Focus is running, but the API returned an error while loading your session. Your data is safe.',
+                    'LovinceTracker is running, but the API returned an error while loading your session. Your data is safe.',
             },
 );
 

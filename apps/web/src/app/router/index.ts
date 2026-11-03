@@ -143,7 +143,7 @@ export const router = createRouter({
             name: 'unavailable',
             // Bundled eagerly: the fallback must load even when lazy chunks cannot.
             component: UnavailablePage,
-            meta: { title: 'Can’t reach Focus' },
+            meta: { title: 'Can’t reach LovinceTracker' },
         },
         {
             path: '/:pathMatch(.*)*',
@@ -173,7 +173,7 @@ router.beforeEach(async (to, from) => {
     if (!PUBLIC_ROUTES.has(String(to.name)) && !auth.isAuthenticated) {
         return { name: 'login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : {} };
     }
-    // Opening Focus (or signing in) lands on the chosen start page; the Dashboard link still works.
+    // Opening LovinceTracker (or signing in) lands on the chosen start page; the Dashboard link still works.
     if (to.name === 'dashboard' && (from === START_LOCATION || from.name === 'login') && startPage !== 'dashboard') {
         return { name: startPage };
     }
@@ -192,7 +192,7 @@ router.onError((error, to) => {
 
 router.afterEach((to) => {
     if (to.name !== 'unavailable') clearReloadGuard();
-    const title = to.meta.title ? `${to.meta.title} · Focus` : 'Focus';
+    const title = to.meta.title ? `${to.meta.title} · LovinceTracker` : 'LovinceTracker';
     // The timer owns the tab title while it runs; it falls back to this one.
     useTimerStore().baseTitle = title;
     document.title = title;

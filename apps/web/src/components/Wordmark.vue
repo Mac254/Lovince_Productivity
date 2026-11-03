@@ -1,5 +1,5 @@
 <script setup lang="ts">
-withDefaults(defineProps<{ text?: string }>(), { text: 'Focus' });
+withDefaults(defineProps<{ text?: string }>(), { text: 'LovinceTracker' });
 </script>
 
 <template>

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * What the client needs to know about the current sign-in: whether this device is remembered
- * and when the sign-in lapses if Focus isn't used. Credentials themselves never leave the cookie.
+ * and when the sign-in lapses if LovinceTracker isn't used. Credentials themselves never leave the cookie.
  */
 final class AuthSession
 {

@@ -293,7 +293,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
         <PageHeader
             title="Settings"
             title-id="page-title"
-            description="Your profile, how Focus looks, and how you sign in."
+            description="Your profile, how LovinceTracker looks, and how you sign in."
         />
 
         <Tabs v-model="tab" label="Settings sections" :tabs="tabs">
@@ -376,8 +376,8 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     icon="dashboard"
                     description="Synced across your devices."
                 >
-                    <SettingRow label="Open Focus on" description="Where you land when you open Focus or sign in.">
-                        <ChipGroup v-model="preferences.prefs.startPage" label="Open Focus on" :options="startPages" />
+                    <SettingRow label="Open LovinceTracker on" description="Where you land when you open LovinceTracker or sign in.">
+                        <ChipGroup v-model="preferences.prefs.startPage" label="Open LovinceTracker on" :options="startPages" />
                     </SettingRow>
                 </SettingsSection>
 
@@ -485,7 +485,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     </SettingRow>
                     <SettingRow
                         label="Desktop notifications"
-                        description="Shown when a session ends while Focus is in the background."
+                        description="Shown when a session ends while LovinceTracker is in the background."
                     >
                         <Text :tone="notificationPermission === 'granted' ? undefined : 'muted'">{{
                             notificationStatus

@@ -33,7 +33,7 @@ class PlannerSettings extends SettingsModule
             Setting::choice('step', 'Snap blocks to', ['15' => '15 minutes', '30' => '30 minutes', '60' => '1 hour'], '30'),
             Setting::toggle('carry_over', 'Carry unfinished blocks to today', false, 'When you open Today, yesterday’s blocks for unfinished tasks move to today, at the same time or the next free slot.'),
             Setting::toggle('plan_ahead', 'Plan days ahead', false, 'Apply schedules to later days and get a nudge to plan tomorrow. When off, schedules only fill today.'),
-            Setting::choice('reminder', 'Remind me before a block', ['off' => 'Off', '5' => '5 minutes before', '10' => '10 minutes before', '15' => '15 minutes before'], '5', 'Shown while Focus is open.'),
+            Setting::choice('reminder', 'Remind me before a block', ['off' => 'Off', '5' => '5 minutes before', '10' => '10 minutes before', '15' => '15 minutes before'], '5', 'Shown while LovinceTracker is open.'),
         ];
     }
 }

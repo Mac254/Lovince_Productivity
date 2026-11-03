@@ -1,4 +1,4 @@
-# Focus — agent notes
+# LovinceTracker — agent notes
 
 pnpm monorepo (Node 26.12+, pnpm 12.15+): `apps/web` (Vue 3 + TS SPA), `apps/api` (Laravel 13, `/api/v1`), `packages/{tokens,ui,types,api-client,motion}`. See README.md and docs/.
 

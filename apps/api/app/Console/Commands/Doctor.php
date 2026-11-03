@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 #[Signature('focus:doctor')]
-#[Description('Check that PHP, the database and the app are ready to run Focus')]
+#[Description('Check that PHP, the database and the app are ready to run LovinceTracker')]
 class Doctor extends Command
 {
     private const DRIVER_EXTENSIONS = [
@@ -26,7 +26,7 @@ class Doctor extends Command
 
     public function handle(): int
     {
-        $this->check('PHP '.PHP_VERSION, version_compare(PHP_VERSION, '8.3.0', '>='), 'Focus needs PHP 8.3 or newer.');
+        $this->check('PHP '.PHP_VERSION, version_compare(PHP_VERSION, '8.3.0', '>='), 'LovinceTracker needs PHP 8.3 or newer.');
         $this->check('Application key', filled(config('app.key')), 'Run `php artisan key:generate`.');
 
         $connection = config('database.default');
@@ -109,12 +109,12 @@ class Doctor extends Command
         $this->newLine();
 
         if ($this->failures > 0) {
-            $this->components->error('Focus is not ready. Fix the items marked FAIL above.');
+            $this->components->error('LovinceTracker is not ready. Fix the items marked FAIL above.');
 
             return self::FAILURE;
         }
 
-        $this->components->info('Focus is ready.');
+        $this->components->info('LovinceTracker is ready.');
 
         return self::SUCCESS;
     }

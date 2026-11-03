@@ -31,7 +31,7 @@ async function submit(): Promise<void> {
     } catch (e) {
         formError.value =
             isApiError(e) && e.kind === 'forbidden'
-                ? 'Sign in from the Focus web app.'
+                ? 'Sign in from the LovinceTracker web app.'
                 : errorMessage(e, 'Sign-in failed. Please try again.');
     } finally {
         submitting.value = false;
