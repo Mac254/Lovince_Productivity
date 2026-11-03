@@ -124,6 +124,9 @@ describe('settings', () => {
 
         expect({ ...preferences.prefs }).toEqual({
             theme: 'dark',
+            accent: 'green',
+            corners: 'round',
+            textSize: 'default',
             startPage: 'dashboard',
             reduceMotion: false,
             showQuotes: true,

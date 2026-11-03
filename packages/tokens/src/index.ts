@@ -1,6 +1,6 @@
-export { ramps, type RampName } from './primitives/color.ts';
-export { fontFamily, fontWeight, textRoles, tracking, type TextRole } from './primitives/typography.ts';
-export { container, lightShadow, radius, shadow, spacingBase, spacingSteps, zIndex } from './primitives/scale.ts';
+export { accentRamps, ramps, type AccentName, type RampName } from './primitives/color.ts';
+export { fontFamily, fontWeight, textRoles, textScales, tracking, type TextRole } from './primitives/typography.ts';
+export { container, lightShadow, radius, radiusScales, shadow, spacingBase, spacingSteps, zIndex } from './primitives/scale.ts';
 export { distance, duration, easing } from './primitives/motion.ts';
 export { contrastPairs, darkTheme, defaultTheme, lightTheme, themes, type ColorRole } from './semantic/color.ts';
 export { componentTokens } from './component/index.ts';

@@ -1,7 +1,7 @@
-import { ramps } from '../primitives/color.ts';
+import { accentRamps, ramps } from '../primitives/color.ts';
 import { duration, easing } from '../primitives/motion.ts';
-import { container, lightShadow, radius, shadow, spacingBase, zIndex } from '../primitives/scale.ts';
-import { fontFamily, textRoles, tracking } from '../primitives/typography.ts';
+import { container, lightShadow, radius, radiusScales, shadow, spacingBase, zIndex } from '../primitives/scale.ts';
+import { fontFamily, textRoles, textScales, tracking } from '../primitives/typography.ts';
 import { componentTokens } from '../component/index.ts';
 import { defaultTheme, themes } from '../semantic/color.ts';
 import { cssReference, rampVar } from './resolve.ts';
@@ -36,13 +36,37 @@ export function renderVariablesCss(): string {
         ...Object.entries(duration).map(([name, ms]) => `--duration-${name}: ${ms}ms;`),
         ...Object.entries(zIndex).map(([name, value]) => `--z-${name}: ${value};`),
         ...Object.entries(componentTokens).map(([name, value]) => `--${name}: ${value};`),
+        ...Object.entries(accentRamps).map(([name, steps]) => `--swatch-${name}: ${steps[400]};`),
     ];
+
+    const accents = Object.entries(accentRamps)
+        .filter(([name]) => name !== 'green')
+        .map(([name, steps]) =>
+            block(
+                `:root[data-accent='${name}']`,
+                Object.entries(steps).map(([step, hex]) => `${rampVar('green', step)}: ${hex};`),
+            ),
+        );
+    const corners = Object.entries(radiusScales)
+        .filter(([name]) => name !== 'round')
+        .map(([name, sizes]) =>
+            block(
+                `:root[data-corners='${name}']`,
+                Object.entries(sizes).map(([size, value]) => `--radius-${size}: ${value};`),
+            ),
+        );
+    const textSizes = Object.entries(textScales)
+        .filter(([name]) => name !== 'default')
+        .map(([name, size]) => block(`:root[data-text-size='${name}']`, [`font-size: ${size};`]));
 
     return [
         HEADER,
         block(':root', ['/* Primitives — never referenced by components */', ...primitives]),
         ...themeBlocks,
         block(':root', scales),
+        ...accents,
+        ...corners,
+        ...textSizes,
     ].join('\n');
 }
 

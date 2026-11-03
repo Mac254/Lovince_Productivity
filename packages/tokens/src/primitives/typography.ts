@@ -34,3 +34,5 @@ export const tracking = {
     tight: '-0.02em',
     normal: '0',
 } as const;
+
+export const textScales = { small: '93.75%', default: '100%', large: '106.25%', larger: '112.5%' } as const;

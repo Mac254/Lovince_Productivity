@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
-import type { TabItem } from '@focus/ui';
+import type { IconName, TabItem } from '@focus/ui';
 import type { BackupImportResult } from '@focus/types';
 import { LIMITS } from '@focus/types';
 import { useClockPrefs } from '@/features/clock/wallpapers';
@@ -23,10 +23,26 @@ const tabs: TabItem<SettingsTab>[] = [
 ];
 const tab = useTabQuery(['account', 'preferences', 'features', 'data'] as const, 'account');
 
-const themeOptions: { value: ThemeChoice; label: string }[] = [
-    { value: 'dark', label: 'Dark' },
-    { value: 'light', label: 'Light' },
-    { value: 'system', label: 'System' },
+const themeOptions: { value: ThemeChoice; label: string; icon: IconName }[] = [
+    { value: 'dark', label: 'Dark', icon: 'moon' },
+    { value: 'light', label: 'Light', icon: 'sun' },
+    { value: 'system', label: 'System', icon: 'monitor' },
+];
+const accentOptions = (['green', 'blue', 'violet', 'amber', 'rose', 'cyan'] as const).map((value) => ({
+    value,
+    label: value[0]!.toUpperCase() + value.slice(1),
+    color: `var(--swatch-${value})`,
+}));
+const cornerOptions = [
+    { value: 'sharp' as const, label: 'Sharp' },
+    { value: 'soft' as const, label: 'Soft' },
+    { value: 'round' as const, label: 'Round' },
+];
+const textSizeOptions = [
+    { value: 'small' as const, label: 'Small' },
+    { value: 'default' as const, label: 'Default' },
+    { value: 'large' as const, label: 'Large' },
+    { value: 'larger' as const, label: 'Larger' },
 ];
 const startPages: { value: StartPage; label: string }[] = [
     { value: 'dashboard', label: 'Dashboard' },
@@ -358,7 +374,28 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                                 : 'System follows your device’s light or dark setting.'
                         "
                     >
-                        <ChipGroup v-model="preferences.prefs.theme" label="Theme" :options="themeOptions" />
+                        <SegmentedControl v-model="preferences.prefs.theme" label="Theme" :options="themeOptions" />
+                    </SettingRow>
+                    <SettingRow label="Accent colour" description="Buttons, highlights, charts and the focus ring.">
+                        <SwatchGroup
+                            v-model="preferences.prefs.accent"
+                            label="Accent colour"
+                            :options="accentOptions"
+                        />
+                    </SettingRow>
+                    <SettingRow label="Corners" description="How rounded cards, fields and buttons are.">
+                        <SegmentedControl
+                            v-model="preferences.prefs.corners"
+                            label="Corners"
+                            :options="cornerOptions"
+                        />
+                    </SettingRow>
+                    <SettingRow label="Text size" description="Scales text and spacing across the app.">
+                        <SegmentedControl
+                            v-model="preferences.prefs.textSize"
+                            label="Text size"
+                            :options="textSizeOptions"
+                        />
                     </SettingRow>
                     <SettingRow
                         v-slot="{ labelId, descriptionId }"

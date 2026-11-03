@@ -20,6 +20,9 @@ export const usePreferencesStore = defineStore('preferences', () => {
     const settings = useSettingsStore();
     const prefs = reactive({
         theme: settings.bind('appearance', 'theme'),
+        accent: settings.bind('appearance', 'accent'),
+        corners: settings.bind('appearance', 'corners'),
+        textSize: settings.bind('appearance', 'text_size'),
         reduceMotion: settings.bind('appearance', 'reduce_motion'),
         startPage: settings.bind('general', 'start_page'),
         showQuotes: settings.bind('general', 'show_quotes'),
@@ -35,6 +38,9 @@ export const usePreferencesStore = defineStore('preferences', () => {
     watchEffect(() => {
         const root = document.documentElement;
         root.dataset.theme = resolved.value;
+        root.dataset.accent = prefs.accent;
+        root.dataset.corners = prefs.corners;
+        root.dataset.textSize = prefs.textSize;
         if (prefs.reduceMotion) root.dataset.motion = 'reduce';
         else delete root.dataset.motion;
         const canvas = getComputedStyle(root).getPropertyValue('--canvas').trim();

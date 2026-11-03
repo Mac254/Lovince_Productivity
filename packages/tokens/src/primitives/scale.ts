@@ -10,6 +10,12 @@ export const radius = {
     full: '9999px',
 } as const;
 
+export const radiusScales = {
+    sharp: { sm: '0.25rem', md: '0.375rem', lg: '0.625rem' },
+    soft: { sm: '0.5rem', md: '0.75rem', lg: '1.125rem' },
+    round: radius,
+} as const satisfies Record<string, Pick<Record<keyof typeof radius, string>, 'sm' | 'md' | 'lg'>>;
+
 /** Dark UI: lightness carries elevation; shadows only separate floating layers. */
 export const shadow = {
     card: '0 1px 2px rgb(0 0 0 / 0.05), 0 4px 16px -4px rgb(0 0 0 / 0.06)',

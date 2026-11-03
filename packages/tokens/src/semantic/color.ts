@@ -58,9 +58,9 @@ export const darkTheme = {
     'danger-fg': 'red.300',
 
     /* Status: tinted badge fill, hairline border and text, one set per state. Never reused for series. */
-    'success-subtle': 'green.950',
-    'success-border': 'green.800',
-    'success-fg': 'green.300',
+    'success-subtle': 'success.950',
+    'success-border': 'success.800',
+    'success-fg': 'success.300',
     'warning-subtle': 'amber.950',
     'warning-border': 'amber.800',
     'warning-fg': 'amber.300',
@@ -143,9 +143,9 @@ export const lightTheme = {
     'danger-ink': 'neutral.0',
     'danger-fg': 'red.700',
 
-    'success-subtle': 'green.50',
-    'success-border': 'green.200',
-    'success-fg': 'green.800',
+    'success-subtle': 'success.50',
+    'success-border': 'success.200',
+    'success-fg': 'success.800',
     'warning-subtle': 'amber.50',
     'warning-border': 'amber.200',
     'warning-fg': 'amber.700',
