@@ -17,7 +17,13 @@ import IconButton from '../IconButton/IconButton.vue';
  * `alert` makes it an alertdialog; `initialFocus` names the element id to focus on open.
  */
 withDefaults(
-    defineProps<{ title: string; description?: string; size?: 'sm' | 'md' | 'lg'; alert?: boolean; initialFocus?: string }>(),
+    defineProps<{
+        title: string;
+        description?: string;
+        size?: 'sm' | 'md' | 'lg';
+        alert?: boolean;
+        initialFocus?: string;
+    }>(),
     { size: 'md' },
 );
 const open = defineModel<boolean>('open', { required: true });
@@ -30,29 +36,37 @@ provideLayer(useTemplateRef<HTMLElement>('layer'));
             <LvDialogOverlay class="dialog-overlay fixed inset-0 z-(--z-overlay) bg-scrim" />
             <LvDialogContent
                 :class="[
-                    'dialog fixed inset-0 z-(--z-modal) m-auto h-fit max-h-(--dialog-max-height) w-(--dialog-width) overflow-y-auto rounded-lg border border-border bg-surface-overlay text-fg shadow-overlay focus-visible:outline-none',
-                    { sm: 'max-w-form', md: 'max-w-dialog', lg: 'max-w-dialog-wide' }[size],
+                    'dialog fixed inset-0 z-(--z-modal) m-auto flex h-fit max-h-(--dialog-max-height) w-(--dialog-width) flex-col overflow-hidden rounded-lg border border-border bg-surface-overlay text-fg shadow-overlay focus-visible:outline-none',
+                    { sm: 'max-w-form', md: 'max-w-modal', lg: 'max-w-dialog-wide' }[size],
                 ]"
             >
-                <div class="p-6 sm:p-8">
-                    <header class="mb-6 flex items-start justify-between gap-4">
-                        <div class="flex flex-col gap-1">
-                            <LvDialogTitle class="font-display text-heading font-medium tracking-tight text-balance">
-                                {{ title }}
-                            </LvDialogTitle>
-                            <LvDialogDescription v-if="description" class="text-label text-fg-muted">
-                                {{ description }}
-                            </LvDialogDescription>
-                        </div>
-                        <LvDialogClose as-child>
-                            <IconButton icon="close" label="Close dialog" size="sm" />
-                        </LvDialogClose>
-                    </header>
+                <header class="flex shrink-0 items-start justify-between gap-4 px-6 pt-6 pb-4 sm:px-8 sm:pt-8">
+                    <div class="flex flex-col gap-1">
+                        <LvDialogTitle class="font-display text-heading font-medium tracking-tight text-balance">
+                            {{ title }}
+                        </LvDialogTitle>
+                        <LvDialogDescription v-if="description" class="text-label text-fg-muted">
+                            {{ description }}
+                        </LvDialogDescription>
+                    </div>
+                    <LvDialogClose as-child>
+                        <IconButton icon="close" label="Close dialog" size="sm" />
+                    </LvDialogClose>
+                </header>
+                <div
+                    :class="[
+                        'dialog-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-2 sm:px-8',
+                        $slots.footer ? 'pb-6' : 'pb-6 sm:pb-8',
+                    ]"
+                >
                     <slot />
-                    <footer v-if="$slots.footer" class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                        <slot name="footer" />
-                    </footer>
                 </div>
+                <footer
+                    v-if="$slots.footer"
+                    class="flex shrink-0 flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end sm:px-8"
+                >
+                    <slot name="footer" />
+                </footer>
                 <div ref="layer" />
             </LvDialogContent>
         </LvDialogPortal>
@@ -60,6 +74,10 @@ provideLayer(useTemplateRef<HTMLElement>('layer'));
 </template>
 
 <style scoped>
+.dialog-body {
+    scrollbar-width: thin;
+}
+
 .dialog[data-state='open'] {
     animation: dialog-in var(--duration-normal) var(--ease-out);
 }

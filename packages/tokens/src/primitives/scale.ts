@@ -47,5 +47,6 @@ export const container = {
     form: '28rem',
     prose: '44rem',
     dialog: '36rem',
+    modal: '42rem',
     'dialog-wide': '60rem',
 } as const;
