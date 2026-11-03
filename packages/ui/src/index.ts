@@ -30,6 +30,8 @@ export { default as Badge } from './components/Badge/Badge.vue';
 export type { BadgeTone } from './components/Badge/tones';
 export { default as Card } from './components/Card/Card.vue';
 export { default as ColorPicker } from './components/ColorPicker/ColorPicker.vue';
+export { default as EmojiPicker } from './components/EmojiPicker/EmojiPicker.vue';
+export type { EmojiGroup, EmojiRecord } from './components/EmojiPicker/types';
 export { default as CardHeader } from './components/CardHeader/CardHeader.vue';
 export { default as Dialog } from './components/Dialog/Dialog.vue';
 export { default as Sheet } from './components/Sheet/Sheet.vue';

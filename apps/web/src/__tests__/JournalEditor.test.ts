@@ -51,7 +51,7 @@ describe('JournalEditor', () => {
         textarea.setSelectionRange(8, 8);
         await wrapper.find('button[aria-label="Emoji"]').trigger('click');
         await nextTick();
-        await wrapper.find('button[aria-label="smiling"]').trigger('click');
+        await wrapper.find('[role="option"][aria-label="smiling"]').trigger('click');
         expect(body.value).toBe('Good day😊');
         expect(wrapper.find('#journal-emoji').exists()).toBe(false);
         wrapper.unmount();

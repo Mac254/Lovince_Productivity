@@ -41,6 +41,7 @@ declare module 'vue' {
     Dialog: typeof import('@focus/ui')['Dialog']
     DropdownMenu: typeof import('@focus/ui')['DropdownMenu']
     EmojiPanel: typeof import('./features/journal/EmojiPanel.vue')['default']
+    EmojiPicker: typeof import('@focus/ui')['EmojiPicker']
     EmptyState: typeof import('@focus/ui')['EmptyState']
     ErrorState: typeof import('@focus/ui')['ErrorState']
     FacetFilter: typeof import('@focus/ui')['FacetFilter']
