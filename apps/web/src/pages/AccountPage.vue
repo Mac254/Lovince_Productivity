@@ -376,8 +376,15 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     icon="dashboard"
                     description="Synced across your devices."
                 >
-                    <SettingRow label="Open LovinceTracker on" description="Where you land when you open LovinceTracker or sign in.">
-                        <ChipGroup v-model="preferences.prefs.startPage" label="Open LovinceTracker on" :options="startPages" />
+                    <SettingRow
+                        label="Open LovinceTracker on"
+                        description="Where you land when you open LovinceTracker or sign in."
+                    >
+                        <ChipGroup
+                            v-model="preferences.prefs.startPage"
+                            label="Open LovinceTracker on"
+                            :options="startPages"
+                        />
                     </SettingRow>
                 </SettingsSection>
 
@@ -574,7 +581,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
             @confirm="resetPreferences"
         />
 
-        <Dialog v-model:open="nameOpen" title="Edit name" size="sm">
+        <Dialog v-model:open="nameOpen" title="Edit name" size="sm" :busy="savingName">
             <form class="flex flex-col gap-4" novalidate @submit.prevent="saveName">
                 <Input
                     id="profile-name"
@@ -585,7 +592,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     :error="nameError"
                 />
                 <div class="flex justify-end gap-2">
-                    <Button variant="ghost" @click="nameOpen = false">Cancel</Button>
+                    <Button variant="ghost" :disabled="savingName" @click="nameOpen = false">Cancel</Button>
                     <Button type="submit" :loading="savingName">Save</Button>
                 </div>
             </form>
@@ -596,6 +603,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
             title="Change password"
             description="At least 12 characters with upper and lower case letters and a number."
             size="sm"
+            :busy="savingPassword"
         >
             <form class="flex flex-col gap-4" novalidate @submit.prevent="changePassword">
                 <Input
@@ -623,7 +631,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     :error="passwordErrors.password_confirmation"
                 />
                 <div class="flex justify-end gap-2">
-                    <Button variant="ghost" @click="passwordOpen = false">Cancel</Button>
+                    <Button variant="ghost" :disabled="savingPassword" @click="passwordOpen = false">Cancel</Button>
                     <Button type="submit" :loading="savingPassword">Change password</Button>
                 </div>
             </form>
