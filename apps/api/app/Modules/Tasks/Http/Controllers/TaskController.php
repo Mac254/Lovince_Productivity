@@ -54,7 +54,7 @@ class TaskController extends Controller
             ->when($filters['due'] ?? null, fn (Builder $q, string $due) => match ($due) {
                 'today' => $q->whereDate('due_date', $today),
                 'overdue' => $q->open()->whereDate('due_date', '<', $today),
-                'week' => $q->whereBetween('due_date', [$today->copy()->startOfWeek()->toDateString(), $today->copy()->endOfWeek()->toDateString()]),
+                'week' => $q->whereDate('due_date', '>=', $today->copy()->startOfWeek())->whereDate('due_date', '<=', $today->copy()->endOfWeek()),
                 'upcoming' => $q->whereDate('due_date', '>', $today),
                 'none' => $q->whereNull('due_date'),
             });

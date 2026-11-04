@@ -35,10 +35,10 @@ class WeeklyReviewSummary
 
         $completed = $tasks()->whereBetween('completed_at', [$start, $end])->orderBy('completed_at')->get();
         $carryOver = $tasks()->open()->whereDate('due_date', '<=', $end->toDateString())->orderBy('due_date')->limit(self::LIST_LIMIT)->get();
-        $nextWeek = $tasks()->open()->whereBetween('due_date', [$nextStart->toDateString(), $nextEnd->toDateString()])->orderBy('due_date')->limit(self::LIST_LIMIT)->get();
+        $nextWeek = $tasks()->open()->whereDate('due_date', '>=', $nextStart)->whereDate('due_date', '<=', $nextEnd)->orderBy('due_date')->limit(self::LIST_LIMIT)->get();
         $unscheduled = $tasks()->open()->whereNull('due_date')->orderByPriority()->limit(self::LIST_LIMIT)->get();
 
-        $notes = TaskNote::query()->whereBelongsTo($user)->whereBetween('logged_on', [$start->toDateString(), $end->toDateString()])->get(['logged_on', 'minutes']);
+        $notes = TaskNote::query()->whereBelongsTo($user)->whereDate('logged_on', '>=', $start)->whereDate('logged_on', '<=', $end)->get(['logged_on', 'minutes']);
         $focus = $this->focus->between($user, $start, $end);
         $focusByDay = FocusStats::minutesByDay($focus);
         $loggedByDay = $notes->groupBy(fn (TaskNote $note) => $note->logged_on->toDateString())->map->sum('minutes');
@@ -81,7 +81,7 @@ class WeeklyReviewSummary
                     'total' => (int) $goal->eligible_tasks_count,
                     'completed_this_week' => $completed->where('goal_id', $goal->id)->count(),
                 ])->all(),
-            'journal' => JournalEntry::query()->whereBelongsTo($user)->whereBetween('date', [$start->toDateString(), $end->toDateString()])->orderBy('date')->get()
+            'journal' => JournalEntry::query()->whereBelongsTo($user)->whereDate('date', '>=', $start)->whereDate('date', '<=', $end)->orderBy('date')->get()
                 ->map(fn (JournalEntry $entry) => ['date' => $entry->date->toDateString(), 'excerpt' => Str::limit(trim(strip_tags($entry->body)), 160)])->all(),
             'review' => $review ? [
                 'wins' => $review->wins,

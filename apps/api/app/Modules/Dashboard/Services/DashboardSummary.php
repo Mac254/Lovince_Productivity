@@ -46,7 +46,8 @@ class DashboardSummary
         $tasks = fn (): Builder => Task::query()->whereBelongsTo($user)->with(Task::RELATIONS);
 
         $dueThisWeek = $tasks()
-            ->whereBetween('due_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
+            ->whereDate('due_date', '>=', $weekStart)
+            ->whereDate('due_date', '<=', $weekEnd)
             ->where('status', '!=', TaskStatus::Cancelled);
         $weekTotal = (clone $dueThisWeek)->count();
 

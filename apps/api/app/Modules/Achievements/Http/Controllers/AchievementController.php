@@ -33,7 +33,7 @@ class AchievementController extends Controller
             ->when($filters['goal_id'] ?? null, fn ($q, int|string $goalId) => $q->where('goal_id', $goalId))
             ->when($filters['task_id'] ?? null, fn ($q, int|string $taskId) => $q->where('task_id', $taskId))
             ->when($filters['category'] ?? null, fn ($q, string $category) => $q->where('category', $category))
-            ->when($filters['year'] ?? null, fn ($q, int|string $year) => $q->whereBetween('achieved_on', ["{$year}-01-01", "{$year}-12-31"]))
+            ->when($filters['year'] ?? null, fn ($q, int|string $year) => $q->whereYear('achieved_on', $year))
             ->orderByDesc('achieved_on')
             ->orderByDesc('id')
             ->limit(500)
