@@ -33,6 +33,8 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'accounting', label: 'Overview', icon: 'wallet', motion: 'pop' },
             { name: 'transactions', label: 'Transactions', icon: 'transfer', motion: 'nudge' },
             { name: 'financial-accounts', label: 'Accounts', icon: 'card', motion: 'lift' },
+            { name: 'budgets', label: 'Budgets', icon: 'target', motion: 'pop' },
+            { name: 'recurring', label: 'Recurring', icon: 'calendar-clock', motion: 'nudge' },
             { name: 'financial-reports', label: 'Statements', icon: 'report', motion: 'pop' },
         ],
     },

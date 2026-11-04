@@ -4,6 +4,9 @@ import {
     TRANSACTION_TYPES,
     type Currency,
     type FinancialAccountType,
+    type Budget,
+    type Frequency,
+    type RecurringTransaction,
     type MinorUnits,
     type Transaction,
     type TransactionStatus,
@@ -72,6 +75,12 @@ export const transactionTypeLabels: Record<TransactionType, string> = {
     fee: 'Fee',
 };
 
+export const frequencyLabels: Record<Frequency, string> = {
+    weekly: 'Weekly',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+};
+
 export const transactionStatusLabels: Record<TransactionStatus, string> = {
     pending: 'Pending',
     posted: 'Posted',
@@ -110,7 +119,10 @@ export const accountTypeIcons: Record<FinancialAccountType, IconName> = {
     other: 'wallet',
 };
 
-export const transactionTypeOptions = TRANSACTION_TYPES.map((value) => ({ value, label: transactionTypeLabels[value] }));
+export const transactionTypeOptions = TRANSACTION_TYPES.map((value) => ({
+    value,
+    label: transactionTypeLabels[value],
+}));
 export const accountTypeOptions = FINANCIAL_ACCOUNT_TYPES.map((value) => ({ value, label: accountTypeLabels[value] }));
 
 export interface Period {
@@ -136,4 +148,29 @@ export function monthLabel(period: Period): string {
 
 export function currencyOptions(currencies: readonly Currency[]) {
     return currencies.map((value) => ({ value, label: value }));
+}
+
+/** How far through `period` today is, from 0 before it starts to 1 once it has ended. */
+export function elapsedShare(period: Period, today: string): number {
+    if (today < period.from) return 0;
+    if (today > period.to) return 1;
+    const day = Number(today.slice(8, 10));
+    const days = Number(period.to.slice(8, 10));
+    return day / days;
+}
+
+export type BudgetState = 'over' | 'ahead' | 'on-track';
+
+/** Over the limit, spending faster than the month is passing, or on track. */
+export function budgetState(budget: Budget, elapsed: number): BudgetState {
+    if (budget.spent > budget.amount) return 'over';
+    if (elapsed < 1 && budget.spent > budget.amount * Math.max(elapsed, 0.1)) return 'ahead';
+    return 'on-track';
+}
+
+const perMonth: Record<Frequency, number> = { weekly: 52 / 12, monthly: 1, yearly: 1 / 12 };
+
+/** What a recurring payment comes to over an average month, in minor units. */
+export function monthlyAmount(rule: RecurringTransaction): MinorUnits {
+    return Math.round(rule.amount * perMonth[rule.frequency]);
 }

@@ -137,10 +137,22 @@ export const router = createRouter({
                     meta: { title: 'Accounts' },
                 },
                 {
+                    path: 'money/budgets',
+                    name: 'budgets',
+                    component: () => import('@/pages/MoneyBudgetsPage.vue'),
+                    meta: { title: 'Budgets' },
+                },
+                {
+                    path: 'money/recurring',
+                    name: 'recurring',
+                    component: () => import('@/pages/MoneyRecurringPage.vue'),
+                    meta: { title: 'Recurring' },
+                },
+                {
                     path: 'money/reports',
                     name: 'financial-reports',
                     component: () => import('@/pages/MoneyReportsPage.vue'),
-                    meta: { title: 'Money reports' },
+                    meta: { title: 'Statements' },
                 },
                 {
                     path: 'journal',
