@@ -3,7 +3,7 @@ import type { PasswordInput, Resource, User } from '@focus/types';
 
 export function profileEndpoints(http: AxiosInstance) {
     return {
-        async update(input: { name: string }): Promise<User> {
+        async update(input: { name?: string; timezone?: string }): Promise<User> {
             const { data } = await http.patch<Resource<User>>('/profile', input);
             return data.data;
         },

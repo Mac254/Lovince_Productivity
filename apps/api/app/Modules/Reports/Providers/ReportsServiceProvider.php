@@ -27,12 +27,12 @@ class ReportsServiceProvider extends ModuleProvider
         $this->commands([GenerateDailyReports::class]);
 
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            // Snapshot each day just before it ends (APP_TIMEZONE). Run `php artisan schedule:work`
+            // Snapshot each account's day just before it ends there (23:55 in its timezone). Run `php artisan schedule:work`
             // locally (included in `pnpm dev`), or a cron entry for `schedule:run` in production.
-            $schedule->command('focus:daily-report')->dailyAt('23:55')->withoutOverlapping();
+            $schedule->command('focus:daily-report --due')->everyFiveMinutes()->withoutOverlapping();
 
-            // Just after midnight, finalise yesterday (and any day missed): the 23:55 run can't see the last minutes.
-            $schedule->command('focus:daily-report --missing=7')->dailyAt('00:05')->withoutOverlapping();
+            // Just after its midnight (00:05), finalise yesterday (and any day missed): the 23:55 run can't see the last minutes.
+            $schedule->command('focus:daily-report --missing=7 --due')->everyFiveMinutes()->withoutOverlapping();
         });
     }
 }

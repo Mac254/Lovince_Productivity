@@ -4,6 +4,7 @@ namespace App\Modules\Reports\Jobs;
 
 use App\Modules\Reports\Services\DailyReportGenerator;
 use App\Modules\Users\Models\User;
+use App\Modules\Users\Services\AccountTimezone;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -11,7 +12,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * Stores one user's report for one day. Queued so the nightly run never blocks the app,
- * retried with backoff if the database is busy, and unique per user and day.
+ * retried with backoff if the database is busy, and unique per user and day. Runs in the account's timezone.
  */
 class GenerateDailyReport implements ShouldBeUnique, ShouldQueue
 {
@@ -33,6 +34,6 @@ class GenerateDailyReport implements ShouldBeUnique, ShouldQueue
 
     public function handle(DailyReportGenerator $generator): void
     {
-        $generator->generate($this->user, Carbon::createFromFormat('!Y-m-d', $this->date));
+        AccountTimezone::run($this->user, fn () => $generator->generate($this->user, Carbon::createFromFormat('!Y-m-d', $this->date)));
     }
 }

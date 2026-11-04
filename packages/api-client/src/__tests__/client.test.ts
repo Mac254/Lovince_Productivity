@@ -81,12 +81,15 @@ describe('api client', () => {
         };
         const { adapter, calls } = scripted({
             status: 200,
-            data: { data: { id: 1, name: 'A', email: 'a@x.test', avatar_url: null }, meta: { session } },
+            data: {
+                data: { id: 1, name: 'A', email: 'a@x.test', timezone: 'Africa/Nairobi', avatar_url: null },
+                meta: { session },
+            },
         });
         const api = createApi(createHttpClient({ adapter }));
 
         await expect(api.auth.me()).resolves.toEqual({
-            user: { id: 1, name: 'A', email: 'a@x.test', avatar_url: null },
+            user: { id: 1, name: 'A', email: 'a@x.test', timezone: 'Africa/Nairobi', avatar_url: null },
             session,
         });
         expect(calls[0]!.url).toBe('/auth/me');

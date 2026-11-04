@@ -258,6 +258,42 @@ async function saveName(): Promise<void> {
     }
 }
 
+const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const zoneOptions = computed(() =>
+    [...new Set([...Intl.supportedValuesOf('timeZone'), auth.user?.timezone ?? deviceZone])]
+        .sort()
+        .map((zone) => ({ value: zone, label: zone.replaceAll('_', ' ') })),
+);
+const zoneOpen = ref(false);
+const zone = ref('');
+const zoneError = ref<string>();
+const savingZone = ref(false);
+
+function editZone(): void {
+    zone.value = auth.user?.timezone ?? deviceZone;
+    zoneError.value = undefined;
+    zoneOpen.value = true;
+}
+
+async function saveZone(): Promise<void> {
+    if (!zone.value) {
+        zoneError.value = 'Choose a time zone.';
+        return;
+    }
+    savingZone.value = true;
+    try {
+        auth.user = await api.profile.update({ timezone: zone.value });
+        await auth.refresh();
+        zoneOpen.value = false;
+        toast.success(`Days now start in ${zone.value.replaceAll('_', ' ')}`);
+    } catch (e) {
+        if (isApiError(e) && e.isValidation) zoneError.value = e.fieldErrors().timezone;
+        else toast.error(errorMessage(e));
+    } finally {
+        savingZone.value = false;
+    }
+}
+
 const passwordOpen = ref(false);
 const password = reactive({ current_password: '', password: '', password_confirmation: '' });
 const passwordErrors = ref<Record<string, string>>({});
@@ -338,6 +374,15 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     </SettingRow>
                     <SettingRow label="Email" description="Changed on the server only.">
                         <Text class="min-w-0 truncate">{{ auth.user?.email }}</Text>
+                    </SettingRow>
+                    <SettingRow
+                        label="Time zone"
+                        description="Where your days start for today, overdue, streaks and reports."
+                    >
+                        <Text class="min-w-0 truncate">{{ auth.user?.timezone.replaceAll('_', ' ') }}</Text>
+                        <template #action>
+                            <Button variant="outline" size="sm" icon-start="edit" @click="editZone">Change</Button>
+                        </template>
                     </SettingRow>
                 </SettingsSection>
 
@@ -597,6 +642,36 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                 <div class="flex justify-end gap-2">
                     <Button variant="ghost" :disabled="savingName" @click="nameOpen = false">Cancel</Button>
                     <Button type="submit" :loading="savingName">Save</Button>
+                </div>
+            </form>
+        </Dialog>
+
+        <Dialog
+            v-model:open="zoneOpen"
+            title="Change time zone"
+            description="Times you’ve already recorded keep the moment they happened and show in the new zone."
+            size="sm"
+            :busy="savingZone"
+        >
+            <form class="flex flex-col gap-4" novalidate @submit.prevent="saveZone">
+                <Combobox
+                    id="profile-timezone"
+                    v-model="zone"
+                    label="Time zone"
+                    :options="zoneOptions"
+                    :hint="
+                        zone === deviceZone
+                            ? 'This device’s time zone'
+                            : `This device is in ${deviceZone.replaceAll('_', ' ')}`
+                    "
+                    :error="zoneError"
+                />
+                <div class="flex justify-end gap-2">
+                    <Button v-if="zone !== deviceZone" variant="ghost" :disabled="savingZone" @click="zone = deviceZone"
+                        >Use this device’s</Button
+                    >
+                    <Button variant="ghost" :disabled="savingZone" @click="zoneOpen = false">Cancel</Button>
+                    <Button type="submit" :loading="savingZone">Save</Button>
                 </div>
             </form>
         </Dialog>

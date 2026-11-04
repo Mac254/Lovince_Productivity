@@ -3,10 +3,12 @@
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Users\Http\Resources\UserResource;
+use App\Modules\Users\Services\AccountTimezone;
 use App\Shared\Http\Controllers\Controller;
 use App\Support\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -17,13 +19,21 @@ class ProfileController extends Controller
 {
     private const AVATAR_DISK = 'local';
 
+    /** Changing `timezone` moves every stored time of the account to the new zone. */
     public function update(Request $request): UserResource
     {
-        $request->user()->update($request->validate([
-            'name' => ['required', 'string', 'min:1', 'max:120'],
-        ]));
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'min:1', 'max:120'],
+            'timezone' => ['sometimes', 'required', 'string', 'timezone:all_with_bc'],
+        ]);
 
-        return UserResource::make($request->user());
+        $user = $request->user();
+        if (isset($validated['timezone'])) {
+            AccountTimezone::change($user, $validated['timezone']);
+        }
+        $user->update(Arr::except($validated, 'timezone'));
+
+        return UserResource::make($user);
     }
 
     public function password(Request $request): Response

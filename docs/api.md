@@ -25,7 +25,7 @@ Base path `/api/v1`. All endpoints except `POST /auth/login` require an authenti
 }
 ```
 
-  `remembered` means “keep me signed in” is active: an encrypted, HTTP-only remember cookie restores the session after it idles out and is reissued for another `remember_days` each time that happens (sliding). Without it, the sign-in ends after `idle_timeout_minutes` of inactivity. `timezone` is the server's `APP_TIMEZONE`; the web app starts each day there, so today, overdue and streaks match the API on any device. `settings` are the resolved settings (see the Settings module). `401` when signed out.
+  `remembered` means “keep me signed in” is active: an encrypted, HTTP-only remember cookie restores the session after it idles out and is reissued for another `remember_days` each time that happens (sliding). Without it, the sign-in ends after `idle_timeout_minutes` of inactivity. `timezone` is the account's timezone (`APP_TIMEZONE` until the user picks one with `PATCH /profile { timezone }`); the API and the web app start each day there, so today, overdue, streaks and reports match on any device. `settings` are the resolved settings (see the Settings module). `401` when signed out.
 - `POST /auth/logout` → `204`. Invalidates the session, clears the remember cookie and rotates the remember token, so old cookies stop working.
 
 No bearer tokens are issued; nothing auth-related is stored in `localStorage`.

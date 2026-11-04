@@ -105,7 +105,7 @@ pnpm dev                          # focus:doctor, then Laravel :8000, Vite :5173
 
 ### Scheduler
 
-Daily reports are queued by `php artisan focus:daily-report` at 23:55 (`APP_TIMEZONE`) and stored by the queue worker (`GenerateDailyReport`, retried up to 3 times). At 00:05, `focus:daily-report --missing=7` finalises yesterday's report (so work finished after 23:55 counts) and fills in any day that has none. Every figure is rebuilt from timestamps as the day stood at its end, so a report written later still describes that day; only starred tasks use their current state. `pnpm dev` runs `schedule:work` and `queue:listen`; in production add a cron entry: `* * * * * cd /path/to/apps/api && php artisan schedule:run` and keep `php artisan queue:work` running. The installed app does both as the `focus-scheduler` and `focus-queue` services. "Generate today’s report" on the Reports page stays immediate. Backfill a day with `php artisan focus:daily-report --date=YYYY-MM-DD`.
+Daily reports are queued by `php artisan focus:daily-report` at 23:55 in each account's timezone (Settings → Account → Time zone; `APP_TIMEZONE` until one is picked) and stored by the queue worker (`GenerateDailyReport`, retried up to 3 times). At 00:05 there, `focus:daily-report --missing=7` finalises yesterday's report (so work finished after 23:55 counts) and fills in any day that has none. Every figure is rebuilt from timestamps as the day stood at its end, so a report written later still describes that day; only starred tasks use their current state. `pnpm dev` runs `schedule:work` and `queue:listen`; in production add a cron entry: `* * * * * cd /path/to/apps/api && php artisan schedule:run` and keep `php artisan queue:work` running. The installed app does both as the `focus-scheduler` and `focus-queue` services. "Generate today’s report" on the Reports page stays immediate. Backfill a day with `php artisan focus:daily-report --date=YYYY-MM-DD`.
 
 ### Seeders
 
@@ -117,7 +117,7 @@ Daily reports are queued by `php artisan focus:daily-report` at 23:55 (`APP_TIME
 
 `php artisan migrate:fresh --seed` rebuilds everything from scratch (deletes all data). Without `FOCUS_OWNER_*`, use `php artisan focus:create-user`.
 
-Open **http://localhost:5173**. Vite proxies `/api` and `/sanctum` to Laravel, so the browser stays same-origin and cookie auth behaves exactly as in production. Set `APP_TIMEZONE` in `apps/api/.env` (e.g. `Africa/Nairobi`) so “today” matches your day.
+Open **http://localhost:5173**. Vite proxies `/api` and `/sanctum` to Laravel, so the browser stays same-origin and cookie auth behaves exactly as in production. Set `APP_TIMEZONE` in `apps/api/.env` (e.g. `Africa/Nairobi`) as the default for accounts that haven't picked a time zone in Settings.
 
 ### Production-style run
 

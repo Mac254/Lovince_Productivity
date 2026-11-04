@@ -4,6 +4,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    /** IANA timezone the account's days start in. */
+    timezone: string;
     /** Same-origin, owner-only URL, or null when no photo is set. */
     avatar_url: string | null;
 }
@@ -16,7 +18,7 @@ export interface AuthSession {
     expires_at: string;
     idle_timeout_minutes: number;
     remember_days: number;
-    /** The server's timezone (`APP_TIMEZONE`), which decides where each day starts for today, overdue and streaks. */
+    /** The account's timezone, which decides where each day starts for today, overdue, streaks and reports. */
     timezone: string;
 }
 

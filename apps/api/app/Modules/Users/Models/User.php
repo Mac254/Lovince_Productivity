@@ -23,7 +23,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /** @var array<string, mixed> */
-    protected $attributes = ['settings' => null];
+    protected $attributes = ['settings' => null, 'timezone' => null];
 
     /**
      * Get the attributes that should be cast.
