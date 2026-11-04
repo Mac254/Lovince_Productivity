@@ -103,6 +103,8 @@ const estimateHint = computed(() => {
     return `${formatMinutes(totals.estimated_logged_minutes) || '0m'} logged against ${formatMinutes(totals.estimated_minutes)} estimated on ${totals.estimated_tasks} completed ${totals.estimated_tasks === 1 ? 'task' : 'tasks'}`;
 });
 const showTable = ref(false);
+/** The first two totals share a row unless the estimate tile makes it three to a row. */
+const wide = computed(() => (settings.values.tasks.estimates ? 'lg:col-span-2' : 'lg:col-span-3'));
 
 watch(range, run);
 onMounted(run);
@@ -130,7 +132,7 @@ onMounted(run);
         >
             <section aria-label="Totals" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
                 <StatCard
-                    class="lg:col-span-3"
+                    :class="wide"
                     label="Completed"
                     icon="check-circle"
                     :value="data.totals.completed"
@@ -138,7 +140,7 @@ onMounted(run);
                     emphasis
                 />
                 <StatCard
-                    class="lg:col-span-3"
+                    :class="wide"
                     label="Time logged"
                     icon="history"
                     :value="timeLogged.value"
@@ -147,7 +149,7 @@ onMounted(run);
                 />
                 <StatCard
                     v-if="settings.values.tasks.estimates"
-                    class="sm:col-span-2 lg:col-span-6"
+                    class="lg:col-span-2"
                     label="Estimate accuracy"
                     icon="target"
                     :value="data.totals.estimate_accuracy"
