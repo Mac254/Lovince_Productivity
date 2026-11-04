@@ -1,12 +1,14 @@
 # API
 
+This page covers the conventions and the core endpoints. Every module documents its own endpoints in `apps/api/app/Modules/<Module>/README.md`, and `php artisan route:list --path=api/v1` lists them all.
+
 Base path `/api/v1`. All endpoints except `POST /auth/login` require an authenticated session. Writes need the `X-XSRF-TOKEN` header (taken from the `XSRF-TOKEN` cookie; `GET /sanctum/csrf-cookie` issues one).
 
 ## Conventions
 
 - Success: `{ "data": … }`; lists that paginate add `links` and `meta` (`current_page`, `last_page`, `per_page`, `total`).
 - `201` on create, `204` on delete and logout.
-- `401` unauthenticated · `404` missing or not yours · `419` CSRF mismatch · `422` validation `{ message, errors: { field: [msg] } }` · `429` throttled.
+- `401` unauthenticated · `404` missing or not yours · `409` changed elsewhere since the copy the change was based on · `419` CSRF mismatch · `422` validation `{ message, errors: { field: [msg] } }` · `429` throttled.
 
 ## Auth
 
@@ -16,11 +18,14 @@ Base path `/api/v1`. All endpoints except `POST /auth/login` require an authenti
 ```json
 {
   "data": { "id": 1, "name": "Stephen", "email": "…", "avatar_url": null },
-  "meta": { "session": { "remembered": true, "expires_at": "2026-11-27T10:00:00+00:00", "idle_timeout_minutes": 120, "remember_days": 30 } }
+  "meta": {
+    "session": { "remembered": true, "expires_at": "2026-11-27T10:00:00+00:00", "idle_timeout_minutes": 120, "remember_days": 30, "timezone": "Africa/Nairobi" },
+    "settings": { "…": "…" }
+  }
 }
 ```
 
-  `remembered` means “keep me signed in” is active: an encrypted, HTTP-only remember cookie restores the session after it idles out and is reissued for another `remember_days` each time that happens (sliding). Without it, the sign-in ends after `idle_timeout_minutes` of inactivity. `401` when signed out.
+  `remembered` means “keep me signed in” is active: an encrypted, HTTP-only remember cookie restores the session after it idles out and is reissued for another `remember_days` each time that happens (sliding). Without it, the sign-in ends after `idle_timeout_minutes` of inactivity. `timezone` is the server's `APP_TIMEZONE`; the web app starts each day there, so today, overdue and streaks match the API on any device. `settings` are the resolved settings (see the Settings module). `401` when signed out.
 - `POST /auth/logout` → `204`. Invalidates the session, clears the remember cookie and rotates the remember token, so old cookies stop working.
 
 No bearer tokens are issued; nothing auth-related is stored in `localStorage`.
@@ -41,7 +46,7 @@ No bearer tokens are issued; nothing auth-related is stored in `localStorage`.
 | `direction` | `asc`, `desc` |
 | `per_page` | 1–100 (default 25) |
 
-Task body (`POST` requires `title`; `PATCH` accepts any subset): `title`, `description`, `status`, `priority`, `category`, `start_date`, `due_date` (`YYYY-MM-DD`, due ≥ start), `goal_id` (must be your goal or `null`), `task_type_id` (must be your type or `null`). Filter with `?task_type_id=`.
+Task body (`POST` requires `title`; `PATCH` accepts any subset): `title`, `description`, `status`, `priority`, `category`, `start_date`, `due_date` (`YYYY-MM-DD`, due ≥ start), `goal_id` (must be your goal or `null`), `task_type_id` (must be your type or `null`). Filter with `?task_type_id=`. `PATCH` also accepts `completed_at` (`YYYY-MM-DD`, to complete on an earlier day) and `base_updated_at` (the `updated_at` the change was based on; `409` if the task changed since, which is how offline changes avoid overwriting newer ones).
 
 Response fields include `is_overdue`, `completed_at`, `goal { id, title, tone }` and `type { id, name, tone }`.
 
