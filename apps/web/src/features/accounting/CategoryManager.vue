@@ -16,6 +16,8 @@ const error = ref('');
 const busy = ref(false);
 
 const visible = computed(() => props.categories.filter((c) => c.kind === kind.value));
+const active = computed(() => visible.value.filter((c) => !c.archived));
+const archived = computed(() => visible.value.filter((c) => c.archived));
 
 async function add(): Promise<void> {
     error.value = '';
@@ -47,20 +49,40 @@ async function toggleArchived(category: AccountingCategory): Promise<void> {
     <Card class="flex flex-col gap-4">
         <CardHeader title="Categories" title-id="categories-heading" icon="tag" class="mb-0" />
         <SegmentedControl v-model="kind" label="Category kind" :options="kinds" size="sm" />
-        <ul class="flex flex-wrap gap-2">
-            <li v-for="category in visible" :key="category.id">
-                <Badge :tone="category.archived ? 'neutral' : 'accent'" :class="category.archived && 'line-through'">
-                    {{ category.name }}
-                </Badge>
+        <ul v-if="active.length" class="grid gap-x-6 sm:grid-cols-2">
+            <li
+                v-for="category in active"
+                :key="category.id"
+                class="flex min-h-(--control-md) items-center justify-between gap-2 border-b border-border"
+            >
+                <span class="truncate text-body">{{ category.name }}</span>
                 <Button
                     variant="ghost"
                     size="sm"
-                    :aria-label="`${category.archived ? 'Restore' : 'Archive'} ${category.name}`"
+                    :aria-label="`Archive ${category.name}`"
+                    class="text-fg-muted"
                     @click="toggleArchived(category)"
-                    >{{ category.archived ? 'Restore' : 'Archive' }}</Button
+                    >Archive</Button
                 >
             </li>
         </ul>
+        <p v-else class="text-label text-fg-muted">No categories yet. Add one below.</p>
+        <section v-if="archived.length" aria-labelledby="archived-categories" class="flex flex-col gap-2">
+            <h3 id="archived-categories" class="text-caption font-semibold text-fg-muted">Archived</h3>
+            <ul class="flex flex-wrap gap-2">
+                <li v-for="category in archived" :key="category.id">
+                    <button
+                        type="button"
+                        :aria-label="`Restore ${category.name}`"
+                        class="inline-flex h-(--control-sm) items-center gap-1 rounded-full border border-dashed border-border-control px-3 text-label text-fg-muted transition-colors duration-(--duration-instant) hover:border-border-strong hover:text-fg focus-visible:outline-2 focus-visible:outline-focus-ring"
+                        @click="toggleArchived(category)"
+                    >
+                        <Icon name="undo" />
+                        {{ category.name }}
+                    </button>
+                </li>
+            </ul>
+        </section>
         <form class="flex flex-wrap items-end gap-3" novalidate @submit.prevent="add">
             <Input
                 id="category-name"
