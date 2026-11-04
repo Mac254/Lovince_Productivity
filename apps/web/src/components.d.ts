@@ -75,6 +75,7 @@ declare module 'vue' {
     JournalPreview: typeof import('./features/journal/JournalPreview.vue')['default']
     ModuleSettings: typeof import('./features/settings/ModuleSettings.vue')['default']
     MoneyInsightList: typeof import('./features/accounting/MoneyInsightList.vue')['default']
+    MoneySnapshot: typeof import('./features/dashboard/MoneySnapshot.vue')['default']
     MoneyTile: typeof import('./features/accounting/MoneyTile.vue')['default']
     MoneyTrendChart: typeof import('./features/accounting/MoneyTrendChart.vue')['default']
     MorphIcon: typeof import('@focus/ui')['MorphIcon']

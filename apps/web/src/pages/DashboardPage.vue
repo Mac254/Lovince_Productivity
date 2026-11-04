@@ -3,9 +3,15 @@ import { api, errorMessage } from '@focus/api-client';
 import type { Goal, Task } from '@focus/types';
 import { focusSummary } from '@/features/clock/focusSummary';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
-import { taskPriorityRank } from '@/lib/labels';
+import {
+    suggestionCategoryIcons,
+    suggestionCategoryLabels,
+    suggestionCategoryTones,
+    taskPriorityRank,
+} from '@/lib/labels';
 import { dayProgress } from '@/lib/progress';
 import { allFacet, withoutAll } from '@/lib/facets';
+import { formatDate } from '@/lib/dates';
 
 const dashboard = useDashboard();
 const goalsStore = useGoalsStore();
@@ -80,6 +86,12 @@ const focusTasks = computed<Task[]>(() => {
         });
 });
 
+const streakHint = computed(() => {
+    const streak = data.value?.streak;
+    if (!streak?.current) return 'Finish, log or focus today to start a streak';
+    return `${streak.active_today ? 'Active today' : 'Do something today to keep it'} · best ${streak.best} ${streak.best === 1 ? 'day' : 'days'}`;
+});
+
 const day = computed(() => (stats.value ? dayProgress(stats.value) : null));
 const dayPercent = useAnimatedNumber(() => day.value?.percent ?? 0);
 const integration = {
@@ -122,21 +134,13 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                 />
                 <Button :to="{ name: 'review' }" icon-end="arrow-right">Start review</Button>
             </Card>
-            <section aria-label="Key numbers" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
-                <StatCard
-                    data-stagger
-                    label="Open tasks"
-                    icon="tasks"
-                    motion="nudge"
-                    :value="stats.open"
-                    :hint="`${stats.in_progress} in progress`"
-                />
+            <section aria-label="Key numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     data-stagger
                     label="Done this week"
                     icon="check-circle"
                     :value="stats.completed_this_week"
-                    :hint="`+${stats.completed_today} today`"
+                    :hint="`+${stats.completed_today} today · ${stats.completed_total} all time`"
                     emphasis
                 />
                 <StatCard
@@ -163,7 +167,7 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     icon="blocker"
                     motion="wiggle"
                     :value="stats.overdue"
-                    :hint="`${stats.open_blockers} open ${stats.open_blockers === 1 ? 'blocker' : 'blockers'}`"
+                    :hint="`${stats.open} open tasks · ${stats.open_blockers} ${stats.open_blockers === 1 ? 'blocker' : 'blockers'}`"
                 />
             </section>
 
@@ -214,6 +218,96 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
                     <QuoteCard v-if="preferences.prefs.showQuotes" data-stagger :initial="data.quote" />
                 </div>
             </div>
+
+            <section aria-labelledby="overview-heading" class="flex flex-col gap-4">
+                <SectionHeader title="Across everything" title-id="overview-heading" />
+                <div class="grid gap-6 md:grid-cols-2 2xl:grid-cols-4">
+                    <MoneySnapshot />
+                    <Card as="section" data-stagger aria-labelledby="streak-heading" class="group gap-4">
+                        <CardHeader title="Consistency" title-id="streak-heading" icon="flame" class="mb-0">
+                            <Button variant="ghost" size="sm" :to="{ name: 'metrics' }" icon-end="arrow-right"
+                                >Metrics</Button
+                            >
+                        </CardHeader>
+                        <div>
+                            <p class="font-display text-title font-semibold tabular">
+                                {{ data.streak.current }} {{ data.streak.current === 1 ? 'day' : 'days' }}
+                            </p>
+                            <Text role="caption" tone="muted">{{ streakHint }}</Text>
+                        </div>
+                        <div class="mt-auto flex flex-col gap-1">
+                            <Text role="caption" tone="muted" tabular>
+                                {{
+                                    stats.weekly_completion_rate === null
+                                        ? 'Nothing due this week'
+                                        : `${stats.week_due_completed} of ${stats.week_due_total} due this week done`
+                                }}
+                            </Text>
+                            <ProgressBar
+                                :value="stats.weekly_completion_rate ?? 0"
+                                tone="highlight"
+                                label="Tasks due this week that are done"
+                            />
+                        </div>
+                    </Card>
+                    <Card as="section" data-stagger aria-labelledby="wins-heading" class="group gap-4">
+                        <CardHeader title="Achievements" title-id="wins-heading" icon="star" class="mb-0">
+                            <Button variant="ghost" size="sm" :to="{ name: 'achievements' }" icon-end="arrow-right"
+                                >All</Button
+                            >
+                        </CardHeader>
+                        <div>
+                            <p class="font-display text-title font-semibold tabular">
+                                {{ data.achievements.this_week }} this week
+                            </p>
+                            <Text role="caption" tone="muted">{{ data.achievements.total }} recorded in all</Text>
+                        </div>
+                        <ul v-if="data.achievements.latest.length" class="flex flex-col gap-2">
+                            <li
+                                v-for="win in data.achievements.latest"
+                                :key="win.id"
+                                class="flex items-center justify-between gap-3"
+                            >
+                                <span class="min-w-0">
+                                    <span class="block truncate text-label font-semibold">{{ win.title }}</span>
+                                    <Text as="span" role="caption" tone="muted">{{ formatDate(win.achieved_on) }}</Text>
+                                </span>
+                                <Badge
+                                    v-if="win.category"
+                                    :tone="suggestionCategoryTones[win.category]"
+                                    :icon="suggestionCategoryIcons[win.category]"
+                                    >{{ suggestionCategoryLabels[win.category] }}</Badge
+                                >
+                            </li>
+                        </ul>
+                        <Text v-else role="label" tone="muted">Record a win, big or small, to look back on.</Text>
+                    </Card>
+                    <Card as="section" data-stagger aria-labelledby="journal-heading" class="group gap-4">
+                        <CardHeader title="Journal" title-id="journal-heading" icon="journal" class="mb-0" />
+                        <div>
+                            <p class="font-display text-title font-semibold tabular">
+                                {{ data.journal.this_week }} of 7 days
+                            </p>
+                            <Text role="caption" tone="muted">Written this week</Text>
+                        </div>
+                        <Text role="label" :tone="data.journal.written_today ? 'muted' : undefined">
+                            {{
+                                data.journal.written_today
+                                    ? 'Today’s entry is written.'
+                                    : 'A few lines about today help the weekly review.'
+                            }}
+                        </Text>
+                        <Button
+                            class="mt-auto self-start"
+                            :variant="data.journal.written_today ? 'outline' : 'primary'"
+                            size="sm"
+                            icon-start="journal"
+                            :to="{ name: 'journal' }"
+                            >{{ data.journal.written_today ? 'Open journal' : 'Write today’s entry' }}</Button
+                        >
+                    </Card>
+                </div>
+            </section>
 
             <div class="grid gap-6 lg:grid-cols-3">
                 <Card as="section" data-stagger aria-labelledby="highlights-heading" class="group">
