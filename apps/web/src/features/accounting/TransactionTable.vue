@@ -30,36 +30,41 @@ function where(t: Transaction): string {
 </script>
 
 <template>
-    <Card padding="none">
+    <Card>
         <Table caption="Transactions" label="Transactions">
             <TableHeader>
                 <TableRow>
-                    <TableHead>Date</TableHead>
+                    <TableHead class="hidden sm:table-cell">Date</TableHead>
                     <TableHead class="w-full">Description</TableHead>
-                    <TableHead v-if="!compact">Account</TableHead>
-                    <TableHead v-if="!compact">Status</TableHead>
+                    <TableHead v-if="!compact" class="hidden xl:table-cell">Account</TableHead>
+                    <TableHead v-if="!compact" class="hidden md:table-cell">Status</TableHead>
                     <TableHead align="end">Amount</TableHead>
                     <TableHead v-if="!compact" align="end"><VisuallyHidden>Actions</VisuallyHidden></TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 <TableRow v-for="t in transactions" :key="t.id" :class="t.status === 'voided' && 'opacity-60'">
-                    <TableCell numeric class="whitespace-nowrap text-fg-muted">{{ formatDate(t.date) }}</TableCell>
+                    <TableCell numeric class="hidden whitespace-nowrap text-fg-muted sm:table-cell">{{ formatDate(t.date) }}</TableCell>
                     <TableCell>
-                        <div class="flex min-w-48 flex-col">
+                        <div class="flex flex-col sm:min-w-48">
                             <span class="font-medium" :class="t.status === 'voided' && 'line-through'">{{
                                 t.description
                             }}</span>
                             <Text as="span" role="caption" tone="muted">
+                                <span class="sm:hidden">{{ formatDate(t.date) }} · </span>
                                 {{ t.category?.name ?? transactionTypeLabels[t.type] }}
+                                <span v-if="!compact" class="xl:hidden"> · {{ where(t) }}</span>
+                                <span v-if="!compact && t.status !== 'posted'" class="md:hidden">
+                                    · {{ transactionStatusLabels[t.status] }}</span
+                                >
                                 <template v-if="t.reference"> · {{ t.reference }}</template>
                                 <template v-if="t.reversal_of_id"> · reversal</template>
                                 <template v-else-if="t.reversed_by_id"> · reversed</template>
                             </Text>
                         </div>
                     </TableCell>
-                    <TableCell v-if="!compact" class="whitespace-nowrap text-fg-muted">{{ where(t) }}</TableCell>
-                    <TableCell v-if="!compact">
+                    <TableCell v-if="!compact" class="hidden whitespace-nowrap text-fg-muted xl:table-cell">{{ where(t) }}</TableCell>
+                    <TableCell v-if="!compact" class="hidden md:table-cell">
                         <Badge dot :tone="transactionStatusTones[t.status]">{{ transactionStatusLabels[t.status] }}</Badge>
                     </TableCell>
                     <TableCell numeric align="end" class="font-semibold whitespace-nowrap" :class="amountClass(t)">

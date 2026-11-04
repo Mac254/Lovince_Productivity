@@ -37,6 +37,7 @@ declare module 'vue' {
     CoverPicker: typeof import('./features/covers/CoverPicker.vue')['default']
     DailyTrendChart: typeof import('./features/metrics/DailyTrendChart.vue')['default']
     DatePicker: typeof import('@focus/ui')['DatePicker']
+    DateRangeFilter: typeof import('@focus/ui')['DateRangeFilter']
     DayContext: typeof import('./features/journal/DayContext.vue')['default']
     DayPlanner: typeof import('./features/planner/DayPlanner.vue')['default']
     DayRail: typeof import('./features/clock/DayRail.vue')['default']

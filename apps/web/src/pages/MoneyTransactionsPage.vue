@@ -10,8 +10,8 @@ const search = ref('');
 const type = ref<TransactionType | ''>('');
 const status = ref<TransactionStatus | ''>('');
 const accountId = ref<number | ''>(Number(route.query.account) || '');
-const from = ref<string | null>('');
-const to = ref<string | null>('');
+const from = ref('');
+const to = ref('');
 const page = ref(1);
 
 const filters = computed<TransactionFilters>(() => ({
@@ -28,18 +28,11 @@ const { data, loading, error, run } = useAsync((signal) =>
 const lists = useAccountingLists();
 const actions = useTransactionActions(refresh);
 
-const typeOptions = [{ value: '' as const, label: 'All types' }, ...transactionTypeOptions];
-const statusOptions = [
-    { value: '' as const, label: 'Any status' },
-    ...(Object.keys(transactionStatusLabels) as TransactionStatus[]).map((value) => ({
-        value,
-        label: transactionStatusLabels[value],
-    })),
-];
-const accountOptions = computed(() => [
-    { value: '' as const, label: 'All accounts' },
-    ...lists.accounts.value.map((a) => ({ value: a.id, label: a.name })),
-]);
+const statusOptions = (Object.keys(transactionStatusLabels) as TransactionStatus[]).map((value) => ({
+    value,
+    label: transactionStatusLabels[value],
+}));
+const accountOptions = computed(() => lists.accounts.value.map((a) => ({ value: a.id, label: a.name })));
 const filtered = computed(() => Object.values(filters.value).some(Boolean));
 
 const formOpen = ref(false);
@@ -105,23 +98,24 @@ onMounted(refresh);
             </template>
         </PageHeader>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <section aria-label="Filters" class="flex flex-wrap items-center gap-2 border-b border-border pb-6">
             <SearchField
                 id="transaction-search"
                 v-model="search"
                 label="Search transactions"
-                placeholder="Description, reference or notes"
+                placeholder="Search transactions"
                 :maxlength="LIMITS.search"
-                class="sm:col-span-2"
+                class="w-full sm:w-96"
             />
-            <Select id="filter-type" v-model="type" label="Type" :options="typeOptions" />
-            <Select id="filter-status" v-model="status" label="Status" :options="statusOptions" />
-            <Select id="filter-account" v-model="accountId" label="Account" :options="accountOptions" />
-            <div class="grid grid-cols-2 gap-4 sm:col-span-2 xl:col-span-1 xl:grid-cols-1">
-                <DatePicker id="filter-from" v-model="from" label="From" optional />
-                <DatePicker id="filter-to" v-model="to" label="To" optional />
-            </div>
-        </div>
+            <FacetFilter v-model="type" label="Type" :options="transactionTypeOptions" />
+            <FacetFilter v-model="status" label="Status" :options="statusOptions" />
+            <FacetFilter v-model="accountId" label="Account" :options="accountOptions" />
+            <DateRangeFilter v-model:start="from" v-model:end="to" label="Dates" />
+            <Button v-if="filtered" variant="ghost" size="sm" icon-start="close" @click="clear">Clear</Button>
+            <Text v-if="data" role="label" tone="muted" tabular aria-live="polite" class="ml-auto">
+                {{ data.meta.total }} {{ data.meta.total === 1 ? 'transaction' : 'transactions' }}
+            </Text>
+        </section>
 
         <ErrorState v-if="error" :message="error" @retry="run" />
         <Card v-else-if="loading && !data" class="flex flex-col gap-3" aria-hidden="true">
