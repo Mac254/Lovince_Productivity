@@ -56,7 +56,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $other = User::factory()->create();
         foreach (['2026-10-27' => 'Shipped the release', '2026-10-20' => 'Ran 10k'] as $day => $title) {
-            $user->achievements()->create(['title' => $title, 'achieved_on' => $day]);
+            $user->achievements()->create(['title' => $title, 'achieved_on' => $day, 'goal_id' => Goal::factory()->for($user)->create()->id]);
         }
         $other->achievements()->create(['title' => 'Not mine', 'achieved_on' => '2026-10-28']);
         foreach (['2026-10-26', '2026-10-28', '2026-10-19'] as $day) {
@@ -68,6 +68,7 @@ class DashboardTest extends TestCase
             ->assertJsonPath('data.achievements.this_week', 1)
             ->assertJsonPath('data.achievements.total', 2)
             ->assertJsonPath('data.achievements.latest.0.title', 'Shipped the release')
+            ->assertJsonStructure(['data' => ['achievements' => ['latest' => [['goal' => ['id', 'title', 'tone']]]]]])
             ->assertJsonPath('data.journal.written_today', true)
             ->assertJsonPath('data.journal.this_week', 2);
 

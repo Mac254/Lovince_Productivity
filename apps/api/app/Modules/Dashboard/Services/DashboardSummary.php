@@ -156,7 +156,7 @@ class DashboardSummary
                 'this_week' => Achievement::query()->whereBelongsTo($user)->whereDate('achieved_on', '>=', $weekStart)->count(),
                 'total' => Achievement::query()->whereBelongsTo($user)->count(),
                 'latest' => AchievementResource::collection(
-                    Achievement::query()->whereBelongsTo($user)->with('goal:id,title')->latest('achieved_on')->latest('id')->limit(3)->get()
+                    Achievement::query()->whereBelongsTo($user)->with('goal')->latest('achieved_on')->latest('id')->limit(3)->get()
                 ),
             ],
             'journal' => [
