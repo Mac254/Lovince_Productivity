@@ -4,9 +4,11 @@ namespace App\Support;
 
 use App\Modules\Accounting\Enums\AccountType;
 use App\Modules\Accounting\Enums\CategoryKind;
+use App\Modules\Accounting\Enums\Frequency;
 use App\Modules\Accounting\Enums\TransactionDirection;
 use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Accounting\Enums\TransactionType;
+use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
@@ -138,6 +140,8 @@ final class Contract
             'TransactionStatus' => $values(TransactionStatus::cases()),
             'TransactionDirection' => $values(TransactionDirection::cases()),
             'CategoryKind' => $values(CategoryKind::cases()),
+            'Frequency' => $values(Frequency::cases()),
+            'RecurringTransactionType' => $values(RecurringTransaction::TYPES),
             'Currency' => array_keys(self::CURRENCY_DECIMALS),
         ];
     }

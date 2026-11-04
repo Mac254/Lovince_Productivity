@@ -117,6 +117,61 @@ final class Statement
         return ['income' => (int) ($counts['income'] ?? 0), 'expense' => (int) ($counts['expense'] ?? 0)];
     }
 
+    /** The most months one trend covers. */
+    public const TREND_MONTHS = 24;
+
+    /**
+     * Income, spending and net income for each calendar month from `$from`'s month to `$to`'s,
+     * months with nothing recorded included as zero.
+     *
+     * @return list<array{month: string, from: string, to: string, income: int, expenses: int, net: int}>
+     */
+    public function trend(User $user, Carbon $from, Carbon $to, string $currency): array
+    {
+        $start = $from->copy()->startOfMonth();
+        $end = $to->copy()->endOfMonth()->startOfDay();
+        $rows = $this->lines($user, $start, $end, $currency)
+            ->whereIn('l.kind', [LineKind::Income->value, LineKind::Expense->value])
+            ->groupBy('e.date', 'l.kind')
+            ->selectRaw('e.date, l.kind, SUM(l.debit) AS debit, SUM(l.credit) AS credit')
+            ->get();
+
+        $months = [];
+        for ($month = $start->copy(); $month->lte($end); $month->addMonthNoOverflow()) {
+            $months[$month->format('Y-m')] = [
+                'month' => $month->format('Y-m'),
+                'from' => $month->toDateString(),
+                'to' => $month->copy()->endOfMonth()->toDateString(),
+                'income' => 0,
+                'expenses' => 0,
+                'net' => 0,
+            ];
+        }
+        foreach ($rows as $row) {
+            $key = substr((string) $row->date, 0, 7);
+            if ($row->kind === LineKind::Income->value) {
+                $months[$key]['income'] += (int) $row->credit - (int) $row->debit;
+            } else {
+                $months[$key]['expenses'] += (int) $row->debit - (int) $row->credit;
+            }
+        }
+
+        return array_values(array_map(fn (array $m) => [...$m, 'net' => $m['income'] - $m['expenses']], $months));
+    }
+
+    /**
+     * What was spent in each spending category over the range, net of refunds.
+     *
+     * @return array<int, int> Category id => amount.
+     */
+    public function spending(User $user, Carbon $from, Carbon $to, string $currency): array
+    {
+        return collect($this->byCategory($user, $from, $to, $currency, LineKind::Expense))
+            ->filter(fn (array $row) => $row['id'] !== null)
+            ->pluck('amount', 'id')
+            ->all();
+    }
+
     /**
      * @return list<array{id: int|null, name: string, amount: int}>
      */

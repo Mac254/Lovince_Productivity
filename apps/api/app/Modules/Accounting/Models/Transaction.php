@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 #[Fillable([
     'account_id', 'to_account_id', 'category_id', 'type', 'direction', 'status', 'amount', 'currency',
-    'date', 'description', 'notes', 'reference', 'reversal_of_id', 'idempotency_key', 'posted_at', 'voided_at',
+    'date', 'description', 'notes', 'reference', 'reversal_of_id', 'recurring_transaction_id', 'idempotency_key', 'posted_at', 'voided_at',
 ])]
 #[Table('accounting_transactions')]
 class Transaction extends Model
@@ -88,6 +88,14 @@ class Transaction extends Model
     public function reversal(): HasOne
     {
         return $this->hasOne(self::class, 'reversal_of_id');
+    }
+
+    /**
+     * @return BelongsTo<RecurringTransaction, $this>
+     */
+    public function recurring(): BelongsTo
+    {
+        return $this->belongsTo(RecurringTransaction::class, 'recurring_transaction_id');
     }
 
     /**

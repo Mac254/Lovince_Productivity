@@ -7,9 +7,11 @@ use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Accounting\Enums\TransactionType;
 use App\Modules\Accounting\Models\Category;
 use App\Modules\Accounting\Models\FinancialAccount;
+use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Accounting\Models\Transaction;
 use App\Modules\Accounting\Support\Money;
 use App\Support\Contract;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -27,9 +29,9 @@ class TransactionRequest extends FormRequest
 
     public function authorize(): bool
     {
-        $transaction = $this->route('transaction');
-        if ($transaction instanceof Transaction) {
-            Gate::authorize('update', $transaction);
+        $current = $this->current();
+        if ($current !== null) {
+            Gate::authorize('update', $current);
         }
 
         return true;
@@ -78,6 +80,16 @@ class TransactionRequest extends FormRequest
         return $this->resolved;
     }
 
+    /**
+     * The record being edited, or null when creating one.
+     */
+    protected function current(): ?Model
+    {
+        $transaction = $this->route('transaction');
+
+        return $transaction instanceof Transaction ? $transaction : null;
+    }
+
     protected function prepareForValidation(): void
     {
         if ($this->isMethod('POST')) {
@@ -90,10 +102,36 @@ class TransactionRequest extends FormRequest
         }
     }
 
+    /**
+     * Adds when the money moves and its status, or reports why they can't stand.
+     *
+     * @param  array<string, mixed>  $resolved
+     * @return array<string, mixed>|null
+     */
+    protected function timing(array $resolved, ?Model $current, Validator $validator): ?array
+    {
+        if ($current === null || $this->has('date')) {
+            $resolved['date'] = $this->input('date', today()->toDateString());
+        }
+        if ($current === null || $this->has('status')) {
+            $resolved['status'] = TransactionStatus::from($this->input('status', TransactionStatus::Posted->value));
+        }
+
+        $date = $resolved['date'] ?? $current->date->toDateString();
+        $status = $resolved['status'] ?? $current->status;
+        if (($current === null || $this->has('date') || $this->has('status')) && $status->isPosted() && $date > today()->toDateString()) {
+            $validator->errors()->add('date', 'Money that hasn’t moved yet can only be pending. Post it on the day it clears.');
+
+            return null;
+        }
+
+        return $resolved;
+    }
+
     private function resolve(Validator $validator): void
     {
-        /** @var Transaction|null $current */
-        $current = $this->route('transaction');
+        /** @var Transaction|RecurringTransaction|null $current */
+        $current = $this->current();
         $pick = fn (string $field, mixed $fallback = null) => $this->has($field) ? $this->input($field) : ($current?->getAttribute($field) ?? $fallback);
 
         $type = TransactionType::from($this->input('type') ?? $current->type->value);
@@ -160,23 +198,14 @@ class TransactionRequest extends FormRequest
             'amount' => $amount,
             'currency' => $account->currency,
         ];
-        if ($current === null || $this->has('date')) {
-            $resolved['date'] = $this->input('date', today()->toDateString());
-        }
-        if ($current === null || $this->has('status')) {
-            $resolved['status'] = TransactionStatus::from($this->input('status', TransactionStatus::Posted->value));
-        }
         foreach (['description', 'notes', 'reference'] as $field) {
             if ($this->has($field)) {
                 $resolved[$field] = $this->input($field);
             }
         }
 
-        $date = $resolved['date'] ?? $current->date->toDateString();
-        $status = $resolved['status'] ?? $current->status;
-        if (($current === null || $this->has('date') || $this->has('status')) && $status->isPosted() && $date > today()->toDateString()) {
-            $validator->errors()->add('date', 'Money that hasn’t moved yet can only be pending. Post it on the day it clears.');
-
+        $resolved = $this->timing($resolved, $current, $validator);
+        if ($resolved === null) {
             return;
         }
 

@@ -4,19 +4,27 @@ namespace App\Modules\Accounting\Services;
 
 use App\Modules\Accounting\Enums\TransactionDirection;
 use App\Modules\Accounting\Enums\TransactionStatus;
+use App\Modules\Accounting\Models\Budget;
 use App\Modules\Accounting\Models\FinancialAccount;
+use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Accounting\Models\Transaction;
 use App\Modules\Users\Models\User;
 use Illuminate\Support\Carbon;
 
 /**
  * The accounting dashboard for one currency and period: balances, the period's income,
- * spending and cash flow, recent transactions and rule-based insights. Each insight needs
- * enough transactions on both sides of a comparison before it says anything.
+ * spending and cash flow, a six-month trend, budgets, upcoming recurring payments, recent
+ * transactions and rule-based insights. Each insight needs enough transactions on both sides
+ * of a comparison before it says anything.
  */
 final class Overview
 {
     public const RECENT = 8;
+
+    public const TREND_MONTHS = 6;
+
+    /** Recurring payments due within this many days are listed as coming up. */
+    public const UPCOMING_DAYS = 14;
 
     public const MIN_TRANSACTIONS = 3;
 
@@ -83,7 +91,46 @@ final class Overview
                 ->orderByDesc('id')
                 ->limit(self::RECENT)
                 ->get(),
-            'insights' => $this->insights($current, $previous, (int) $pending->count, (int) $pending->total),
+            'trend' => $this->statement->trend($user, $to->copy()->startOfMonth()->subMonthsNoOverflow(self::TREND_MONTHS - 1), $to, $currency),
+            'budgets' => $budgets = $this->budgets($user, $from, $to, $currency),
+            'upcoming' => RecurringTransaction::query()
+                ->whereBelongsTo($user)
+                ->where('currency', $currency)
+                ->whereNull('paused_at')
+                ->whereNotNull('next_date')
+                ->whereDate('next_date', '<=', today()->addDays(self::UPCOMING_DAYS)->toDateString())
+                ->with(RecurringTransaction::RELATIONS)
+                ->orderBy('next_date')
+                ->limit(5)
+                ->get(),
+            'insights' => $this->insights($current, $previous, (int) $pending->count, (int) $pending->total, $budgets),
+        ];
+    }
+
+    /**
+     * The period's spending against the user's budgets, those nearest their limit first.
+     *
+     * @return array{amount: int, spent: int, over: int, items: list<array{id: int, category: string, amount: int, spent: int}>}
+     */
+    private function budgets(User $user, Carbon $from, Carbon $to, string $currency): array
+    {
+        $budgets = Budget::query()->whereBelongsTo($user)->where('currency', $currency)->with('category:id,name')->get();
+        $spending = $budgets->isEmpty() ? [] : $this->statement->spending($user, $from, $to, $currency);
+        $items = $budgets
+            ->map(fn (Budget $budget) => [
+                'id' => $budget->id,
+                'category' => $budget->category->name,
+                'amount' => $budget->amount,
+                'spent' => $spending[$budget->category_id] ?? 0,
+            ])
+            ->sortByDesc(fn (array $row) => $row['spent'] / $row['amount'])
+            ->values();
+
+        return [
+            'amount' => (int) $items->sum('amount'),
+            'spent' => (int) $items->sum('spent'),
+            'over' => $items->filter(fn (array $row) => $row['spent'] > $row['amount'])->count(),
+            'items' => $items->take(5)->all(),
         ];
     }
 
@@ -127,11 +174,17 @@ final class Overview
     /**
      * @param  array<string, mixed>  $current
      * @param  array<string, mixed>  $previous
+     * @param  array{amount: int, spent: int, over: int, items: list<array<string, mixed>>}  $budgets
      * @return list<array<string, mixed>>
      */
-    private function insights(array $current, array $previous, int $pendingCount, int $pendingTotal): array
+    private function insights(array $current, array $previous, int $pendingCount, int $pendingTotal, array $budgets): array
     {
         $insights = [];
+
+        if ($budgets['over'] > 0) {
+            $over = array_values(array_filter($budgets['items'], fn (array $row) => $row['spent'] > $row['amount']));
+            $insights[] = ['key' => 'over_budget', 'tone' => 'warning', 'count' => $budgets['over'], 'category' => $over[0]['category'] ?? null, 'amount' => array_sum(array_map(fn ($row) => $row['spent'] - $row['amount'], $over))];
+        }
 
         $enough = $current['counts']['expense'] >= self::MIN_TRANSACTIONS && $previous['counts']['expense'] >= self::MIN_TRANSACTIONS;
         if ($enough && $previous['expenses'] > 0) {

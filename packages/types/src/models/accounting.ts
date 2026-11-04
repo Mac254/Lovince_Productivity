@@ -2,6 +2,8 @@ import type {
     CategoryKind,
     Currency,
     FinancialAccountType,
+    Frequency,
+    RecurringTransactionType,
     TransactionDirection,
     TransactionStatus,
     TransactionType,
@@ -59,8 +61,48 @@ export interface Transaction {
     category: Pick<AccountingCategory, 'id' | 'name' | 'kind'> | null;
     reversal_of_id: number | null;
     reversed_by_id: number | null;
+    /** The recurring payment that recorded it, if any. */
+    recurring_transaction_id: number | null;
     posted_at: IsoDateTime | null;
     voided_at: IsoDateTime | null;
+    created_at: IsoDateTime;
+    updated_at: IsoDateTime;
+}
+
+export interface Budget {
+    id: number;
+    category: { id: number; name: string; archived: boolean };
+    /** The monthly limit. */
+    amount: MinorUnits;
+    currency: Currency;
+    /** Posted spending in the month asked for, net of refunds. */
+    spent: MinorUnits;
+    /** Negative once the month is over budget. */
+    remaining: MinorUnits;
+}
+
+export interface RecurringTransaction {
+    id: number;
+    type: RecurringTransactionType;
+    direction: TransactionDirection;
+    /** What each payment is recorded as: posted, or pending to confirm. */
+    status: Extract<TransactionStatus, 'posted' | 'pending'>;
+    amount: MinorUnits;
+    currency: Currency;
+    description: string;
+    notes: string | null;
+    reference: string | null;
+    account: FinancialAccountRef;
+    to_account: FinancialAccountRef | null;
+    category: Pick<AccountingCategory, 'id' | 'name' | 'kind'> | null;
+    frequency: Frequency;
+    start_date: IsoDate;
+    end_date: IsoDate | null;
+    /** Null once the schedule has ended. */
+    next_date: IsoDate | null;
+    /** Payments recorded so far. */
+    occurrences: number;
+    paused: boolean;
     created_at: IsoDateTime;
     updated_at: IsoDateTime;
 }

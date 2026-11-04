@@ -2,11 +2,13 @@ import type {
     CategoryKind,
     Currency,
     FinancialAccountType,
+    Frequency,
+    RecurringTransactionType,
     TransactionDirection,
     TransactionStatus,
     TransactionType,
 } from '../generated/contract';
-import type { MinorUnits, Transaction } from '../models/accounting';
+import type { MinorUnits, RecurringTransaction, Transaction } from '../models/accounting';
 import type { IsoDate } from '../models/task';
 
 export interface AccountInput {
@@ -40,6 +42,36 @@ export interface TransactionInput {
     reference?: string | null;
 }
 
+export interface BudgetInput {
+    category_id?: number;
+    currency?: Currency;
+    /** The monthly limit as a decimal string. */
+    amount?: string;
+}
+
+export interface BudgetMonth {
+    month: string;
+    from: IsoDate;
+    to: IsoDate;
+}
+
+export interface RecurringTransactionInput {
+    type?: RecurringTransactionType;
+    account_id?: number;
+    to_account_id?: number | null;
+    category_id?: number | null;
+    /** A decimal string such as "1500.50"; the server converts it to minor units. */
+    amount?: string;
+    status?: 'posted' | 'pending';
+    description?: string;
+    notes?: string | null;
+    reference?: string | null;
+    frequency?: Frequency;
+    start_date?: IsoDate;
+    end_date?: IsoDate | null;
+    paused?: boolean;
+}
+
 export interface TransactionFilters {
     search?: string;
     type?: TransactionType | '';
@@ -69,7 +101,27 @@ export type AccountingInsight =
     | { key: 'spending_change'; tone: 'warning' | 'success'; percent: number; amount: MinorUnits }
     | { key: 'top_category'; tone: 'info'; percent: number; amount: MinorUnits; category: string }
     | { key: 'negative_cash_flow'; tone: 'warning'; amount: MinorUnits }
-    | { key: 'pending'; tone: 'info'; count: number; amount: MinorUnits };
+    | { key: 'pending'; tone: 'info'; count: number; amount: MinorUnits }
+    | { key: 'over_budget'; tone: 'warning'; count: number; amount: MinorUnits; category: string | null };
+
+export interface MonthTotals {
+    /** `YYYY-MM`. */
+    month: string;
+    from: IsoDate;
+    to: IsoDate;
+    income: MinorUnits;
+    expenses: MinorUnits;
+    net: MinorUnits;
+}
+
+export interface BudgetSummary {
+    amount: MinorUnits;
+    spent: MinorUnits;
+    /** How many budgets are over their limit. */
+    over: number;
+    /** Nearest their limit first, at most five. */
+    items: { id: number; category: string; amount: MinorUnits; spent: MinorUnits }[];
+}
 
 export interface AccountingDashboard {
     currency: Currency;
@@ -87,6 +139,11 @@ export interface AccountingDashboard {
     top_expenses: CategoryAmount[];
     pending: { count: number; total: MinorUnits };
     recent: Transaction[];
+    /** The six months ending with the period's month. */
+    trend: MonthTotals[];
+    budgets: BudgetSummary;
+    /** Recurring payments due in the next two weeks. */
+    upcoming: RecurringTransaction[];
     insights: AccountingInsight[];
 }
 
@@ -100,6 +157,10 @@ export interface IncomeStatement extends ReportPeriod {
     income: { total: MinorUnits; categories: CategoryAmount[] };
     expenses: { total: MinorUnits; categories: CategoryAmount[] };
     net: MinorUnits;
+}
+
+export interface MoneyTrend extends ReportPeriod {
+    months: MonthTotals[];
 }
 
 export interface CashFlowAccount {

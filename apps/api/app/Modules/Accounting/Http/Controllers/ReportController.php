@@ -22,6 +22,16 @@ class ReportController extends Controller
         return $this->respond($request, $this->statement->cashFlow(...));
     }
 
+    /**
+     * Month by month across the range, at most `Statement::TREND_MONTHS` months ending at `to`.
+     */
+    public function trend(PeriodRequest $request): JsonResponse
+    {
+        $from = $request->from()->copy()->startOfMonth()->max($request->to()->copy()->startOfMonth()->subMonthsNoOverflow(Statement::TREND_MONTHS - 1));
+
+        return $this->respond($request, fn ($user, $_, $to, $currency) => ['months' => $this->statement->trend($user, $from, $to, $currency)]);
+    }
+
     private function respond(PeriodRequest $request, callable $report): JsonResponse
     {
         $user = $request->user();

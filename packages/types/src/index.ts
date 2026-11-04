@@ -26,9 +26,11 @@ export type { SettingDescription, SettingsChanges, SettingsModuleDescription, Se
 
 export type {
     AccountingCategory,
+    Budget,
     FinancialAccount,
     FinancialAccountRef,
     MinorUnits,
+    RecurringTransaction,
     Transaction,
 } from './models/accounting';
 
@@ -83,11 +85,17 @@ export type {
     AccountingDashboard,
     AccountingInsight,
     AccountingPeriod,
+    BudgetInput,
+    BudgetMonth,
+    BudgetSummary,
     CashFlow,
     CashFlowAccount,
     CategoryAmount,
     CategoryInput,
     IncomeStatement,
+    MonthTotals,
+    MoneyTrend,
+    RecurringTransactionInput,
     TransactionFilters,
     TransactionInput,
 } from './api/accounting';

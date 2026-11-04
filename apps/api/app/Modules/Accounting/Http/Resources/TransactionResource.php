@@ -34,6 +34,7 @@ class TransactionResource extends JsonResource
             'category' => $this->category === null ? null : ['id' => $this->category->id, 'name' => $this->category->name, 'kind' => $this->category->kind],
             'reversal_of_id' => $this->reversal_of_id,
             'reversed_by_id' => $this->reversal?->id,
+            'recurring_transaction_id' => $this->recurring_transaction_id,
             'posted_at' => $this->posted_at?->toIso8601String(),
             'voided_at' => $this->voided_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
