@@ -86,7 +86,12 @@ describe('missed day actions', () => {
 
         const outbox = useOutboxStore();
         expect(outbox.pending).toEqual([
-            { kind: 'task-update', id: 3, title: 'Write the brief', input: { status: 'completed', completed_at: '2026-11-02' } },
+            {
+                kind: 'task-update',
+                id: 3,
+                title: 'Write the brief',
+                input: { status: 'completed', completed_at: '2026-11-02' },
+            },
         ]);
         expect(error).not.toHaveBeenCalled();
 
@@ -120,7 +125,10 @@ describe('missed day actions', () => {
 
         update.mockRejectedValueOnce(new ApiError({ kind: 'conflict', message: 'Changed', status: 409 }));
         expect(await outbox.flush()).toBe(0);
-        expect(update).toHaveBeenLastCalledWith(3, { status: 'completed', base_updated_at: '2026-11-02T08:00:00+03:00' });
+        expect(update).toHaveBeenLastCalledWith(3, {
+            status: 'completed',
+            base_updated_at: '2026-11-02T08:00:00+03:00',
+        });
         expect(outbox.pending).toEqual([]);
         expect(outbox.takeConflicts()).toEqual(['A']);
         expect(outbox.takeConflicts()).toEqual([]);

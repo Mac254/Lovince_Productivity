@@ -80,7 +80,10 @@ export const useOutboxStore = defineStore('outbox', () => {
             const { completed_at, ...rest } = earlier.input;
             change = {
                 ...change,
-                input: { ...(change.input.status ? rest : { ...rest, ...(completed_at && { completed_at }) }), ...change.input },
+                input: {
+                    ...(change.input.status ? rest : { ...rest, ...(completed_at && { completed_at }) }),
+                    ...change.input,
+                },
                 ...(earlier.base_updated_at && { base_updated_at: earlier.base_updated_at }),
             };
         }
