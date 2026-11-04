@@ -77,6 +77,7 @@ describe('api client', () => {
             expires_at: '2026-11-27T10:00:00+00:00',
             idle_timeout_minutes: 120,
             remember_days: 30,
+            timezone: 'Africa/Nairobi',
         };
         const { adapter, calls } = scripted({
             status: 200,

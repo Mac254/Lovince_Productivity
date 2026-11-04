@@ -16,6 +16,8 @@ export interface AuthSession {
     expires_at: string;
     idle_timeout_minutes: number;
     remember_days: number;
+    /** The server's timezone (`APP_TIMEZONE`), which decides where each day starts for today, overdue and streaks. */
+    timezone: string;
 }
 
 export interface Me {

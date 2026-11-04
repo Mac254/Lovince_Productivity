@@ -68,6 +68,7 @@ class AuthTest extends TestCase
             ->assertOk()
             ->assertJsonPath('meta.session.remembered', true)
             ->assertJsonPath('meta.session.remember_days', 30)
+            ->assertJsonPath('meta.session.timezone', config('app.timezone'))
             ->assertJsonPath('meta.session.expires_at', '2026-11-27T10:00:00+00:00');
 
         $cookie = collect($response->headers->getCookies())->first(fn ($c) => str_starts_with($c->getName(), 'remember_web_'));

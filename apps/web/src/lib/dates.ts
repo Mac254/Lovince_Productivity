@@ -6,7 +6,21 @@ export function parseDate(value: string): Date {
     return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
 }
 
+let dayZone: string | undefined;
+
+/** Days follow the server's timezone, so today and overdue match what the API counts wherever this device is. */
+export function setDayTimeZone(zone: string | undefined): void {
+    dayZone = zone;
+}
+
 export function todayIso(now = new Date()): string {
+    if (dayZone) {
+        try {
+            return new Intl.DateTimeFormat('en-CA', { timeZone: dayZone }).format(now);
+        } catch {
+            dayZone = undefined;
+        }
+    }
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');

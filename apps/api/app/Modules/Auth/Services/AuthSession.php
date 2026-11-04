@@ -45,6 +45,7 @@ final class AuthSession
             'expires_at' => $rememberUntil ?? now()->addMinutes($idleMinutes)->toIso8601String(),
             'idle_timeout_minutes' => $idleMinutes,
             'remember_days' => intdiv(self::rememberMinutes(), 1440),
+            'timezone' => config('app.timezone'),
         ];
     }
 

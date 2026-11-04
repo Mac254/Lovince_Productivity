@@ -1,5 +1,6 @@
 import { api, isApiError } from '@focus/api-client';
 import type { AuthSession, LoginInput, Me, User } from '@focus/types';
+import { setDayTimeZone } from '@/lib/dates';
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null);
@@ -12,6 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
     function apply(me: Me): void {
         user.value = me.user;
         session.value = me.session;
+        setDayTimeZone(me.session.timezone);
         settings.hydrate(me.settings);
         resolved.value = true;
     }
