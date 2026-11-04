@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Income statement and cash flow for one currency over a date range, read from journal entries
  * still in force. Transfers move money between the user's own accounts, so they appear per
- * account but never in consolidated income, spending or cash flow.
+ * account but never in consolidated income, spending or cash flow. Adjustments correct a
+ * balance without being earned or spent, so cash flow shows them apart.
  */
 final class Statement
 {
@@ -41,15 +42,17 @@ final class Statement
      */
     public function cashFlow(User $user, Carbon $from, Carbon $to, string $currency): array
     {
+        $moves = [TransactionType::Transfer->value, TransactionType::Adjustment->value];
         $rows = $this->lines($user, $from, $to, $currency)
             ->join('accounting_transactions as t', 't.id', '=', 'e.transaction_id')
             ->where('l.kind', LineKind::Account->value)
             ->groupBy('l.account_id')
             ->selectRaw('l.account_id')
-            ->selectRaw('SUM(CASE WHEN t.type = ? THEN 0 ELSE l.debit END) AS inflows', [TransactionType::Transfer->value])
-            ->selectRaw('SUM(CASE WHEN t.type = ? THEN 0 ELSE l.credit END) AS outflows', [TransactionType::Transfer->value])
+            ->selectRaw('SUM(CASE WHEN t.type IN (?, ?) THEN 0 ELSE l.debit END) AS inflows', $moves)
+            ->selectRaw('SUM(CASE WHEN t.type IN (?, ?) THEN 0 ELSE l.credit END) AS outflows', $moves)
             ->selectRaw('SUM(CASE WHEN t.type = ? THEN l.debit ELSE 0 END) AS transfers_in', [TransactionType::Transfer->value])
             ->selectRaw('SUM(CASE WHEN t.type = ? THEN l.credit ELSE 0 END) AS transfers_out', [TransactionType::Transfer->value])
+            ->selectRaw('SUM(CASE WHEN t.type = ? THEN l.debit - l.credit ELSE 0 END) AS adjustments', [TransactionType::Adjustment->value])
             ->get()
             ->keyBy('account_id');
 
@@ -68,6 +71,7 @@ final class Statement
                     'outflows' => (int) ($row->outflows ?? 0),
                     'transfers_in' => (int) ($row->transfers_in ?? 0),
                     'transfers_out' => (int) ($row->transfers_out ?? 0),
+                    'adjustments' => (int) ($row->adjustments ?? 0),
                 ];
 
                 return [
@@ -76,7 +80,7 @@ final class Statement
                     'type' => $account->type,
                     'opening' => $opening,
                     ...$flows,
-                    'closing' => $opening + $flows['inflows'] - $flows['outflows'] + $flows['transfers_in'] - $flows['transfers_out'],
+                    'closing' => $opening + $flows['inflows'] - $flows['outflows'] + $flows['transfers_in'] - $flows['transfers_out'] + $flows['adjustments'],
                 ];
             })
             ->values()
@@ -89,6 +93,7 @@ final class Statement
             'inflows' => $inflows,
             'outflows' => $outflows,
             'net' => $inflows - $outflows,
+            'adjustments' => array_sum(array_column($accounts, 'adjustments')),
             'opening' => array_sum(array_column($accounts, 'opening')),
             'closing' => array_sum(array_column($accounts, 'closing')),
             'accounts' => $accounts,

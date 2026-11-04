@@ -111,14 +111,17 @@ export interface CashFlowAccount {
     outflows: MinorUnits;
     transfers_in: MinorUnits;
     transfers_out: MinorUnits;
+    /** Balance corrections, signed: positive added money. */
+    adjustments: MinorUnits;
     closing: MinorUnits;
 }
 
 export interface CashFlow extends ReportPeriod {
-    /** Money in and out of the user's accounts, transfers between them left out. */
+    /** Money in and out of the user's accounts, transfers and adjustments left out. */
     inflows: MinorUnits;
     outflows: MinorUnits;
     net: MinorUnits;
+    adjustments: MinorUnits;
     opening: MinorUnits;
     closing: MinorUnits;
     accounts: CashFlowAccount[];

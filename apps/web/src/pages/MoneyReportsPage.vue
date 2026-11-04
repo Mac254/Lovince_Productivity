@@ -99,6 +99,10 @@ onMounted(run);
                         <dd class="font-semibold tabular">{{ money(data.cash.closing) }}</dd>
                     </div>
                 </dl>
+                <Text v-if="data.cash.adjustments" as="p" tone="muted">
+                    Balance adjustments of {{ formatMoney(data.cash.adjustments, data.statement.currency, { signed: true }) }} are included in the
+                    closing balance but not in money in or out.
+                </Text>
                 <Table v-if="data.cash.accounts.length" caption="Cash flow by account" label="Cash flow by account">
                     <TableHeader>
                         <TableRow>
@@ -106,6 +110,7 @@ onMounted(run);
                             <TableHead align="end">In</TableHead>
                             <TableHead align="end">Out</TableHead>
                             <TableHead align="end">Transfers</TableHead>
+                            <TableHead v-if="data.cash.adjustments" align="end">Adjusted</TableHead>
                             <TableHead align="end">Closing</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -116,6 +121,9 @@ onMounted(run);
                             <TableCell numeric align="end">{{ money(row.outflows) }}</TableCell>
                             <TableCell numeric align="end" class="text-fg-muted">{{
                                 formatMoney(row.transfers_in - row.transfers_out, data.statement.currency, { signed: true })
+                            }}</TableCell>
+                            <TableCell v-if="data.cash.adjustments" numeric align="end" class="text-fg-muted">{{
+                                formatMoney(row.adjustments, data.statement.currency, { signed: true })
                             }}</TableCell>
                             <TableCell numeric align="end" class="font-semibold">{{ money(row.closing) }}</TableCell>
                         </TableRow>

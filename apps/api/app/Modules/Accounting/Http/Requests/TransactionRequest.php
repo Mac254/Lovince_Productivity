@@ -172,6 +172,14 @@ class TransactionRequest extends FormRequest
             }
         }
 
+        $date = $resolved['date'] ?? $current->date->toDateString();
+        $status = $resolved['status'] ?? $current->status;
+        if (($current === null || $this->has('date') || $this->has('status')) && $status->isPosted() && $date > today()->toDateString()) {
+            $validator->errors()->add('date', 'Money that hasn’t moved yet can only be pending. Post it on the day it clears.');
+
+            return;
+        }
+
         $this->resolved = $resolved;
     }
 }

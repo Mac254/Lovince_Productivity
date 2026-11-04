@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionController extends Controller
@@ -61,6 +62,10 @@ class TransactionController extends Controller
     {
         Gate::authorize('update', $transaction);
         $input = $request->validate(['date' => ['sometimes', 'date_format:Y-m-d']]);
+        $date = $input['date'] ?? today()->toDateString();
+        if ($date < $transaction->date->toDateString() || $date > today()->toDateString()) {
+            throw ValidationException::withMessages(['date' => 'Reverse on a day between the original transaction and today.']);
+        }
 
         [$reversal, $created] = $reverse->handle(
             $request->user(),

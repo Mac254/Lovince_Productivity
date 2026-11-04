@@ -4,6 +4,7 @@ namespace App\Modules\Accounting\Models;
 
 use App\Modules\Accounting\Database\Factories\FinancialAccountFactory;
 use App\Modules\Accounting\Enums\AccountType;
+use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Users\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -59,6 +60,14 @@ class FinancialAccount extends Model
     {
         return Transaction::query()
             ->where(fn ($q) => $q->where('account_id', $this->id)->orWhere('to_account_id', $this->id))
+            ->exists();
+    }
+
+    public function hasReconciled(): bool
+    {
+        return Transaction::query()
+            ->where(fn ($q) => $q->where('account_id', $this->id)->orWhere('to_account_id', $this->id))
+            ->where('status', TransactionStatus::Reconciled)
             ->exists();
     }
 }

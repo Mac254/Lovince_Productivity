@@ -43,11 +43,13 @@ class AccountingApiTest extends AccountingTestCase
 
         $this->deleteJson("/api/v1/accounting/accounts/{$used->id}")->assertJsonValidationErrors('account');
         $this->patchJson("/api/v1/accounting/accounts/{$used->id}", ['currency' => 'USD'])->assertJsonValidationErrors('currency');
+        $this->patchJson("/api/v1/accounting/accounts/{$used->id}", ['archived' => true])->assertJsonValidationErrors('archived');
+        $this->record(['type' => 'adjustment', 'direction' => 'out', 'account_id' => $used->id, 'amount' => '10']);
         $this->patchJson("/api/v1/accounting/accounts/{$used->id}", ['archived' => true])->assertJsonPath('data.archived', true);
         $this->deleteJson("/api/v1/accounting/accounts/{$empty->id}")->assertNoContent();
 
         $this->getJson('/api/v1/accounting/accounts')->assertJsonCount(0, 'data');
-        $this->getJson('/api/v1/accounting/accounts?archived=1')->assertJsonCount(1, 'data')->assertJsonPath('data.0.balance', 1000);
+        $this->getJson('/api/v1/accounting/accounts?archived=1')->assertJsonCount(1, 'data')->assertJsonPath('data.0.balance', 0);
         $this->record(['type' => 'income', 'account_id' => $used->id, 'amount' => '10'])->assertJsonValidationErrors('account_id');
     }
 

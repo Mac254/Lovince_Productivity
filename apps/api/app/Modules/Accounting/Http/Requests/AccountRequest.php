@@ -4,6 +4,7 @@ namespace App\Modules\Accounting\Http\Requests;
 
 use App\Modules\Accounting\Enums\AccountType;
 use App\Modules\Accounting\Models\FinancialAccount;
+use App\Modules\Accounting\Services\Ledger;
 use App\Modules\Accounting\Support\Money;
 use App\Support\Contract;
 use Illuminate\Foundation\Http\FormRequest;
@@ -88,9 +89,22 @@ class AccountRequest extends FormRequest
 
                 return;
             }
+            if ($account !== null && $opening !== $account->opening_balance && $account->hasReconciled()) {
+                $validator->errors()->add('opening_balance', 'The opening balance can’t change once transactions in this account are reconciled.');
+
+                return;
+            }
             $resolved['opening_balance'] = $opening;
         } elseif ($account !== null && $currency !== $account->currency) {
             $resolved['opening_balance'] = 0;
+        }
+        if ($account !== null && $account->archived_at === null && $this->boolean('archived')) {
+            $balance = app(Ledger::class)->balances(collect([clone $account]))->first();
+            if ($balance->balance !== 0 || $balance->available_balance !== 0) {
+                $validator->errors()->add('archived', 'Move the money out or record pending payments first: only an account at zero can be archived.');
+
+                return;
+            }
         }
         if ($this->has('archived')) {
             $resolved['archived_at'] = $this->boolean('archived') ? ($account?->archived_at ?? now()) : null;
