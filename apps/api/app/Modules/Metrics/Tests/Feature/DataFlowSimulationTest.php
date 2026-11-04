@@ -72,6 +72,9 @@ class DataFlowSimulationTest extends TestCase
         $at(self::TODAY, '20:00:00');
         $this->postJson('/api/v1/tasks', ['title' => 'Next Sunday', 'due_date' => '2026-12-06'])->assertCreated();
         $this->putJson('/api/v1/journal/2026-11-29', ['body' => 'Wrapped up the month.'])->assertSuccessful();
+        $this->putJson('/api/v1/journal/2026-11-20', ['body' => 'A quieter week.'])->assertSuccessful();
+        $this->postJson('/api/v1/achievements', ['title' => 'First signup', 'achieved_on' => '2026-11-10'])->assertCreated();
+        $this->postJson('/api/v1/achievements', ['title' => 'Beta live', 'achieved_on' => '2026-11-24', 'goal_id' => $goal])->assertCreated();
         $this->postJson('/api/v1/goals', ['title' => 'Learn Rust', 'timeframe' => 'long_term'])->assertCreated();
 
         $plan = collect($plan);
@@ -121,6 +124,10 @@ class DataFlowSimulationTest extends TestCase
         $this->same('dashboard week done', $week->where('done', true)->count(), $dashboard['stats']['week_due_completed']);
         $this->same('dashboard completed this week', $week->where('done', true)->count(), $dashboard['stats']['completed_this_week']);
         $this->same('dashboard goal progress', $progress, collect($dashboard['active_goals'])->firstWhere('id', $goal)['progress'] ?? null);
+        $this->same('dashboard achievements', ['this_week' => 1, 'total' => 2], array_intersect_key($dashboard['achievements'], ['this_week' => 0, 'total' => 0]));
+        $this->same('dashboard latest win', ['Beta live', $goal], [$dashboard['achievements']['latest'][0]['title'], $dashboard['achievements']['latest'][0]['goal']['id'] ?? null]);
+        $this->same('dashboard journal', ['written_today' => true, 'this_week' => 1], $dashboard['journal']);
+        $this->same('metrics and dashboard wins agree', [$dashboard['achievements']['this_week'], 1], [$metrics['achievements']['count'], $metrics['achievements']['from_goals']]);
         $this->same('tasks filtered to this week', $week->count(), $this->getJson('/api/v1/tasks?due=week&per_page=50')->json('meta.total'));
 
         $review = $this->getJson('/api/v1/reviews/2026-11-23')->assertOk()->json('data');
