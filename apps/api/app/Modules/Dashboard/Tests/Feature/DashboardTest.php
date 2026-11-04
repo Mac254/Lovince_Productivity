@@ -2,7 +2,9 @@
 
 namespace App\Modules\Dashboard\Tests\Feature;
 
+use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Quotes\Database\Seeders\QuoteSeeder;
 use App\Modules\Quotes\Models\Quote;
 use App\Modules\Tasks\Models\Task;
@@ -45,6 +47,31 @@ class DashboardTest extends TestCase
             ->assertJsonPath('data.stats.planned_today', 2)
             ->assertJsonCount(1, 'data.overdue_tasks')
             ->assertJsonCount(1, 'data.weekly_goals');
+    }
+
+    public function test_dashboard_counts_this_weeks_achievements_and_journal_entries(): void
+    {
+        Carbon::setTestNow('2026-10-28 10:00:00'); // A Wednesday.
+
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        foreach (['2026-10-27' => 'Shipped the release', '2026-10-20' => 'Ran 10k'] as $day => $title) {
+            $user->achievements()->create(['title' => $title, 'achieved_on' => $day]);
+        }
+        $other->achievements()->create(['title' => 'Not mine', 'achieved_on' => '2026-10-28']);
+        foreach (['2026-10-26', '2026-10-28', '2026-10-19'] as $day) {
+            JournalEntry::query()->forceCreate(['user_id' => $user->id, 'date' => $day, 'body' => 'Notes']);
+        }
+
+        $this->actingAs($user)->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.achievements.this_week', 1)
+            ->assertJsonPath('data.achievements.total', 2)
+            ->assertJsonPath('data.achievements.latest.0.title', 'Shipped the release')
+            ->assertJsonPath('data.journal.written_today', true)
+            ->assertJsonPath('data.journal.this_week', 2);
+
+        $this->assertSame(1, Achievement::query()->whereBelongsTo($other)->count());
     }
 
     public function test_weekly_rate_is_null_when_nothing_is_due(): void

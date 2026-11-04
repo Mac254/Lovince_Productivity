@@ -2,6 +2,8 @@
 
 namespace App\Modules\Dashboard\Services;
 
+use App\Modules\Achievements\Http\Resources\AchievementResource;
+use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Http\Resources\BlockerResource;
 use App\Modules\Blockers\Models\Blocker;
 use App\Modules\Clock\Services\FocusStats;
@@ -9,6 +11,7 @@ use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Http\Resources\GoalResource;
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Metrics\Services\ActivityDays;
 use App\Modules\Quotes\Http\Resources\QuoteResource;
 use App\Modules\Quotes\Models\Quote;
@@ -149,6 +152,17 @@ class DashboardSummary
                     ->limit(5)
                     ->get()
             ),
+            'achievements' => [
+                'this_week' => Achievement::query()->whereBelongsTo($user)->whereDate('achieved_on', '>=', $weekStart)->count(),
+                'total' => Achievement::query()->whereBelongsTo($user)->count(),
+                'latest' => AchievementResource::collection(
+                    Achievement::query()->whereBelongsTo($user)->with('goal:id,title')->latest('achieved_on')->latest('id')->limit(3)->get()
+                ),
+            ],
+            'journal' => [
+                'written_today' => JournalEntry::query()->whereBelongsTo($user)->whereDate('date', $today)->exists(),
+                'this_week' => JournalEntry::query()->whereBelongsTo($user)->whereDate('date', '>=', $weekStart)->whereDate('date', '<=', $weekEnd)->count(),
+            ],
             'quote' => ($quote = Quote::pickRandom()) ? QuoteResource::make($quote)->resolve() : null,
         ];
     }

@@ -1,4 +1,5 @@
 import type { ActivityStreak } from './metrics';
+import type { Achievement } from '../models/achievement';
 import type { Blocker } from '../models/blocker';
 import type { Goal } from '../models/goal';
 import type { Quote } from '../models/quote';
@@ -61,5 +62,7 @@ export interface Dashboard {
     integration: IntegrationSummary;
     weekly_goals: Goal[];
     active_goals: Goal[];
+    achievements: { this_week: number; total: number; latest: Achievement[] };
+    journal: { written_today: boolean; this_week: number };
     quote: Quote | null;
 }
