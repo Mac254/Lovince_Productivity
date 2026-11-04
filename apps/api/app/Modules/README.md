@@ -21,6 +21,7 @@ Modules depend on each other in one direction only:
 Users ← Settings ← Auth
 Users ← Goals ← Tasks ← Blockers ← Journal
 Users ← Quotes
+Users ← Accounting
 Tasks ← Clock
 Tasks ← Planner
 Tasks, Goals, Blockers, Journal, Clock ← Reviews

@@ -49,6 +49,24 @@ export type SuggestionSource = (typeof SUGGESTION_SOURCES)[number];
 export const ACHIEVEMENT_CATEGORIES = ['focus', 'growth', 'health', 'wellbeing', 'social', 'fun'] as const;
 export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
 
+export const FINANCIAL_ACCOUNT_TYPES = ['cash', 'bank', 'mobile_money', 'savings', 'sacco', 'money_market', 'investment', 'credit', 'other'] as const;
+export type FinancialAccountType = (typeof FINANCIAL_ACCOUNT_TYPES)[number];
+
+export const TRANSACTION_TYPES = ['income', 'expense', 'transfer', 'refund', 'adjustment', 'interest', 'fee'] as const;
+export type TransactionType = (typeof TRANSACTION_TYPES)[number];
+
+export const TRANSACTION_STATUSES = ['pending', 'posted', 'reconciled', 'voided'] as const;
+export type TransactionStatus = (typeof TRANSACTION_STATUSES)[number];
+
+export const TRANSACTION_DIRECTIONS = ['in', 'out'] as const;
+export type TransactionDirection = (typeof TRANSACTION_DIRECTIONS)[number];
+
+export const CATEGORY_KINDS = ['income', 'expense'] as const;
+export type CategoryKind = (typeof CATEGORY_KINDS)[number];
+
+export const CURRENCIES = ['KES', 'UGX', 'TZS', 'RWF', 'ETB', 'NGN', 'ZAR', 'USD', 'EUR', 'GBP'] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
 export const LIMITS = {
     task: {
         title: 200,
@@ -99,6 +117,25 @@ export const LIMITS = {
     achievement: {
         title: 160,
         description: 5000,
+    },
+    accounting: {
+        accountName: 80,
+        categoryName: 60,
+        description: 160,
+        notes: 1000,
+        reference: 80,
+    },
+    currencyDecimals: {
+        KES: 2,
+        UGX: 0,
+        TZS: 2,
+        RWF: 0,
+        ETB: 2,
+        NGN: 2,
+        ZAR: 2,
+        USD: 2,
+        EUR: 2,
+        GBP: 2,
     },
 } as const;
 

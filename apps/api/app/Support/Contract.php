@@ -2,6 +2,11 @@
 
 namespace App\Support;
 
+use App\Modules\Accounting\Enums\AccountType;
+use App\Modules\Accounting\Enums\CategoryKind;
+use App\Modules\Accounting\Enums\TransactionDirection;
+use App\Modules\Accounting\Enums\TransactionStatus;
+use App\Modules\Accounting\Enums\TransactionType;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
@@ -88,6 +93,22 @@ final class Contract
 
     public const ACHIEVEMENT_TITLE_MAX = 160;
 
+    public const ACCOUNTING_ACCOUNT_NAME_MAX = 80;
+
+    public const ACCOUNTING_CATEGORY_NAME_MAX = 60;
+
+    public const ACCOUNTING_DESCRIPTION_MAX = 160;
+
+    public const ACCOUNTING_NOTES_MAX = 1000;
+
+    public const ACCOUNTING_REFERENCE_MAX = 80;
+
+    /** The largest single amount in minor units: just under 10 trillion in a two-decimal currency. */
+    public const ACCOUNTING_AMOUNT_MAX = 999_999_999_999_999;
+
+    /** The currencies accounts can hold, with their minor-unit decimal places. */
+    public const CURRENCY_DECIMALS = ['KES' => 2, 'UGX' => 0, 'TZS' => 2, 'RWF' => 0, 'ETB' => 2, 'NGN' => 2, 'ZAR' => 2, 'USD' => 2, 'EUR' => 2, 'GBP' => 2];
+
     /**
      * @return array<string, list<string>>
      */
@@ -112,6 +133,12 @@ final class Contract
             'SuggestionStatus' => $values(SuggestionStatus::cases()),
             'SuggestionSource' => $values(SuggestionSource::cases()),
             'AchievementCategory' => $values(SuggestionCategory::cases()),
+            'FinancialAccountType' => $values(AccountType::cases()),
+            'TransactionType' => $values(TransactionType::cases()),
+            'TransactionStatus' => $values(TransactionStatus::cases()),
+            'TransactionDirection' => $values(TransactionDirection::cases()),
+            'CategoryKind' => $values(CategoryKind::cases()),
+            'Currency' => array_keys(self::CURRENCY_DECIMALS),
         ];
     }
 
@@ -142,6 +169,14 @@ final class Contract
             'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT],
             'suggestion' => ['title' => self::SUGGESTION_TITLE_MAX, 'body' => self::SUGGESTION_BODY_MAX],
             'achievement' => ['title' => self::ACHIEVEMENT_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
+            'accounting' => [
+                'accountName' => self::ACCOUNTING_ACCOUNT_NAME_MAX,
+                'categoryName' => self::ACCOUNTING_CATEGORY_NAME_MAX,
+                'description' => self::ACCOUNTING_DESCRIPTION_MAX,
+                'notes' => self::ACCOUNTING_NOTES_MAX,
+                'reference' => self::ACCOUNTING_REFERENCE_MAX,
+            ],
+            'currencyDecimals' => self::CURRENCY_DECIMALS,
         ];
     }
 }

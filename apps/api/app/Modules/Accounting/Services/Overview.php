@@ -1,0 +1,162 @@
+<?php
+
+namespace App\Modules\Accounting\Services;
+
+use App\Modules\Accounting\Enums\TransactionDirection;
+use App\Modules\Accounting\Enums\TransactionStatus;
+use App\Modules\Accounting\Models\FinancialAccount;
+use App\Modules\Accounting\Models\Transaction;
+use App\Modules\Users\Models\User;
+use Illuminate\Support\Carbon;
+
+/**
+ * The accounting dashboard for one currency and period: balances, the period's income,
+ * spending and cash flow, recent transactions and rule-based insights. Each insight needs
+ * enough transactions on both sides of a comparison before it says anything.
+ */
+final class Overview
+{
+    public const RECENT = 8;
+
+    public const MIN_TRANSACTIONS = 3;
+
+    /** The smallest change in spending worth mentioning, in percent. */
+    public const NOTABLE_CHANGE = 10;
+
+    /** The share of spending a single category needs before it is called out, in percent. */
+    public const NOTABLE_SHARE = 30;
+
+    public function __construct(private Ledger $ledger, private Statement $statement) {}
+
+    public static function currencyFor(User $user, ?string $requested): string
+    {
+        if ($requested !== null) {
+            return $requested;
+        }
+
+        return FinancialAccount::query()->whereBelongsTo($user)->orderByRaw('CASE WHEN archived_at IS NULL THEN 0 ELSE 1 END')->orderBy('id')->value('currency')
+            ?? config('accounting.default_currency');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function build(User $user, Carbon $from, Carbon $to, string $currency): array
+    {
+        $accounts = $this->ledger->balances(
+            FinancialAccount::query()->whereBelongsTo($user)->whereNull('archived_at')->where('currency', $currency)->orderBy('name')->get()
+        );
+        [$previousFrom, $previousTo, $monthly] = $this->previous($from, $to);
+
+        $current = $this->totals($user, $from, $to, $currency);
+        $previous = $this->totals($user, $previousFrom, $previousTo, $currency);
+
+        $pending = Transaction::query()
+            ->whereBelongsTo($user)
+            ->where('currency', $currency)
+            ->where('status', TransactionStatus::Pending)
+            ->where('direction', TransactionDirection::Out)
+            ->selectRaw('COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total')
+            ->first();
+
+        return [
+            'currency' => $currency,
+            'currencies' => FinancialAccount::query()->whereBelongsTo($user)->distinct()->orderBy('currency')->pluck('currency')->all(),
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'previous' => ['from' => $previousFrom->toDateString(), 'to' => $previousTo->toDateString(), 'monthly' => $monthly],
+            'balance' => (int) $accounts->sum('balance'),
+            'available_balance' => (int) $accounts->sum('available_balance'),
+            'accounts_count' => $accounts->count(),
+            'income' => $current['income'],
+            'expenses' => $current['expenses'],
+            'net_cash_flow' => $current['net_cash_flow'],
+            'previous_totals' => ['income' => $previous['income'], 'expenses' => $previous['expenses'], 'net_cash_flow' => $previous['net_cash_flow']],
+            'top_expenses' => array_slice($current['categories'], 0, 5),
+            'pending' => ['count' => (int) $pending->count, 'total' => (int) $pending->total],
+            'recent' => Transaction::query()
+                ->whereBelongsTo($user)
+                ->where('currency', $currency)
+                ->where('status', '!=', TransactionStatus::Voided)
+                ->with(Transaction::RELATIONS)
+                ->orderByDesc('date')
+                ->orderByDesc('id')
+                ->limit(self::RECENT)
+                ->get(),
+            'insights' => $this->insights($current, $previous, (int) $pending->count, (int) $pending->total),
+        ];
+    }
+
+    /**
+     * The period before: the previous calendar month when the range is one whole month,
+     * otherwise the same number of days just before it.
+     *
+     * @return array{0: Carbon, 1: Carbon, 2: bool}
+     */
+    private function previous(Carbon $from, Carbon $to): array
+    {
+        $wholeMonth = $from->day === 1 && $to->isSameMonth($from) && $to->day === $to->daysInMonth;
+        if ($wholeMonth) {
+            $start = $from->copy()->subMonthNoOverflow()->startOfMonth();
+
+            return [$start, $start->copy()->endOfMonth()->startOfDay(), true];
+        }
+
+        $days = (int) $from->diffInDays($to) + 1;
+
+        return [$from->copy()->subDays($days), $from->copy()->subDay(), false];
+    }
+
+    /**
+     * @return array{income: int, expenses: int, net_cash_flow: int, categories: list<array{id: int|null, name: string, amount: int}>, counts: array{income: int, expense: int}}
+     */
+    private function totals(User $user, Carbon $from, Carbon $to, string $currency): array
+    {
+        $statement = $this->statement->incomeStatement($user, $from, $to, $currency);
+        $cash = $this->statement->cashFlow($user, $from, $to, $currency);
+
+        return [
+            'income' => $statement['income']['total'],
+            'expenses' => $statement['expenses']['total'],
+            'net_cash_flow' => $cash['net'],
+            'categories' => $statement['expenses']['categories'],
+            'counts' => $this->statement->counts($user, $from, $to, $currency),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $current
+     * @param  array<string, mixed>  $previous
+     * @return list<array<string, mixed>>
+     */
+    private function insights(array $current, array $previous, int $pendingCount, int $pendingTotal): array
+    {
+        $insights = [];
+
+        $enough = $current['counts']['expense'] >= self::MIN_TRANSACTIONS && $previous['counts']['expense'] >= self::MIN_TRANSACTIONS;
+        if ($enough && $previous['expenses'] > 0) {
+            $change = (int) round(($current['expenses'] - $previous['expenses']) * 100 / $previous['expenses']);
+            if (abs($change) >= self::NOTABLE_CHANGE) {
+                $insights[] = ['key' => 'spending_change', 'tone' => $change > 0 ? 'warning' : 'success', 'percent' => $change, 'amount' => $current['expenses'] - $previous['expenses']];
+            }
+        }
+
+        $top = $current['categories'][0] ?? null;
+        if ($top !== null && $current['counts']['expense'] >= self::MIN_TRANSACTIONS && $current['expenses'] > 0 && count($current['categories']) > 1) {
+            $share = (int) round($top['amount'] * 100 / $current['expenses']);
+            if ($share >= self::NOTABLE_SHARE) {
+                $insights[] = ['key' => 'top_category', 'tone' => 'info', 'percent' => $share, 'amount' => $top['amount'], 'category' => $top['name']];
+            }
+        }
+
+        if ($current['net_cash_flow'] < 0 && $current['counts']['expense'] >= self::MIN_TRANSACTIONS) {
+            $insights[] = ['key' => 'negative_cash_flow', 'tone' => 'warning', 'amount' => -$current['net_cash_flow']];
+        }
+
+        if ($pendingCount > 0) {
+            $insights[] = ['key' => 'pending', 'tone' => 'info', 'count' => $pendingCount, 'amount' => $pendingTotal];
+        }
+
+        return $insights;
+    }
+}
