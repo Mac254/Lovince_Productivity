@@ -2,10 +2,15 @@
 
 namespace App\Modules\Search\Services;
 
+use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Models\Blocker;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
+use App\Modules\Planner\Models\Schedule;
+use App\Modules\Reviews\Models\WeeklyReview;
 use App\Modules\Settings\Services\SettingsRegistry;
+use App\Modules\Suggestions\Enums\SuggestionStatus;
+use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,7 +35,55 @@ class SearchService
             ...$this->goals($user, $pattern, $query),
             ...$this->blockers($user, $pattern, $query),
             ...($journal ? $this->journal($user, $pattern, $query) : []),
+            ...$this->achievements($user, $pattern, $query),
+            ...$this->suggestions($user, $pattern, $query),
+            ...$this->reviews($user, $pattern, $query),
+            ...$this->schedules($user, $pattern, $query),
         ];
+    }
+
+    private function achievements(User $user, string $pattern, string $query): array
+    {
+        return Achievement::query()->whereBelongsTo($user)
+            ->where(fn (Builder $q) => $this->like($q, ['title', 'description'], $pattern))
+            ->latest('achieved_on')->limit(self::PER_KIND)->get()
+            ->map(fn (Achievement $achievement) => $this->result('achievement', $achievement->id, $achievement->title, $achievement->description, $query, $achievement->achieved_on->toDateString(), $achievement->task_id))
+            ->all();
+    }
+
+    private function suggestions(User $user, string $pattern, string $query): array
+    {
+        return Suggestion::query()->whereBelongsTo($user)
+            ->where('status', '!=', SuggestionStatus::Dismissed)
+            ->where(fn (Builder $q) => $this->like($q, ['title', 'body'], $pattern))
+            ->latest('updated_at')->limit(self::PER_KIND)->get()
+            ->map(fn (Suggestion $suggestion) => $this->result('suggestion', $suggestion->id, $suggestion->title, $suggestion->body, $query, null, $suggestion->task_id))
+            ->all();
+    }
+
+    private function reviews(User $user, string $pattern, string $query): array
+    {
+        return WeeklyReview::query()->whereBelongsTo($user)
+            ->where(fn (Builder $q) => $this->like($q, ['wins', 'challenges', 'next_focus'], $pattern))
+            ->latest('week_start')->limit(self::PER_KIND)->get()
+            ->map(fn (WeeklyReview $review) => $this->result(
+                'review',
+                $review->id,
+                'Week of '.$review->week_start->toFormattedDateString(),
+                collect([$review->wins, $review->challenges, $review->next_focus])->first(fn (?string $text) => $text !== null && Str::contains($text, $query, true)),
+                $query,
+                $review->week_start->toDateString(),
+            ))
+            ->all();
+    }
+
+    private function schedules(User $user, string $pattern, string $query): array
+    {
+        return Schedule::query()->whereBelongsTo($user)
+            ->where(fn (Builder $q) => $this->like($q, ['name'], $pattern))
+            ->orderBy('name')->limit(self::PER_KIND)->get()
+            ->map(fn (Schedule $schedule) => $this->result('schedule', $schedule->id, $schedule->name, null, $query, null))
+            ->all();
     }
 
     private function tasks(User $user, string $pattern, string $query): array

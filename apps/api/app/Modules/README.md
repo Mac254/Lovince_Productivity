@@ -24,7 +24,7 @@ Users ← Quotes
 Tasks ← Clock
 Tasks ← Planner
 Tasks, Goals, Blockers, Journal, Clock ← Reviews
-Tasks, Goals, Blockers, Journal ← Search
+Tasks, Goals, Blockers, Journal, Achievements, Suggestions, Reviews, Planner ← Search
 Tasks, Goals, Suggestions ← Achievements
 Tasks, Goals, Blockers, Journal, Clock, Reviews, Planner, Suggestions, Achievements, Reports ← Backup
 Tasks, Goals, Journal, Planner ← Suggestions

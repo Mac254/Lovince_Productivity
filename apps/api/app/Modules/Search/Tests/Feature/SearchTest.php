@@ -37,6 +37,30 @@ class SearchTest extends TestCase
             ->assertJsonPath('data.3.date', '2026-10-30');
     }
 
+    public function test_it_finds_achievements_suggestions_reviews_and_schedules(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $user->achievements()->create(['title' => 'Ran a marathon', 'achieved_on' => '2026-11-01', 'category' => 'health']);
+        $user->suggestions()->create(['source' => 'custom', 'title' => 'Plan the next marathon', 'category' => 'health']);
+        $user->suggestions()->create(['source' => 'custom', 'title' => 'Skip the marathon', 'category' => 'health', 'status' => 'dismissed']);
+        $user->weeklyReviews()->create(['week_start' => '2026-10-26', 'wins' => 'Shipped', 'challenges' => 'Marathon training ate my evenings']);
+        $user->schedules()->create(['name' => 'Marathon week']);
+
+        $this->getJson('/api/v1/search?q=marathon')
+            ->assertOk()
+            ->assertJsonCount(4, 'data')
+            ->assertJsonPath('data.0.kind', 'achievement')
+            ->assertJsonPath('data.0.date', '2026-11-01')
+            ->assertJsonPath('data.1.kind', 'suggestion')
+            ->assertJsonPath('data.1.title', 'Plan the next marathon')
+            ->assertJsonPath('data.2.kind', 'review')
+            ->assertJsonPath('data.2.date', '2026-10-26')
+            ->assertJsonPath('data.2.excerpt', 'Marathon training ate my evenings')
+            ->assertJsonPath('data.3.kind', 'schedule');
+    }
+
     public function test_wildcards_are_matched_literally(): void
     {
         $user = User::factory()->create();

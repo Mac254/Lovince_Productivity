@@ -42,8 +42,21 @@ const kindIcons: Record<SearchKind, IconName> = {
     goal: 'target',
     blocker: 'blocker',
     journal: 'journal',
+    achievement: 'star',
+    suggestion: 'lightbulb',
+    review: 'calendar-range',
+    schedule: 'calendar-clock',
 };
-const kindLabels: Record<SearchKind, string> = { task: 'Task', goal: 'Goal', blocker: 'Blocker', journal: 'Journal' };
+const kindLabels: Record<SearchKind, string> = {
+    task: 'Task',
+    goal: 'Goal',
+    blocker: 'Blocker',
+    journal: 'Journal',
+    achievement: 'Achievement',
+    suggestion: 'Suggestion',
+    review: 'Weekly review',
+    schedule: 'Schedule',
+};
 
 const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'dark'));
 const quick = computed(() => {
@@ -89,6 +102,10 @@ const staticCommands = computed<Command[]>(() => [
 function target(result: SearchResult): RouteLocationRaw {
     if (result.kind === 'goal') return { name: 'goal-detail', params: { id: result.id } };
     if (result.kind === 'journal') return { name: 'journal', query: { date: result.date } };
+    if (result.kind === 'review') return { name: 'review', params: { week: result.date } };
+    if (result.kind === 'schedule') return { name: 'schedules' };
+    if (result.kind === 'suggestion') return { name: 'suggestions' };
+    if (result.kind === 'achievement') return { name: 'achievements' };
     if (result.task_id) return { name: 'task-detail', params: { id: result.task_id } };
     return { name: 'blockers' };
 }
