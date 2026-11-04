@@ -46,6 +46,23 @@ class RecurringTaskTest extends TestCase
         $this->assertSame(2, Task::count());
     }
 
+    public function test_reopening_withdraws_the_next_copy_unless_it_was_worked_on(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $task = Task::factory()->for($user)->create(['recurrence' => 'daily', 'due_date' => '2026-11-04']);
+
+        $nextId = $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'completed'])->json('data.next_occurrence_id');
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'not_started'])->assertOk()->assertJsonPath('data.next_occurrence_id', null);
+        $this->assertNull(Task::find($nextId));
+
+        $nextId = $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'completed'])->json('data.next_occurrence_id');
+        Carbon::setTestNow('2026-11-04 11:00:00');
+        $this->patchJson("/api/v1/tasks/{$nextId}", ['title' => 'Renamed'])->assertOk();
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'not_started'])->assertOk();
+        $this->assertSame('Renamed', Task::findOrFail($nextId)->title);
+    }
+
     public function test_overdue_repeats_skip_to_the_next_future_date(): void
     {
         $user = User::factory()->create();
