@@ -15,7 +15,12 @@ class QuietGoals implements Suggester
 {
     public function drafts(User $user, CarbonImmutable $now): iterable
     {
-        $goals = Goal::query()->whereBelongsTo($user)->where('status', GoalStatus::Active)->orderBy('id')->get(['id', 'title']);
+        $goals = Goal::query()
+            ->whereBelongsTo($user)
+            ->where('status', GoalStatus::Active)
+            ->where('created_at', '<', $now->subDays(7))
+            ->orderBy('id')
+            ->get(['id', 'title']);
         $week = $now->format('o-\WW');
 
         foreach ($goals as $goal) {
