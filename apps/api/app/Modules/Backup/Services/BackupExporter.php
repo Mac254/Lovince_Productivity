@@ -7,9 +7,14 @@ use App\Modules\Blockers\Models\Blocker;
 use App\Modules\Clock\Models\FocusSession;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
+use App\Modules\Planner\Models\Schedule;
+use App\Modules\Planner\Models\ScheduleItem;
 use App\Modules\Planner\Models\TimeBlock;
 use App\Modules\Reviews\Models\WeeklyReview;
 use App\Modules\Settings\Services\SettingsRegistry;
+use App\Modules\Suggestions\Enums\SuggestionSource;
+use App\Modules\Suggestions\Enums\SuggestionStatus;
+use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Tasks\Models\ChecklistItem;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Tasks\Models\TaskNote;
@@ -21,7 +26,9 @@ class BackupExporter
 {
     public const FORMAT = 'focus-backup';
 
-    public const VERSION = 1;
+    public const VERSION = 2;
+
+    public const VERSIONS = [1, 2];
 
     public function __construct(private readonly SettingsRegistry $settings) {}
 
@@ -61,6 +68,7 @@ class BackupExporter
                 'category' => $this->value($task->category),
                 'recurrence' => $this->value($task->recurrence),
                 'is_highlighted' => (bool) $task->is_highlighted,
+                'cover' => $task->cover,
                 'estimate_minutes' => $task->estimate_minutes,
                 'start_date' => $task->start_date?->toDateString(),
                 'due_date' => $task->due_date?->toDateString(),
@@ -109,6 +117,33 @@ class BackupExporter
                 'start_minute' => $block->start_minute,
                 'minutes' => $block->minutes,
             ])->all(),
+            'schedules' => $user->schedules()->with('items')->orderBy('id')->get()->map(fn (Schedule $schedule) => [
+                'ref' => $schedule->id,
+                'name' => $schedule->name,
+                'days' => $schedule->days,
+                'items' => $schedule->items->map(fn (ScheduleItem $item) => [
+                    'task_type_ref' => $item->task_type_id,
+                    'goal_ref' => $item->goal_id,
+                    'title' => $item->title,
+                    'start_minute' => $item->start_minute,
+                    'minutes' => $item->minutes,
+                ])->all(),
+            ])->all(),
+            'suggestions' => $user->suggestions()
+                ->whereNot(fn ($query) => $query->where('source', SuggestionSource::Insight)->where('status', SuggestionStatus::New))
+                ->orderBy('id')->get()->map(fn (Suggestion $suggestion) => [
+                    'task_ref' => $suggestion->task_id,
+                    'source' => $this->value($suggestion->source),
+                    'key' => $suggestion->key,
+                    'title' => $suggestion->title,
+                    'body' => $suggestion->body,
+                    'category' => $this->value($suggestion->category),
+                    'status' => $this->value($suggestion->status),
+                    'action' => $this->action($suggestion->action),
+                    'accepted_at' => $suggestion->accepted_at?->toIso8601String(),
+                    'done_at' => $suggestion->done_at?->toIso8601String(),
+                    'dismissed_at' => $suggestion->dismissed_at?->toIso8601String(),
+                ])->all(),
             'achievements' => $user->achievements()->orderBy('achieved_on')->orderBy('id')->get()->map(fn (Achievement $achievement) => [
                 'goal_ref' => $achievement->goal_id,
                 'task_ref' => $achievement->task_id,
@@ -118,6 +153,26 @@ class BackupExporter
                 'category' => $this->value($achievement->category),
             ])->all(),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $action
+     * @return array<string, mixed>|null
+     */
+    private function action(?array $action): ?array
+    {
+        if ($action === null) {
+            return null;
+        }
+
+        foreach (['schedule_id' => 'schedule_ref', 'goal_id' => 'goal_ref'] as $id => $ref) {
+            if (array_key_exists($id, $action)) {
+                $action[$ref] = $action[$id];
+                unset($action[$id]);
+            }
+        }
+
+        return $action;
     }
 
     private function value(mixed $value): mixed

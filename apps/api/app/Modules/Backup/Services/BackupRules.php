@@ -8,6 +8,8 @@ use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
+use App\Modules\Suggestions\Enums\SuggestionSource;
+use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Tasks\Enums\TaskCategory;
 use App\Modules\Tasks\Enums\TaskPriority;
 use App\Modules\Tasks\Enums\TaskRecurrence;
@@ -37,7 +39,7 @@ class BackupRules
 
         return [
             'format' => ['required', 'in:'.BackupExporter::FORMAT],
-            'version' => ['required', 'integer', 'in:'.BackupExporter::VERSION],
+            'version' => ['required', 'integer', Rule::in(BackupExporter::VERSIONS)],
             ...$settings,
 
             'task_types' => ['sometimes', 'array', 'max:'.Contract::TASK_TYPE_LIMIT],
@@ -66,6 +68,7 @@ class BackupRules
             'tasks.*.category' => ['required', Rule::enum(TaskCategory::class)],
             'tasks.*.recurrence' => ['nullable', Rule::enum(TaskRecurrence::class)],
             'tasks.*.is_highlighted' => ['boolean'],
+            'tasks.*.cover' => ['nullable', Rule::in(Contract::COVERS)],
             'tasks.*.estimate_minutes' => ['nullable', 'integer', 'min:1', 'max:'.Contract::TASK_ESTIMATE_MINUTES_MAX],
             'tasks.*.start_date' => $date,
             'tasks.*.due_date' => $date,
@@ -111,6 +114,31 @@ class BackupRules
             'time_blocks.*.date' => ['required', 'date_format:Y-m-d'],
             'time_blocks.*.start_minute' => ['required', 'integer', 'min:0', 'max:1439'],
             'time_blocks.*.minutes' => ['required', 'integer', 'min:'.Contract::TIME_BLOCK_MINUTES_MIN, 'max:'.Contract::TIME_BLOCK_MINUTES_MAX],
+
+            'schedules' => $list,
+            'schedules.*.ref' => $ref,
+            'schedules.*.name' => ['required', 'string', 'max:'.Contract::SCHEDULE_NAME_MAX],
+            'schedules.*.days' => ['nullable', 'array'],
+            'schedules.*.days.*' => ['integer', 'between:1,7'],
+            'schedules.*.items' => ['sometimes', 'array', 'max:'.Contract::SCHEDULE_ITEM_LIMIT],
+            'schedules.*.items.*.task_type_ref' => $optionalRef,
+            'schedules.*.items.*.goal_ref' => $optionalRef,
+            'schedules.*.items.*.title' => ['required', 'string', 'max:'.Contract::TIME_BLOCK_TITLE_MAX],
+            'schedules.*.items.*.start_minute' => ['required', 'integer', 'min:0', 'max:1439'],
+            'schedules.*.items.*.minutes' => ['required', 'integer', 'min:'.Contract::TIME_BLOCK_MINUTES_MIN, 'max:'.Contract::TIME_BLOCK_MINUTES_MAX],
+
+            'suggestions' => $list,
+            'suggestions.*.task_ref' => $optionalRef,
+            'suggestions.*.source' => ['required', Rule::enum(SuggestionSource::class)],
+            'suggestions.*.key' => ['nullable', 'string', 'max:255'],
+            'suggestions.*.title' => ['required', 'string', 'max:'.Contract::SUGGESTION_TITLE_MAX],
+            'suggestions.*.body' => ['nullable', 'string', 'max:'.Contract::SUGGESTION_BODY_MAX],
+            'suggestions.*.category' => ['required', Rule::enum(SuggestionCategory::class)],
+            'suggestions.*.status' => ['required', Rule::enum(SuggestionStatus::class)],
+            'suggestions.*.action' => ['nullable', 'array'],
+            'suggestions.*.accepted_at' => $time,
+            'suggestions.*.done_at' => $time,
+            'suggestions.*.dismissed_at' => $time,
 
             'achievements' => $list,
             'achievements.*.goal_ref' => $optionalRef,
