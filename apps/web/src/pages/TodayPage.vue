@@ -2,11 +2,12 @@
 import type { Task } from '@focus/types';
 import { groupByDue } from '@/features/tasks/dueGroups';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
-import { formatLongDate } from '@/lib/dates';
+import { formatLongDate, todayIso } from '@/lib/dates';
 import { dayProgress } from '@/lib/progress';
 
 const dashboard = useDashboard();
 const goals = useGoalsStore();
+const outbox = useOutboxStore();
 const refresh = () => {
     goals.reset();
     return dashboard.invalidate();
@@ -44,7 +45,12 @@ watch(
 
 const plannerOn = computed(() => settings.values.planner.enabled);
 const planGroups = computed(() => {
-    const groups = groupByDue(dashboard.data?.planned_tasks ?? []);
+    const groups = groupByDue(
+        outbox.withPending(
+            dashboard.data?.planned_tasks ?? [],
+            (task) => task.is_highlighted || (!!task.due_date && task.due_date <= todayIso()),
+        ),
+    );
     const of = (...keys: string[]) =>
         groups.filter((group) => keys.includes(group.key)).flatMap((group) => group.tasks);
     return [
@@ -65,6 +71,7 @@ const planGroups = computed(() => {
         },
     ].filter((group) => group.tasks.length);
 });
+const overdue = computed(() => outbox.withPending(dashboard.data?.overdue_tasks ?? [], () => false));
 const planSummary = computed(() =>
     planGroups.value.map((group) => `${group.tasks.length} ${group.title.toLowerCase()}`).join(' · '),
 );
@@ -180,7 +187,7 @@ const plannable = computed<Task[]>(() => {
                             :subtitle="`${dashboard.data.stats.overdue} from earlier days`"
                         >
                             <Button
-                                v-if="dashboard.data.overdue_tasks.length"
+                                v-if="overdue.length"
                                 variant="outline"
                                 size="sm"
                                 icon-start="calendar-check"
@@ -189,9 +196,9 @@ const plannable = computed<Task[]>(() => {
                                 >Move all to today</Button
                             >
                         </CardHeader>
-                        <ul v-if="dashboard.data.overdue_tasks.length" class="-mx-2 flex flex-col">
+                        <ul v-if="overdue.length" class="-mx-2 flex flex-col">
                             <TaskRow
-                                v-for="task in dashboard.data.overdue_tasks"
+                                v-for="task in overdue"
                                 :key="task.id"
                                 :task="task"
                                 @toggle="actions.toggleComplete"

@@ -21,14 +21,19 @@ const closed = computed(() => done.value || props.task.status === 'cancelled');
 const settings = useSettingsStore();
 const compact = computed(() => settings.values.tasks.card_density === 'compact');
 const cover = computed(() => (settings.values.tasks.card_covers ? taskCoverUrl(props.task.cover) : null));
+const local = computed(() => isLocal(props.task));
 const showDescription = computed(() => settings.values.tasks.card_descriptions && !compact.value);
 
 const menu = computed<MenuItem[]>(() => [
-    {
-        label: 'View details',
-        icon: 'eye',
-        onSelect: () => router.push({ name: 'task-detail', params: { id: props.task.id } }),
-    },
+    ...(local.value
+        ? []
+        : [
+              {
+                  label: 'View details',
+                  icon: 'eye' as const,
+                  onSelect: () => router.push({ name: 'task-detail', params: { id: props.task.id } }),
+              },
+          ]),
     { label: 'Edit task', icon: 'edit', onSelect: () => emit('edit', props.task) },
     props.task.status === 'cancelled'
         ? { label: 'Restore task', icon: 'undo', onSelect: () => emit('set-status', props.task, 'not_started') }
@@ -80,7 +85,11 @@ const menu = computed<MenuItem[]>(() => [
             <TaskCheck :task="task" size="lg" @toggle="emit('toggle', task)" />
             <div class="flex min-w-0 flex-1 flex-col gap-1">
                 <Heading :level="3" role="title" class="line-clamp-2">
+                    <span v-if="local" :class="closed && 'text-fg-muted line-through decoration-2'">{{
+                        task.title
+                    }}</span>
                     <RouterLink
+                        v-else
                         :to="{ name: 'task-detail', params: { id: task.id } }"
                         :class="[
                             'underline-offset-4 hover:underline',
@@ -138,7 +147,10 @@ const menu = computed<MenuItem[]>(() => [
         />
 
         <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-            <StatusBadge :status="task.status" />
+            <span class="flex items-center gap-2">
+                <StatusBadge :status="task.status" />
+                <Badge v-if="local" tone="info"><Icon name="offline" />Not synced yet</Badge>
+            </span>
             <PriorityDots :priority="task.priority" />
         </div>
     </Card>

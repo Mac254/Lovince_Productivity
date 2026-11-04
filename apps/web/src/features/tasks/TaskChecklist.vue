@@ -6,6 +6,7 @@ const props = defineProps<{ taskId: number }>();
 const emit = defineEmits<{ changed: [] }>();
 
 const toast = useToast();
+const outbox = useOutboxStore();
 const uid = useId();
 const items = ref<ChecklistItem[]>([]);
 const loading = ref(true);
@@ -41,7 +42,15 @@ async function add(): Promise<void> {
         draft.value = '';
         emit('changed');
     } catch (e) {
-        if (isApiError(e) && e.isValidation) draftError.value = e.fieldErrors().title;
+        if (isOffline(e)) {
+            const id = outbox.queueCreate('checklist', title, { title }, props.taskId);
+            items.value = [
+                ...items.value,
+                { id, task_id: props.taskId, title, done: false, position: items.value.length },
+            ];
+            draft.value = '';
+            toast.info('You’re offline. The item will sync when you’re back.');
+        } else if (isApiError(e) && e.isValidation) draftError.value = e.fieldErrors().title;
         else toast.error(errorMessage(e, 'Could not add the item.'));
     } finally {
         adding.value = false;
@@ -51,10 +60,12 @@ async function add(): Promise<void> {
 async function update(item: ChecklistItem, input: Partial<ChecklistItem>): Promise<void> {
     const previous = { ...item };
     Object.assign(item, input);
+    if (isLocal(item)) return outbox.queueUpdate('checklist', item, input);
     try {
         Object.assign(item, await api.checklist.update(item.id, input));
         emit('changed');
     } catch (e) {
+        if (isOffline(e)) return outbox.queueUpdate('checklist', previous, input);
         Object.assign(item, previous);
         toast.error(errorMessage(e, 'Could not update the item.'));
     }
@@ -91,10 +102,12 @@ async function move(index: number, offset: number): Promise<void> {
 async function remove(item: ChecklistItem): Promise<void> {
     const previous = items.value;
     items.value = items.value.filter((entry) => entry.id !== item.id);
+    if (isLocal(item)) return outbox.queueRemove('checklist', item);
     try {
         await api.checklist.remove(item.id);
         emit('changed');
     } catch (e) {
+        if (isOffline(e)) return outbox.queueRemove('checklist', item);
         items.value = previous;
         toast.error(errorMessage(e, 'Could not remove the item.'));
     }

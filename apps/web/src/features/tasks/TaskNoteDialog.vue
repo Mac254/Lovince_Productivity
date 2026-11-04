@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
-import { LIMITS, type TaskNote } from '@focus/types';
+import { LIMITS, type TaskNote, type TaskNoteInput } from '@focus/types';
 import { todayIso } from '@/lib/dates';
 
 /** Logs work on a task, or edits an existing entry when `note` is given. */
@@ -9,6 +9,7 @@ const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ saved: [note: TaskNote] }>();
 
 const toast = useToast();
+const outbox = useOutboxStore();
 const uid = useId();
 const fid = (name: string) => `${uid}-${name}`;
 
@@ -27,6 +28,17 @@ watch(open, (value) => {
     errors.value = {};
 });
 
+function queue(input: Required<TaskNoteInput>): void {
+    const title = `Work on “${props.taskTitle}”`;
+    const id = props.note
+        ? (outbox.queueUpdate('taskNotes', { ...props.note, title }, input), props.note.id)
+        : outbox.queueCreate('taskNotes', title, input, props.taskId);
+    const now = new Date().toISOString();
+    emit('saved', { created_at: now, ...props.note, ...input, id, task_id: props.taskId, updated_at: now });
+    toast.info('You’re offline. This entry will sync when you’re back.');
+    open.value = false;
+}
+
 async function submit(): Promise<void> {
     if (!form.body.trim()) {
         errors.value = { body: 'Write what you did.' };
@@ -40,6 +52,7 @@ async function submit(): Promise<void> {
         minutes: form.minutes === '' || form.minutes === null ? null : Number(form.minutes),
     };
     try {
+        if (props.note && isLocal(props.note)) return queue(input);
         const saved = props.note
             ? await api.taskNotes.update(props.note.id, input)
             : await api.taskNotes.create(props.taskId, input);
@@ -47,7 +60,8 @@ async function submit(): Promise<void> {
         open.value = false;
         emit('saved', saved);
     } catch (e) {
-        if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
+        if (isOffline(e)) queue(input);
+        else if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
         else toast.error(errorMessage(e, 'Could not save this entry.'));
     } finally {
         saving.value = false;

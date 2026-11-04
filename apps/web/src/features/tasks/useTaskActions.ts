@@ -6,10 +6,19 @@ export function useTaskActions(onChange: () => void) {
     const toast = useToast();
     const outbox = useOutboxStore();
 
+    function queued(task: Pick<Task, 'title'>): void {
+        toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
+    }
+
     async function setStatus(
         task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'next_occurrence_id' | 'updated_at'>>,
         status: TaskStatus,
     ): Promise<void> {
+        const input = { status, ...(status === 'completed' && { completed_at: todayIso() }) };
+        if (isLocal(task)) {
+            outbox.queueTaskUpdate(task, input);
+            return queued(task);
+        }
         try {
             const saved = await api.tasks.update(task.id, { status });
             const repeats = status === 'completed' && saved.next_occurrence_id && !task.next_occurrence_id;
@@ -22,12 +31,9 @@ export function useTaskActions(onChange: () => void) {
             );
             onChange();
         } catch (e) {
-            if (isOffline(e)) {
-                outbox.queueTaskUpdate(task, { status, ...(status === 'completed' && { completed_at: todayIso() }) });
-                toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
-                return;
-            }
-            toast.error(errorMessage(e, 'Could not update the task.'));
+            if (!isOffline(e)) return void toast.error(errorMessage(e, 'Could not update the task.'));
+            outbox.queueTaskUpdate(task, input);
+            queued(task);
         }
     }
 
@@ -44,26 +50,33 @@ export function useTaskActions(onChange: () => void) {
 
     async function remove(task: Task): Promise<void> {
         try {
+            if (isLocal(task)) {
+                outbox.queueRemove('tasks', task);
+                return void toast.success('Task deleted');
+            }
             await api.tasks.remove(task.id);
             toast.success('Task deleted');
             onChange();
         } catch (e) {
-            toast.error(errorMessage(e, 'Could not delete the task.'));
+            if (!isOffline(e)) return void toast.error(errorMessage(e, 'Could not delete the task.'));
+            outbox.queueRemove('tasks', task);
+            toast.info(`You’re offline. “${task.title}” will be deleted when you’re back.`);
         }
     }
 
     async function toggleHighlight(task: Task): Promise<void> {
+        if (isLocal(task)) {
+            outbox.queueTaskUpdate(task, { is_highlighted: !task.is_highlighted });
+            return queued(task);
+        }
         try {
             await api.tasks.update(task.id, { is_highlighted: !task.is_highlighted });
             toast.success(task.is_highlighted ? 'Removed from highlights' : 'Added to highlights');
             onChange();
         } catch (e) {
-            if (isOffline(e)) {
-                outbox.queueTaskUpdate(task, { is_highlighted: !task.is_highlighted });
-                toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
-                return;
-            }
-            toast.error(errorMessage(e, 'Could not update the task.'));
+            if (!isOffline(e)) return void toast.error(errorMessage(e, 'Could not update the task.'));
+            outbox.queueTaskUpdate(task, { is_highlighted: !task.is_highlighted });
+            queued(task);
         }
     }
 

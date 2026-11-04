@@ -6,16 +6,20 @@ import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { useOutboxStore } from '@/stores/outbox';
 import type { Task } from '@focus/types';
 
-const { update, create, getEntry, saveEntry, moveToToday, info, success, error } = vi.hoisted(() => ({
-    update: vi.fn(),
-    create: vi.fn(),
-    getEntry: vi.fn(),
-    saveEntry: vi.fn(),
-    moveToToday: vi.fn(),
-    info: vi.fn(),
-    success: vi.fn(),
-    error: vi.fn(),
-}));
+const { update, create, remove, removeGoal, createItem, getEntry, saveEntry, moveToToday, info, success, error } =
+    vi.hoisted(() => ({
+        update: vi.fn(),
+        remove: vi.fn(),
+        removeGoal: vi.fn(),
+        createItem: vi.fn(),
+        create: vi.fn(),
+        getEntry: vi.fn(),
+        saveEntry: vi.fn(),
+        moveToToday: vi.fn(),
+        info: vi.fn(),
+        success: vi.fn(),
+        error: vi.fn(),
+    }));
 
 vi.mock('@focus/api-client', async (original) => {
     const actual = await original<typeof import('@focus/api-client')>();
@@ -23,7 +27,9 @@ vi.mock('@focus/api-client', async (original) => {
         ...actual,
         api: {
             ...actual.api,
-            tasks: { ...actual.api.tasks, update, create, moveToToday },
+            tasks: { ...actual.api.tasks, update, create, remove, moveToToday },
+            goals: { ...actual.api.goals, remove: removeGoal },
+            checklist: { ...actual.api.checklist, create: createItem },
             journal: { ...actual.api.journal, get: getEntry, save: saveEntry },
         },
     };
@@ -87,7 +93,8 @@ describe('missed day actions', () => {
         const outbox = useOutboxStore();
         expect(outbox.pending).toEqual([
             {
-                kind: 'task-update',
+                kind: 'update',
+                resource: 'tasks',
                 id: 3,
                 title: 'Write the brief',
                 input: { status: 'completed', completed_at: '2026-11-02' },
@@ -145,7 +152,8 @@ describe('missed day actions', () => {
 
         expect(outbox.pending).toEqual([
             {
-                kind: 'task-update',
+                kind: 'update',
+                resource: 'tasks',
                 id: 3,
                 title: 'A renamed',
                 input: { due_date: '2026-11-05', status: 'not_started', title: 'A renamed' },
@@ -159,7 +167,7 @@ describe('missed day actions', () => {
         await useTaskActions(vi.fn()).toggleHighlight(task({ is_highlighted: false }));
 
         expect(useOutboxStore().pending).toEqual([
-            { kind: 'task-update', id: 3, title: 'Write the brief', input: { is_highlighted: true } },
+            { kind: 'update', resource: 'tasks', id: 3, title: 'Write the brief', input: { is_highlighted: true } },
         ]);
         expect(info).toHaveBeenCalled();
     });
@@ -167,7 +175,7 @@ describe('missed day actions', () => {
     it('creates tasks added offline once back', async () => {
         const outbox = useOutboxStore();
         outbox.queueTaskCreate({ title: 'Call the bank', due_date: '2026-11-03' });
-        expect(outbox.pending).toMatchObject([{ kind: 'task-create', title: 'Call the bank' }]);
+        expect(outbox.pending).toMatchObject([{ kind: 'create', resource: 'tasks', title: 'Call the bank' }]);
 
         create.mockResolvedValue(task({ title: 'Call the bank' }));
         expect(await outbox.flush()).toBe(1);
@@ -208,8 +216,112 @@ describe('missed day actions', () => {
         setActivePinia(createPinia());
 
         expect(useOutboxStore().pending).toEqual([
-            { kind: 'task-update', id: 3, title: 'A', input: { status: 'completed', completed_at: '2026-11-02' } },
+            {
+                kind: 'update',
+                resource: 'tasks',
+                id: 3,
+                title: 'A',
+                input: { status: 'completed', completed_at: '2026-11-02' },
+            },
         ]);
         expect(localStorage.getItem('focus.task-outbox')).toBeNull();
+    });
+
+    it('shows tasks added offline and folds later edits into them', async () => {
+        const outbox = useOutboxStore();
+        const id = outbox.queueTaskCreate({ title: 'Call the bank', due_date: '2026-11-02' });
+        const [local] = outbox.withPending([task()]);
+        expect(local).toMatchObject({ id, title: 'Call the bank', status: 'not_started', due_date: '2026-11-02' });
+
+        await useTaskActions(vi.fn()).toggleComplete(local!);
+        await useTaskActions(vi.fn()).toggleHighlight(outbox.withPending([])[0]!);
+        expect(update).not.toHaveBeenCalled();
+        expect(outbox.pending).toEqual([
+            {
+                kind: 'create',
+                resource: 'tasks',
+                id,
+                title: 'Call the bank',
+                input: {
+                    title: 'Call the bank',
+                    due_date: '2026-11-02',
+                    status: 'completed',
+                    completed_at: '2026-11-02',
+                    is_highlighted: true,
+                },
+            },
+        ]);
+        expect(outbox.withPending([])[0]).toMatchObject({ status: 'completed', is_highlighted: true });
+
+        create.mockResolvedValue(task());
+        expect(await outbox.flush()).toBe(1);
+        expect(create).toHaveBeenCalledWith(expect.objectContaining({ status: 'completed', is_highlighted: true }));
+        expect(outbox.synced).toBe(1);
+    });
+
+    it('drops a task deleted before it ever synced', async () => {
+        const outbox = useOutboxStore();
+        const id = outbox.queueTaskCreate({ title: 'Never mind' });
+
+        await useTaskActions(vi.fn()).remove(outbox.withPending([])[0]!);
+        expect(remove).not.toHaveBeenCalled();
+        expect(outbox.pending).toEqual([]);
+        expect(id).toBeLessThan(0);
+    });
+
+    it('shows queued edits and deletes on the tasks from the server', async () => {
+        update.mockRejectedValueOnce(offline());
+        remove.mockRejectedValueOnce(offline());
+        const actions = useTaskActions(vi.fn());
+        await actions.toggleComplete(task());
+        await actions.remove(task({ id: 4, title: 'Gone' }));
+
+        const outbox = useOutboxStore();
+        expect(outbox.withPending([task(), task({ id: 4 })])).toEqual([task({ status: 'completed' })]);
+
+        remove.mockResolvedValue(undefined);
+        update.mockResolvedValue(task());
+        expect(await outbox.flush()).toBe(2);
+        expect(remove).toHaveBeenCalledWith(4);
+    });
+
+    it('replays other records made or removed offline', async () => {
+        const outbox = useOutboxStore();
+        const item = outbox.queueCreate('checklist', 'Draft', { title: 'Draft' }, 3);
+        outbox.queueUpdate('checklist', { id: item, title: 'Draft' }, { done: true });
+        outbox.queueRemove('goals', { id: 9, title: 'Ship v2' });
+        expect(outbox.pending).toEqual([
+            {
+                kind: 'create',
+                resource: 'checklist',
+                id: item,
+                parent: 3,
+                title: 'Draft',
+                input: { title: 'Draft', done: true },
+            },
+            { kind: 'remove', resource: 'goals', id: 9, title: 'Ship v2' },
+        ]);
+
+        createItem.mockResolvedValue({});
+        removeGoal.mockResolvedValue(undefined);
+        expect(await outbox.flush()).toBe(2);
+        expect(createItem).toHaveBeenCalledWith(3, 'Draft');
+        expect(removeGoal).toHaveBeenCalledWith(9);
+    });
+
+    it('upgrades task changes saved in the earlier outbox format', () => {
+        localStorage.setItem(
+            'focus.outbox',
+            JSON.stringify([
+                { kind: 'task-update', id: 3, title: 'A', input: { status: 'completed' } },
+                { kind: 'task-create', key: 'k', title: 'B', input: { title: 'B' } },
+            ]),
+        );
+        setActivePinia(createPinia());
+
+        expect(useOutboxStore().pending).toMatchObject([
+            { kind: 'update', resource: 'tasks', id: 3, input: { status: 'completed' } },
+            { kind: 'create', resource: 'tasks', title: 'B', input: { title: 'B' } },
+        ]);
     });
 });

@@ -9,6 +9,7 @@ import { goalStatusLabels, goalStatusTones, goalTimeframeLabels } from '@/lib/la
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const outbox = useOutboxStore();
 const dashboard = useDashboardStore();
 const goalsStore = useGoalsStore();
 
@@ -115,7 +116,11 @@ async function confirmDelete(): Promise<void> {
         goalsStore.reset();
         await router.replace({ name: 'goals' });
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not delete the goal.'));
+        if (isOffline(e)) {
+            outbox.queueRemove('goals', goal.value);
+            toast.info(`You’re offline. “${goal.value.title}” will be deleted when you’re back.`);
+            await router.replace({ name: 'goals' });
+        } else toast.error(errorMessage(e, 'Could not delete the goal.'));
     } finally {
         deleteBusy.value = false;
     }

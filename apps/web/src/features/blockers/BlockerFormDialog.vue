@@ -8,6 +8,7 @@ const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ saved: [blocker: Blocker] }>();
 
 const toast = useToast();
+const outbox = useOutboxStore();
 const description = ref('');
 const taskId = ref<number | ''>('');
 const markBlocked = ref(true);
@@ -52,7 +53,15 @@ async function submit(): Promise<void> {
         open.value = false;
         emit('saved', blocker);
     } catch (e) {
-        if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
+        if (isOffline(e)) {
+            const input = { description: description.value.trim(), task_id: taskId.value || null };
+            outbox.queueCreate('blockers', input.description, input);
+            const task = linkedTask.value;
+            if (task && markBlocked.value && task.status !== 'blocked')
+                outbox.queueTaskUpdate(task, { status: 'blocked' });
+            toast.info('You’re offline. The blocker will be logged when you’re back.');
+            open.value = false;
+        } else if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
         else toast.error(errorMessage(e, 'Could not log the blocker.'));
     } finally {
         saving.value = false;

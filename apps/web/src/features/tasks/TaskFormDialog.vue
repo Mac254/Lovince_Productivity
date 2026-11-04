@@ -124,6 +124,18 @@ async function syncCover(task: Task, choice: CoverChoice): Promise<Task> {
     return task;
 }
 
+function queue(payload: TaskInput, choice: CoverChoice): void {
+    if (props.task) outbox.queueTaskUpdate(props.task, payload);
+    else outbox.queueTaskCreate(payload);
+    if (!choice && props.task?.cover?.type === 'upload') outbox.queueRemove('taskCovers', props.task);
+    toast.info(
+        choice?.type === 'upload' && choice.file
+            ? `You’re offline. “${payload.title}” will sync when you’re back; add the photo again then.`
+            : `You’re offline. “${payload.title}” will sync when you’re back.`,
+    );
+    open.value = false;
+}
+
 async function submit(): Promise<void> {
     if (!validate()) return;
     saving.value = true;
@@ -144,17 +156,14 @@ async function submit(): Promise<void> {
     if (choice?.type === 'gallery') payload.cover = choice.key;
     else if (!choice && props.task?.cover?.type === 'gallery') payload.cover = null;
     try {
+        if (props.task && isLocal(props.task)) return queue(payload, choice);
         const saved = props.task ? await api.tasks.update(props.task.id, payload) : await api.tasks.create(payload);
         toast.success(isEdit.value ? 'Task updated' : 'Task created');
         open.value = false;
         emit('saved', await syncCover(saved, choice));
     } catch (e) {
-        if (isOffline(e)) {
-            if (props.task) outbox.queueTaskUpdate(props.task, payload);
-            else outbox.queueTaskCreate(payload);
-            toast.info(`You’re offline. “${payload.title}” will sync when you’re back.`);
-            open.value = false;
-        } else if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
+        if (isOffline(e)) queue(payload, choice);
+        else if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
         else toast.error(errorMessage(e, 'Could not save the task.'));
     } finally {
         saving.value = false;

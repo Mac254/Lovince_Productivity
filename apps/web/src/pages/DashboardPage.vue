@@ -18,6 +18,7 @@ const refresh = () => {
 const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, confirmDelete } =
     useTaskEditing(refresh);
 const toast = useToast();
+const outbox = useOutboxStore();
 const goalDialog = ref(false);
 const editingGoal = ref<Goal | null>(null);
 const deletingGoal = ref<Goal | null>(null);
@@ -37,7 +38,11 @@ async function confirmDeleteGoal(): Promise<void> {
         deletingGoal.value = null;
         await refresh();
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not delete the goal.'));
+        if (isOffline(e) && deletingGoal.value) {
+            outbox.queueRemove('goals', deletingGoal.value);
+            toast.info(`You’re offline. “${deletingGoal.value.title}” will be deleted when you’re back.`);
+            deletingGoal.value = null;
+        } else toast.error(errorMessage(e, 'Could not delete the goal.'));
     } finally {
         deletingGoalBusy.value = false;
     }

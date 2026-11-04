@@ -9,6 +9,7 @@ const props = defineProps<{ task: Task }>();
 const emit = defineEmits<{ toggle: [task: Task]; star: [task: Task] }>();
 
 const done = computed(() => props.task.status === 'completed');
+const local = computed(() => isLocal(props.task));
 const cover = computed(() => taskCoverUrl(props.task.cover));
 </script>
 
@@ -25,7 +26,13 @@ const cover = computed(() => taskCoverUrl(props.task.cover));
             :class="['hidden h-8 w-12 shrink-0 rounded-sm object-cover @sm:block', done && 'opacity-60 grayscale']"
         />
         <div class="min-w-0 flex-1">
+            <span
+                v-if="local"
+                :class="['block truncate text-body font-semibold', done && 'text-fg-muted line-through']"
+                >{{ task.title }}</span
+            >
             <RouterLink
+                v-else
                 :to="{ name: 'task-detail', params: { id: task.id } }"
                 :class="[
                     'block truncate text-body font-semibold underline-offset-4 hover:underline',
@@ -41,6 +48,7 @@ const cover = computed(() => taskCoverUrl(props.task.cover));
                 <span :class="['tabular', task.is_overdue && 'font-bold text-danger-fg']">{{
                     done ? 'Done' : dueLabel(task.due_date)
                 }}</span>
+                <span v-if="local" class="inline-flex items-center gap-1"><Icon name="offline" />Not synced yet</span>
                 <Icon v-if="task.recurrence && !done" name="retry" :label="taskRecurrenceLabels[task.recurrence]" />
                 <span v-if="task.checklist?.total" class="inline-flex items-center gap-1 tabular"
                     ><Icon name="checklist" />{{ task.checklist.done }}/{{ task.checklist.total }}</span

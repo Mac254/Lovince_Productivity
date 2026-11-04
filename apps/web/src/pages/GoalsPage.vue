@@ -8,6 +8,7 @@ type View = 'active' | 'weekly' | 'long_term' | 'completed' | 'all';
 const store = useGoalsStore();
 const dashboard = useDashboardStore();
 const toast = useToast();
+const outbox = useOutboxStore();
 const { loading, error, run } = useAsync(() => store.load(true));
 
 const view = ref<View>('active');
@@ -56,7 +57,11 @@ async function confirmDelete(): Promise<void> {
         deleting.value = null;
         await saved();
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not delete the goal.'));
+        if (isOffline(e) && deleting.value) {
+            outbox.queueRemove('goals', deleting.value);
+            toast.info(`You’re offline. “${deleting.value.title}” will be deleted when you’re back.`);
+            deleting.value = null;
+        } else toast.error(errorMessage(e, 'Could not delete the goal.'));
     } finally {
         deletingBusy.value = false;
     }

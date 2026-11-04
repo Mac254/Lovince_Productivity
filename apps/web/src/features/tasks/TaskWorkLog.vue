@@ -7,6 +7,7 @@ import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
 const props = defineProps<{ taskId: number; taskTitle: string; estimateMinutes?: number | null }>();
 
 const toast = useToast();
+const outbox = useOutboxStore();
 const settings = useSettingsStore();
 const dashboard = useDashboardStore();
 const notes = ref<TaskNote[]>([]);
@@ -69,13 +70,20 @@ function onSaved(note: TaskNote): void {
 async function confirmDelete(): Promise<void> {
     if (!deleting.value) return;
     deletingBusy.value = true;
+    const note = deleting.value;
     try {
-        await api.taskNotes.remove(deleting.value.id);
-        notes.value = notes.value.filter((n) => n.id !== deleting.value?.id);
+        if (isLocal(note)) outbox.queueRemove('taskNotes', { ...note, title: note.body });
+        else await api.taskNotes.remove(note.id);
+        notes.value = notes.value.filter((n) => n.id !== note.id);
         void dashboard.invalidate();
         deleting.value = null;
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not delete the entry.'));
+        if (isOffline(e)) {
+            outbox.queueRemove('taskNotes', { ...note, title: note.body });
+            notes.value = notes.value.filter((n) => n.id !== note.id);
+            toast.info('You’re offline. The entry will be deleted when you’re back.');
+            deleting.value = null;
+        } else toast.error(errorMessage(e, 'Could not delete the entry.'));
     } finally {
         deletingBusy.value = false;
     }

@@ -112,6 +112,7 @@ const query = computed<TaskFilters>(() => ({
     per_page: 24,
 }));
 
+const outbox = useOutboxStore();
 const { data, loading, error, run } = useAsync((signal) => api.tasks.list(query.value, { signal }));
 
 const hasFilters = computed(
@@ -155,21 +156,40 @@ watch(
     },
 );
 watch(view, syncQuery);
+watch(() => outbox.synced, run);
 
 function syncQuery(): void {
     const urlQuery = Object.fromEntries(
-            Object.entries(filters)
-                .filter(
-                    ([key, value]) =>
-                        value !== '' && !(key === 'page' && value === 1) && !(key === 'status' && value === 'open'),
-                )
-                .map(([key, value]) => [key, String(value)]),
+        Object.entries(filters)
+            .filter(
+                ([key, value]) =>
+                    value !== '' && !(key === 'page' && value === 1) && !(key === 'status' && value === 'open'),
+            )
+            .map(([key, value]) => [key, String(value)]),
     );
     void router.replace({ query: view.value === 'list' ? { ...urlQuery, view: 'list' } : urlQuery });
 }
 
+const onlyStatus = computed(
+    () =>
+        !filters.search &&
+        !filters.priority &&
+        !filters.category &&
+        !filters.due &&
+        !filters.goal_id &&
+        !filters.task_type_id &&
+        filters.page === 1,
+);
 const sections = computed(() => {
-    const tasks = data.value?.data ?? [];
+    const tasks = outbox.withPending(
+        data.value?.data ?? [],
+        (task) =>
+            onlyStatus.value &&
+            (filters.status === 'all' ||
+                (filters.status === 'open'
+                    ? !['completed', 'cancelled'].includes(task.status)
+                    : task.status === filters.status)),
+    );
     if (filters.sort) return [{ key: 'all', title: '', icon: 'tasks' as const, tasks }];
     return groupByDue(tasks);
 });
@@ -245,7 +265,7 @@ onMounted(() => {
 
         <template v-else-if="data">
             <div
-                v-if="data.data.length"
+                v-if="sections.some((section) => section.tasks.length)"
                 :class="['flex flex-col gap-8 transition-opacity duration-(--duration-fast)', loading && 'opacity-60']"
             >
                 <section

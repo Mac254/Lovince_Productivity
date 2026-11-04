@@ -7,6 +7,7 @@ import { relativeTime } from '@/lib/dates';
 const props = defineProps<{ blockers: Blocker[]; showTask?: boolean }>();
 const emit = defineEmits<{ changed: [] }>();
 const toast = useToast();
+const outbox = useOutboxStore();
 const paged = usePagedList(() => props.blockers, 10);
 
 async function setStatus(blocker: Blocker, status: Blocker['status']): Promise<void> {
@@ -15,7 +16,9 @@ async function setStatus(blocker: Blocker, status: Blocker['status']): Promise<v
         toast.success(status === 'resolved' ? 'Blocker resolved' : 'Blocker reopened');
         emit('changed');
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not update the blocker.'));
+        if (!isOffline(e)) return void toast.error(errorMessage(e, 'Could not update the blocker.'));
+        outbox.queueUpdate('blockers', { ...blocker, title: blocker.description }, { status });
+        toast.info('You’re offline. The blocker will update when you’re back.');
     }
 }
 
@@ -25,7 +28,9 @@ async function remove(blocker: Blocker): Promise<void> {
         toast.success('Blocker deleted');
         emit('changed');
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not delete the blocker.'));
+        if (!isOffline(e)) return void toast.error(errorMessage(e, 'Could not delete the blocker.'));
+        outbox.queueRemove('blockers', { ...blocker, title: blocker.description });
+        toast.info('You’re offline. The blocker will be deleted when you’re back.');
     }
 }
 

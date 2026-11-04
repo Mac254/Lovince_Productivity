@@ -26,6 +26,7 @@ declare global {
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const h: typeof import('vue').h
   const inject: typeof import('vue').inject
+  const isLocal: typeof import('./stores/outbox').isLocal
   const isOffline: typeof import('./stores/outbox').isOffline
   const isProxy: typeof import('vue').isProxy
   const isReactive: typeof import('vue').isReactive
@@ -119,7 +120,7 @@ declare global {
   export type { ViewMode } from './composables/useViewMode'
   import('./composables/useViewMode')
   // @ts-ignore
-  export type { QueuedChange } from './stores/outbox'
+  export type { OutboxInputs, OutboxResource, QueuedChange } from './stores/outbox'
   import('./stores/outbox')
   // @ts-ignore
   export type { ThemeChoice, StartPage, JournalFont } from './stores/preferences'
@@ -152,6 +153,7 @@ declare module 'vue' {
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
+    readonly isLocal: UnwrapRef<typeof import('./stores/outbox')['isLocal']>
     readonly isOffline: UnwrapRef<typeof import('./stores/outbox')['isOffline']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>

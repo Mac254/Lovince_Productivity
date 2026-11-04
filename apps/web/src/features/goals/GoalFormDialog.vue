@@ -9,6 +9,7 @@ const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ saved: [goal: Goal] }>();
 
 const toast = useToast();
+const outbox = useOutboxStore();
 const form = reactive({
     title: '',
     description: '' as string | null,
@@ -61,7 +62,12 @@ async function submit(): Promise<void> {
         open.value = false;
         emit('saved', saved);
     } catch (e) {
-        if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
+        if (isOffline(e)) {
+            if (props.goal) outbox.queueUpdate('goals', props.goal, payload);
+            else outbox.queueCreate('goals', payload.title ?? 'New goal', payload);
+            toast.info(`You’re offline. “${payload.title}” will sync when you’re back.`);
+            open.value = false;
+        } else if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
         else toast.error(errorMessage(e, 'Could not save the goal.'));
     } finally {
         saving.value = false;
