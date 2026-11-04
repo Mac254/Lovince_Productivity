@@ -28,14 +28,18 @@ class SuggestionEngine
     /**
      * Refreshes at most once an hour per user, so time-of-day suggestions still appear.
      */
-    public function refreshIfStale(User $user): void
+    public function refreshIfStale(User $user): int
     {
         $now = CarbonImmutable::now();
-        Cache::remember("suggestions:{$user->id}:{$now->format('Y-m-d-H')}", $now->endOfHour(), function () use ($user, $now) {
-            $this->refresh($user, $now);
+        $key = "suggestions:{$user->id}:{$now->format('Y-m-d-H')}";
+        if (Cache::has($key)) {
+            return 0;
+        }
 
-            return true;
-        });
+        $added = $this->refresh($user, $now);
+        Cache::put($key, true, $now->endOfHour());
+
+        return $added;
     }
 
     /**

@@ -30,7 +30,6 @@ class SuggestionController extends Controller
         $status = $request->validate([
             'status' => ['sometimes', Rule::in([...array_column(SuggestionStatus::cases(), 'value'), 'all'])],
         ])['status'] ?? SuggestionStatus::New->value;
-        $this->engine->refreshIfStale($request->user());
 
         return SuggestionResource::collection(
             Suggestion::query()
@@ -44,9 +43,16 @@ class SuggestionController extends Controller
         );
     }
 
+    /**
+     * With `stale`, refreshes only when this hour's refresh hasn't run yet, which is how the page
+     * keeps time-of-day suggestions current without listing having side effects.
+     */
     public function refresh(Request $request): JsonResponse
     {
-        return response()->json(['data' => ['added' => $this->engine->refresh($request->user())]]);
+        $request->validate(['stale' => ['sometimes', 'boolean']]);
+        $added = $request->boolean('stale') ? $this->engine->refreshIfStale($request->user()) : $this->engine->refresh($request->user());
+
+        return response()->json(['data' => ['added' => $added]]);
     }
 
     public function store(SuggestionRequest $request): JsonResponse

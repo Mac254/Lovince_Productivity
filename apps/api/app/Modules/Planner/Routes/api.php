@@ -15,5 +15,5 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('schedules/{schedule}', [ScheduleController::class, 'show'])->whereNumber('schedule');
     Route::patch('schedules/{schedule}', [ScheduleController::class, 'update'])->whereNumber('schedule');
     Route::delete('schedules/{schedule}', [ScheduleController::class, 'destroy'])->whereNumber('schedule');
-    Route::post('schedules/{schedule}/apply', [ScheduleController::class, 'apply'])->whereNumber('schedule');
+    Route::post('schedules/{schedule}/apply', [ScheduleController::class, 'apply'])->whereNumber('schedule')->middleware('throttle:30,1');
 });

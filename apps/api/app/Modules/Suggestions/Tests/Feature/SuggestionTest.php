@@ -22,6 +22,10 @@ class SuggestionTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
+        $this->getJson('/api/v1/suggestions')->assertOk()->assertJsonCount(0, 'data');
+        $this->postJson('/api/v1/suggestions/refresh', ['stale' => true])->assertOk()->assertJsonPath('data.added', 3);
+        $this->postJson('/api/v1/suggestions/refresh', ['stale' => true])->assertJsonPath('data.added', 0);
+
         $this->getJson('/api/v1/suggestions')
             ->assertOk()
             ->assertJsonCount(3, 'data')
@@ -126,6 +130,7 @@ class SuggestionTest extends TestCase
         $user = User::factory()->create(['settings' => ['suggestions' => ['enabled' => false]]]);
         $this->actingAs($user);
 
+        $this->postJson('/api/v1/suggestions/refresh', ['stale' => true])->assertOk()->assertJsonPath('data.added', 0);
         $this->getJson('/api/v1/suggestions')->assertOk()->assertJsonCount(0, 'data');
     }
 }

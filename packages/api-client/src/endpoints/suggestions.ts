@@ -8,8 +8,11 @@ export function suggestionEndpoints(http: AxiosInstance) {
             const { data } = await http.get<Resource<Suggestion[]>>('/suggestions', { ...options, params: { status } });
             return data.data;
         },
-        async refresh(): Promise<number> {
-            const { data } = await http.post<Resource<{ added: number }>>('/suggestions/refresh');
+        async refresh(staleOnly = false): Promise<number> {
+            const { data } = await http.post<Resource<{ added: number }>>(
+                '/suggestions/refresh',
+                staleOnly ? { stale: true } : {},
+            );
             return data.data.added;
         },
         async create(input: SuggestionInput): Promise<Suggestion> {

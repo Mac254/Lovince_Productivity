@@ -160,7 +160,10 @@ watch(
     },
     { immediate: true },
 );
-onMounted(load);
+onMounted(async () => {
+    await api.suggestions.refresh(true).catch(() => 0);
+    await load();
+});
 onBeforeUnmount(() => clearTimeout(freshTimer));
 </script>
 
