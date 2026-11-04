@@ -74,6 +74,7 @@ export { default as TimelineItem } from './patterns/Timeline/TimelineItem.vue';
 export { default as SectionHeader } from './patterns/SectionHeader/SectionHeader.vue';
 export { default as SearchField } from './patterns/SearchField/SearchField.vue';
 export { default as FacetFilter, type FacetOption } from './patterns/FacetFilter/FacetFilter.vue';
+export { default as DateRangeFilter } from './patterns/DateRangeFilter/DateRangeFilter.vue';
 
 // Composables
 export { provideSurfaceTone, useSurfaceTone, type SurfaceTone } from './composables/useSurfaceTone';

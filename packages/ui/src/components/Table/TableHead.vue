@@ -9,7 +9,7 @@ withDefaults(defineProps<{ scope?: 'col' | 'row'; align?: TableAlign }>(), { sco
     <LvTableHead
         :scope="scope"
         :align="align"
-        :class="['py-2', alignClasses[align], scope === 'row' ? 'font-medium text-fg' : 'font-semibold']"
+        :class="['px-3 py-2 first:pl-0 last:pr-0', alignClasses[align], scope === 'row' ? 'font-medium text-fg' : 'font-semibold']"
     >
         <slot />
     </LvTableHead>

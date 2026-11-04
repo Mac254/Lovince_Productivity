@@ -6,7 +6,7 @@ withDefaults(defineProps<{ align?: TableAlign; numeric?: boolean }>(), { align: 
 </script>
 
 <template>
-    <LvTableCell :align="align" :class="['py-2', alignClasses[align], numeric && 'tabular']">
+    <LvTableCell :align="align" :class="['px-3 py-2 first:pl-0 last:pr-0', alignClasses[align], numeric && 'tabular']">
         <slot />
     </LvTableCell>
 </template>
