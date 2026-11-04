@@ -22,6 +22,10 @@ function message(insight: AccountingInsight): string {
             return `${insight.category} is ${insight.percent}% of your spending this period (${money(insight.amount)}).`;
         case 'negative_cash_flow':
             return `${money(insight.amount)} more went out than came in this period.`;
+        case 'over_budget':
+            return insight.count === 1 && insight.category
+                ? `${insight.category} is ${money(insight.amount)} over its budget.`
+                : `${insight.count} budgets are over their limit, by ${money(insight.amount)} in all.`;
         case 'pending':
             return `${insight.count} pending ${insight.count === 1 ? 'payment' : 'payments'} of ${money(insight.amount)} will lower your balance when they clear.`;
     }
