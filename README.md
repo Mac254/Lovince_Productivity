@@ -157,8 +157,11 @@ pnpm test          # Vitest: web, ui, api-client, tokens (contrast + drift check
 pnpm lint
 pnpm build
 pnpm test:api      # php artisan test (includes the shared-contract check)
+pnpm test:e2e      # Playwright smoke tests: sign-in, tasks, journal, focus timer
 cd apps/api && vendor/bin/pint
 ```
+
+`pnpm test:e2e` builds the web app and serves it on port 8799 (`E2E_PORT`) with a throwaway SQLite database and a test account, so it never touches your data. `npx playwright install chromium` fetches the browser the first time.
 
 When you change a design token: `pnpm tokens`. When you change a Laravel enum or limit: `pnpm types`.
 
