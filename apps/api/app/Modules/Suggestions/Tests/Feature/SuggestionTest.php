@@ -79,6 +79,29 @@ class SuggestionTest extends TestCase
         $this->assertSame(1, TimeBlock::whereDate('date', '2026-11-03')->count());
     }
 
+    public function test_accepting_twice_acts_once(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $idea = $user->suggestions()->create(['source' => 'custom', 'title' => 'Call a friend', 'category' => 'social', 'action' => ['type' => 'achievement']]);
+
+        $this->postJson("/api/v1/suggestions/{$idea->id}/accept")->assertOk()->assertJsonPath('data.status', 'accepted');
+        $this->postJson("/api/v1/suggestions/{$idea->id}/accept")->assertOk()->assertJsonPath('data.status', 'accepted');
+
+        $this->assertSame(1, $user->achievements()->count());
+    }
+
+    public function test_a_failed_accept_leaves_nothing_behind(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $plan = $user->suggestions()->create(['source' => 'custom', 'title' => 'Plan', 'category' => 'focus', 'action' => ['type' => 'apply_schedule', 'schedule_id' => 999]]);
+
+        $this->postJson("/api/v1/suggestions/{$plan->id}/accept")->assertUnprocessable();
+
+        $this->assertSame('new', $plan->fresh()->status->value);
+    }
+
     public function test_own_suggestions_are_managed_and_private(): void
     {
         $user = User::factory()->create();

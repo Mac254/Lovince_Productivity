@@ -7,6 +7,7 @@ use App\Modules\Planner\Models\Schedule;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Tasks\Models\Task;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AcceptSuggestion
@@ -16,21 +17,31 @@ class AcceptSuggestion
     /**
      * Acts on a suggestion: applies a schedule, records an achievement on `$date`, or adds a task
      * due on `$date`. Suggestions that only point somewhere (`open`) are just marked accepted.
+     * Accepting one that is already accepted or done changes nothing, and the action and the status
+     * change land together or not at all.
      */
     public function __invoke(Suggestion $suggestion, string $date): Suggestion
     {
-        $action = $suggestion->action ?? ['type' => 'task'];
+        return DB::transaction(function () use ($suggestion, $date) {
+            $suggestion = Suggestion::query()->lockForUpdate()->findOrFail($suggestion->id);
 
-        match ($action['type'] ?? 'task') {
-            'apply_schedule' => ($this->applySchedule)($this->schedule($suggestion, $action), $action['date'] ?? $date),
-            'open' => null,
-            'achievement' => $this->achievement($suggestion, $action, $date),
-            default => $suggestion->task_id ?? $suggestion->task()->associate($this->task($suggestion, $action, $date)),
-        };
+            if (in_array($suggestion->status, [SuggestionStatus::Accepted, SuggestionStatus::Done], true)) {
+                return $suggestion;
+            }
 
-        $suggestion->update(['status' => SuggestionStatus::Accepted]);
+            $action = $suggestion->action ?? ['type' => 'task'];
 
-        return $suggestion;
+            match ($action['type'] ?? 'task') {
+                'apply_schedule' => ($this->applySchedule)($this->schedule($suggestion, $action), $action['date'] ?? $date),
+                'open' => null,
+                'achievement' => $this->achievement($suggestion, $action, $date),
+                default => $suggestion->task_id ?? $suggestion->task()->associate($this->task($suggestion, $action, $date)),
+            };
+
+            $suggestion->update(['status' => SuggestionStatus::Accepted]);
+
+            return $suggestion;
+        });
     }
 
     /**
