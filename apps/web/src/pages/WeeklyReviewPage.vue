@@ -10,6 +10,7 @@ import { toneDot } from '@/lib/tones';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const outbox = useOutboxStore();
 const dashboard = useDashboardStore();
 
 const review = ref<WeeklyReview | null>(null);
@@ -107,6 +108,11 @@ async function moveToNextWeek(task: Task): Promise<void> {
         await api.tasks.update(task.id, { due_date: review.value.week.next_start });
         await load();
     } catch (e) {
+        if (isOffline(e)) {
+            outbox.queueTaskUpdate(task, { due_date: review.value.week.next_start });
+            toast.info(`You’re offline. “${task.title}” will move when you’re back.`);
+            return;
+        }
         toast.error(errorMessage(e, 'Could not move the task.'));
     } finally {
         moving.value = null;
@@ -122,6 +128,11 @@ async function moveAll(): Promise<void> {
         toast.success('Moved to next week');
         await load();
     } catch (e) {
+        if (isOffline(e)) {
+            review.value.carry_over.forEach((task) => outbox.queueTaskUpdate(task, { due_date: next }));
+            toast.info('You’re offline. The tasks will move when you’re back.');
+            return;
+        }
         toast.error(errorMessage(e, 'Could not move every task.'));
         await load();
     } finally {

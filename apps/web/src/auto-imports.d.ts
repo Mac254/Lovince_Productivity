@@ -26,6 +26,7 @@ declare global {
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const h: typeof import('vue').h
   const inject: typeof import('vue').inject
+  const isOffline: typeof import('./stores/outbox').isOffline
   const isProxy: typeof import('vue').isProxy
   const isReactive: typeof import('vue').isReactive
   const isReadonly: typeof import('vue').isReadonly
@@ -87,6 +88,7 @@ declare global {
   const useLiquid: typeof import('@focus/motion').useLiquid
   const useModel: typeof import('vue').useModel
   const useOnline: typeof import('./composables/useOnline').useOnline
+  const useOutboxStore: typeof import('./stores/outbox').useOutboxStore
   const usePagedList: typeof import('@focus/ui').usePagedList
   const usePreferencesStore: typeof import('./stores/preferences').usePreferencesStore
   const useReminders: typeof import('./composables/useReminders').useReminders
@@ -97,7 +99,6 @@ declare global {
   const useStaggerIn: typeof import('@focus/motion').useStaggerIn
   const useSurfaceTone: typeof import('@focus/ui').useSurfaceTone
   const useTabQuery: typeof import('./composables/useTabQuery').useTabQuery
-  const useTaskOutboxStore: typeof import('./stores/taskOutbox').useTaskOutboxStore
   const useTaskTypesStore: typeof import('./stores/taskTypes').useTaskTypesStore
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useTimerStore: typeof import('./stores/timer').useTimerStore
@@ -118,11 +119,11 @@ declare global {
   export type { ViewMode } from './composables/useViewMode'
   import('./composables/useViewMode')
   // @ts-ignore
+  export type { QueuedChange } from './stores/outbox'
+  import('./stores/outbox')
+  // @ts-ignore
   export type { ThemeChoice, StartPage, JournalFont } from './stores/preferences'
   import('./stores/preferences')
-  // @ts-ignore
-  export type { QueuedStatus } from './stores/taskOutbox'
-  import('./stores/taskOutbox')
   // @ts-ignore
   export type { SessionKind, TimerStatus, TimerPreset } from './stores/timer'
   import('./stores/timer')
@@ -151,6 +152,7 @@ declare module 'vue' {
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
+    readonly isOffline: UnwrapRef<typeof import('./stores/outbox')['isOffline']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
@@ -212,6 +214,7 @@ declare module 'vue' {
     readonly useLiquid: UnwrapRef<typeof import('@focus/motion')['useLiquid']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useOnline: UnwrapRef<typeof import('./composables/useOnline')['useOnline']>
+    readonly useOutboxStore: UnwrapRef<typeof import('./stores/outbox')['useOutboxStore']>
     readonly usePagedList: UnwrapRef<typeof import('@focus/ui')['usePagedList']>
     readonly usePreferencesStore: UnwrapRef<typeof import('./stores/preferences')['usePreferencesStore']>
     readonly useReminders: UnwrapRef<typeof import('./composables/useReminders')['useReminders']>
@@ -222,7 +225,6 @@ declare module 'vue' {
     readonly useStaggerIn: UnwrapRef<typeof import('@focus/motion')['useStaggerIn']>
     readonly useSurfaceTone: UnwrapRef<typeof import('@focus/ui')['useSurfaceTone']>
     readonly useTabQuery: UnwrapRef<typeof import('./composables/useTabQuery')['useTabQuery']>
-    readonly useTaskOutboxStore: UnwrapRef<typeof import('./stores/taskOutbox')['useTaskOutboxStore']>
     readonly useTaskTypesStore: UnwrapRef<typeof import('./stores/taskTypes')['useTaskTypesStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useTimerStore: UnwrapRef<typeof import('./stores/timer')['useTimerStore']>

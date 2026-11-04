@@ -25,6 +25,7 @@ const uid = useId();
 const fid = (name: string) => `${uid}-${name}`;
 const taskTypes = useTaskTypesStore();
 const toast = useToast();
+const outbox = useOutboxStore();
 const settings = useSettingsStore();
 
 const form = reactive({
@@ -148,7 +149,12 @@ async function submit(): Promise<void> {
         open.value = false;
         emit('saved', await syncCover(saved, choice));
     } catch (e) {
-        if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
+        if (isOffline(e)) {
+            if (props.task) outbox.queueTaskUpdate(props.task, payload);
+            else outbox.queueTaskCreate(payload);
+            toast.info(`You’re offline. “${payload.title}” will sync when you’re back.`);
+            open.value = false;
+        } else if (isApiError(e) && e.isValidation) errors.value = e.fieldErrors();
         else toast.error(errorMessage(e, 'Could not save the task.'));
     } finally {
         saving.value = false;

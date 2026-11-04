@@ -21,9 +21,15 @@ export function journalEndpoints(http: AxiosInstance) {
             const { data } = await http.get<Resource<JournalContext>>(`/journal/${date}/context`, options);
             return data.data;
         },
-        /** An empty body deletes the day's entry. */
-        async save(date: IsoDate, body: string): Promise<JournalEntry | null> {
-            const { data } = await http.put<Resource<JournalEntry | null>>(`/journal/${date}`, { body });
+        /**
+         * An empty body deletes the day's entry. `base` is the entry's `updated_at` the text was written against
+         * (`null`: there was no entry); the API answers 409 when the entry has changed since.
+         */
+        async save(date: IsoDate, body: string, base?: string | null): Promise<JournalEntry | null> {
+            const { data } = await http.put<Resource<JournalEntry | null>>(`/journal/${date}`, {
+                body,
+                ...(base !== undefined && { base_updated_at: base }),
+            });
             return data.data;
         },
     };

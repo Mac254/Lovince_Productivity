@@ -8,7 +8,7 @@ const router = useRouter();
 const toast = useToast();
 const timer = useTimerStore();
 const preferences = usePreferencesStore();
-const outbox = useTaskOutboxStore();
+const outbox = useOutboxStore();
 const nextTheme = computed(() => (preferences.resolved === 'dark' ? 'light' : 'dark'));
 const themeOptions = [
     { value: 'dark' as const, label: 'Dark theme', icon: 'moon' as const },
@@ -54,7 +54,7 @@ useReminders();
 async function syncOutbox(): Promise<number> {
     if (!outbox.pending.length) return 0;
     const synced = await outbox.flush();
-    if (synced) toast.success(synced === 1 ? 'Synced 1 task change' : `Synced ${synced} task changes`);
+    if (synced) toast.success(synced === 1 ? 'Synced 1 change' : `Synced ${synced} changes`);
     const stale = outbox.takeConflicts();
     if (stale.length) {
         toast.info(
@@ -271,7 +271,7 @@ function onQuickTaskSaved(): void {
     <ConfirmDialog
         v-model:open="signOutOpen"
         title="Sign out with unsent changes?"
-        :message="`${outbox.pending.length === 1 ? '1 task change made offline has' : `${outbox.pending.length} task changes made offline have`} not reached the server yet. Signing out discards them.`"
+        :message="`${outbox.pending.length === 1 ? '1 change made offline has' : `${outbox.pending.length} changes made offline have`} not reached the server yet. Signing out discards them.`"
         confirm-label="Sign out"
         @confirm="signOut"
     />

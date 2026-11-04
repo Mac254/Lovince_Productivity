@@ -10,6 +10,7 @@ import { standupDraft } from '@/lib/standup';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const outbox = useOutboxStore();
 const preferences = usePreferencesStore();
 
 const date = computed(() => {
@@ -21,7 +22,7 @@ const isToday = computed(() => date.value === todayIso());
 const body = ref('');
 const saved = ref('');
 const savedAt = ref<string | null>(null);
-const status = ref<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('loading');
+const status = ref<'idle' | 'loading' | 'saving' | 'saved' | 'offline' | 'error'>('loading');
 const view = ref<'write' | 'preview'>('write');
 const editor = ref<InstanceType<typeof JournalEditor> | null>(null);
 const dirty = computed(() => body.value !== saved.value);
@@ -116,6 +117,12 @@ async function save(): Promise<void> {
         else delete next[date.value];
         previews.value = next;
     } catch (e) {
+        if (isOffline(e)) {
+            outbox.queueJournal(date.value, text, savedAt.value);
+            saved.value = text;
+            status.value = 'offline';
+            return;
+        }
         status.value = 'error';
         toast.error(errorMessage(e, 'Could not save your entry.'));
     }
@@ -138,6 +145,7 @@ const statusText = computed(() => {
     if (status.value === 'loading') return 'Loading…';
     if (status.value === 'saving') return 'Saving…';
     if (status.value === 'error') return 'Not saved — try again';
+    if (status.value === 'offline' && !dirty.value) return 'Saved on this device — syncs when you’re back online';
     if (dirty.value) return 'Unsaved';
     if (!saved.value) return 'Empty';
     return savedAt.value ? `Saved ${formatDate(savedAt.value, { timeStyle: 'short' })}` : 'Saved';

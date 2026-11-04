@@ -21,6 +21,7 @@ const emit = defineEmits<{ newTask: []; created: [] }>();
 
 const router = useRouter();
 const toast = useToast();
+const outbox = useOutboxStore();
 const timer = useTimerStore();
 const settings = useSettingsStore();
 const preferences = usePreferencesStore();
@@ -180,7 +181,11 @@ async function create(): Promise<void> {
         toast.success(`Added “${task.title}”`);
         emit('created');
     } catch (e) {
-        toast.error(errorMessage(e, 'Could not add the task.'));
+        if (isOffline(e)) {
+            outbox.queueTaskCreate(quick.value.input);
+            toast.info(`You’re offline. “${quick.value.title}” will be added when you’re back.`);
+            open.value = false;
+        } else toast.error(errorMessage(e, 'Could not add the task.'));
     } finally {
         creating.value = false;
     }

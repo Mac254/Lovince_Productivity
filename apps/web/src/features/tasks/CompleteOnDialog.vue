@@ -10,6 +10,7 @@ const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ saved: [task: Task] }>();
 
 const toast = useToast();
+const outbox = useOutboxStore();
 const uid = useId();
 const day = ref('');
 const error = ref<string>();
@@ -35,7 +36,11 @@ async function submit(): Promise<void> {
         open.value = false;
         emit('saved', saved);
     } catch (e) {
-        if (isApiError(e) && e.isValidation) error.value = e.fieldErrors().completed_at ?? e.message;
+        if (isOffline(e)) {
+            outbox.queueTaskUpdate(props.task, { status: 'completed', completed_at: day.value });
+            toast.info(`You’re offline. “${props.task.title}” will sync when you’re back.`);
+            open.value = false;
+        } else if (isApiError(e) && e.isValidation) error.value = e.fieldErrors().completed_at ?? e.message;
         else toast.error(errorMessage(e, 'Could not update the task.'));
     } finally {
         saving.value = false;

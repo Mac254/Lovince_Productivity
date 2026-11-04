@@ -57,14 +57,24 @@ class JournalController extends Controller
     {
         $day = $this->day($date);
         $body = trim((string) $request->validated('body'));
+        $current = $this->entry($request, $day);
+
+        if ($request->has('base_updated_at')) {
+            $base = $request->validated('base_updated_at');
+            abort_if(
+                $current !== null && ($base === null || $current->updated_at->gt(Carbon::parse($base))),
+                409,
+                'This entry was changed somewhere else since.',
+            );
+        }
 
         if ($body === '') {
-            $this->entry($request, $day)?->delete();
+            $current?->delete();
 
             return response()->json(['data' => null]);
         }
 
-        $entry = $this->entry($request, $day) ?? $request->user()->journalEntries()->make(['date' => $day]);
+        $entry = $current ?? $request->user()->journalEntries()->make(['date' => $day]);
         $entry->body = $body;
         $entry->save();
 

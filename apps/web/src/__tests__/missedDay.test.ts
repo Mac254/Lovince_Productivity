@@ -3,11 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@focus/api-client';
 import { completionRange, suggestedCompletionDay } from '@/features/tasks/completionDay';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
-import { useTaskOutboxStore } from '@/stores/taskOutbox';
+import { useOutboxStore } from '@/stores/outbox';
 import type { Task } from '@focus/types';
 
-const { update, moveToToday, info, success, error } = vi.hoisted(() => ({
+const { update, create, getEntry, saveEntry, moveToToday, info, success, error } = vi.hoisted(() => ({
     update: vi.fn(),
+    create: vi.fn(),
+    getEntry: vi.fn(),
+    saveEntry: vi.fn(),
     moveToToday: vi.fn(),
     info: vi.fn(),
     success: vi.fn(),
@@ -16,7 +19,14 @@ const { update, moveToToday, info, success, error } = vi.hoisted(() => ({
 
 vi.mock('@focus/api-client', async (original) => {
     const actual = await original<typeof import('@focus/api-client')>();
-    return { ...actual, api: { ...actual.api, tasks: { ...actual.api.tasks, update, moveToToday } } };
+    return {
+        ...actual,
+        api: {
+            ...actual.api,
+            tasks: { ...actual.api.tasks, update, create, moveToToday },
+            journal: { ...actual.api.journal, get: getEntry, save: saveEntry },
+        },
+    };
 });
 
 vi.mock('@focus/ui', async (original) => ({
@@ -74,9 +84,9 @@ describe('missed day actions', () => {
         update.mockRejectedValueOnce(offline());
         await useTaskActions(vi.fn()).toggleComplete(task());
 
-        const outbox = useTaskOutboxStore();
+        const outbox = useOutboxStore();
         expect(outbox.pending).toEqual([
-            { id: 3, title: 'Write the brief', status: 'completed', completed_at: '2026-11-02' },
+            { kind: 'task-update', id: 3, title: 'Write the brief', input: { status: 'completed', completed_at: '2026-11-02' } },
         ]);
         expect(error).not.toHaveBeenCalled();
 
@@ -89,9 +99,9 @@ describe('missed day actions', () => {
     });
 
     it('keeps changes queued while still offline and drops ones the server rejects', async () => {
-        const outbox = useTaskOutboxStore();
-        outbox.queue({ id: 3, title: 'A', status: 'completed', completed_at: '2026-11-02' });
-        outbox.queue({ id: 4, title: 'B', status: 'not_started' });
+        const outbox = useOutboxStore();
+        outbox.queueTaskUpdate(task({ title: 'A' }), { status: 'completed', completed_at: '2026-11-02' });
+        outbox.queueTaskUpdate(task({ id: 4, title: 'B' }), { status: 'not_started' });
 
         update.mockRejectedValueOnce(offline());
         expect(await outbox.flush()).toBe(0);
@@ -105,8 +115,8 @@ describe('missed day actions', () => {
     });
 
     it('drops a change the server says is stale and reports it once', async () => {
-        const outbox = useTaskOutboxStore();
-        outbox.queue({ id: 3, title: 'A', status: 'completed', base_updated_at: '2026-11-02T08:00:00+03:00' });
+        const outbox = useOutboxStore();
+        outbox.queueTaskUpdate(task({ title: 'A', updated_at: '2026-11-02T08:00:00+03:00' }), { status: 'completed' });
 
         update.mockRejectedValueOnce(new ApiError({ kind: 'conflict', message: 'Changed', status: 409 }));
         expect(await outbox.flush()).toBe(0);
@@ -116,11 +126,82 @@ describe('missed day actions', () => {
         expect(outbox.takeConflicts()).toEqual([]);
     });
 
-    it('keeps only the latest change per task', () => {
-        const outbox = useTaskOutboxStore();
-        outbox.queue({ id: 3, title: 'A', status: 'completed', completed_at: '2026-11-02' });
-        outbox.queue({ id: 3, title: 'A', status: 'not_started' });
+    it('merges edits to the same task and keeps the copy they were based on', () => {
+        const outbox = useOutboxStore();
+        outbox.queueTaskUpdate(task({ title: 'A', updated_at: '2026-11-02T08:00:00' }), {
+            status: 'completed',
+            completed_at: '2026-11-02',
+        });
+        outbox.queueTaskUpdate(task({ title: 'A', updated_at: '2026-11-02T09:00:00' }), { due_date: '2026-11-05' });
+        outbox.queueTaskUpdate(task({ title: 'A' }), { status: 'not_started', title: 'A renamed' });
 
-        expect(outbox.pending).toEqual([{ id: 3, title: 'A', status: 'not_started' }]);
+        expect(outbox.pending).toEqual([
+            {
+                kind: 'task-update',
+                id: 3,
+                title: 'A renamed',
+                input: { due_date: '2026-11-05', status: 'not_started', title: 'A renamed' },
+                base_updated_at: '2026-11-02T08:00:00',
+            },
+        ]);
+    });
+
+    it('queues a highlight toggled offline', async () => {
+        update.mockRejectedValueOnce(offline());
+        await useTaskActions(vi.fn()).toggleHighlight(task({ is_highlighted: false }));
+
+        expect(useOutboxStore().pending).toEqual([
+            { kind: 'task-update', id: 3, title: 'Write the brief', input: { is_highlighted: true } },
+        ]);
+        expect(info).toHaveBeenCalled();
+    });
+
+    it('creates tasks added offline once back', async () => {
+        const outbox = useOutboxStore();
+        outbox.queueTaskCreate({ title: 'Call the bank', due_date: '2026-11-03' });
+        expect(outbox.pending).toMatchObject([{ kind: 'task-create', title: 'Call the bank' }]);
+
+        create.mockResolvedValue(task({ title: 'Call the bank' }));
+        expect(await outbox.flush()).toBe(1);
+        expect(create).toHaveBeenCalledWith({ title: 'Call the bank', due_date: '2026-11-03' });
+        expect(outbox.pending).toEqual([]);
+    });
+
+    it('saves the latest offline journal entry against the copy it was written from', async () => {
+        const outbox = useOutboxStore();
+        outbox.queueJournal('2026-11-02', 'First draft', '2026-11-02T08:00:00');
+        outbox.queueJournal('2026-11-02', 'Second draft', '2026-11-02T08:00:00');
+        expect(outbox.pending).toHaveLength(1);
+
+        saveEntry.mockResolvedValue({ date: '2026-11-02', body: 'Second draft' });
+        expect(await outbox.flush()).toBe(1);
+        expect(saveEntry).toHaveBeenCalledWith('2026-11-02', 'Second draft', '2026-11-02T08:00:00');
+    });
+
+    it('keeps both texts when the journal entry changed elsewhere', async () => {
+        const outbox = useOutboxStore();
+        outbox.queueJournal('2026-11-02', 'Written offline', null);
+
+        saveEntry
+            .mockRejectedValueOnce(new ApiError({ kind: 'conflict', message: 'Changed', status: 409 }))
+            .mockResolvedValueOnce({ date: '2026-11-02', body: '' });
+        getEntry.mockResolvedValue({ date: '2026-11-02', body: 'Written on the laptop' });
+
+        expect(await outbox.flush()).toBe(1);
+        expect(saveEntry).toHaveBeenLastCalledWith('2026-11-02', 'Written on the laptop\n\nWritten offline');
+        expect(outbox.pending).toEqual([]);
+    });
+
+    it('moves changes saved by the old task outbox into the new one', () => {
+        localStorage.setItem(
+            'focus.task-outbox',
+            JSON.stringify([{ id: 3, title: 'A', status: 'completed', completed_at: '2026-11-02' }]),
+        );
+        setActivePinia(createPinia());
+
+        expect(useOutboxStore().pending).toEqual([
+            { kind: 'task-update', id: 3, title: 'A', input: { status: 'completed', completed_at: '2026-11-02' } },
+        ]);
+        expect(localStorage.getItem('focus.task-outbox')).toBeNull();
     });
 });

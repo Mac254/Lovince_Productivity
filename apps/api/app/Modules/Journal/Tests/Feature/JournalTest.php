@@ -31,6 +31,26 @@ class JournalTest extends TestCase
         $this->assertSame(0, JournalEntry::count());
     }
 
+    public function test_a_save_based_on_an_older_copy_is_refused(): void
+    {
+        Carbon::setTestNow('2026-11-02 08:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $base = $this->putJson('/api/v1/journal/2026-11-02', ['body' => 'Morning'])->json('data.updated_at');
+
+        Carbon::setTestNow('2026-11-02 09:00:00');
+        $this->putJson('/api/v1/journal/2026-11-02', ['body' => 'Morning, then more'])->assertOk();
+
+        $this->putJson('/api/v1/journal/2026-11-02', ['body' => 'Offline', 'base_updated_at' => $base])->assertConflict();
+        $this->putJson('/api/v1/journal/2026-11-02', ['body' => 'Offline', 'base_updated_at' => null])->assertConflict();
+        $this->putJson('/api/v1/journal/2026-11-01', ['body' => 'New day', 'base_updated_at' => null])->assertOk();
+
+        $current = $this->getJson('/api/v1/journal/2026-11-02')->json('data.updated_at');
+        $this->putJson('/api/v1/journal/2026-11-02', ['body' => 'Offline', 'base_updated_at' => $current])
+            ->assertOk()
+            ->assertJsonPath('data.body', 'Offline');
+    }
+
     public function test_future_and_invalid_dates_are_rejected(): void
     {
         $this->actingAs(User::factory()->create());

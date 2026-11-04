@@ -1,10 +1,10 @@
-import { api, errorMessage, isApiError } from '@focus/api-client';
+import { api, errorMessage } from '@focus/api-client';
 import type { Task, TaskStatus } from '@focus/types';
 import { todayIso } from '@/lib/dates';
 
 export function useTaskActions(onChange: () => void) {
     const toast = useToast();
-    const outbox = useTaskOutboxStore();
+    const outbox = useOutboxStore();
 
     async function setStatus(
         task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'next_occurrence_id' | 'updated_at'>>,
@@ -22,14 +22,8 @@ export function useTaskActions(onChange: () => void) {
             );
             onChange();
         } catch (e) {
-            if (isApiError(e) && e.kind === 'network') {
-                outbox.queue({
-                    id: task.id,
-                    title: task.title,
-                    status,
-                    ...(status === 'completed' && { completed_at: todayIso() }),
-                    ...(task.updated_at && { base_updated_at: task.updated_at }),
-                });
+            if (isOffline(e)) {
+                outbox.queueTaskUpdate(task, { status, ...(status === 'completed' && { completed_at: todayIso() }) });
                 toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
                 return;
             }
@@ -64,6 +58,11 @@ export function useTaskActions(onChange: () => void) {
             toast.success(task.is_highlighted ? 'Removed from highlights' : 'Added to highlights');
             onChange();
         } catch (e) {
+            if (isOffline(e)) {
+                outbox.queueTaskUpdate(task, { is_highlighted: !task.is_highlighted });
+                toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
+                return;
+            }
             toast.error(errorMessage(e, 'Could not update the task.'));
         }
     }

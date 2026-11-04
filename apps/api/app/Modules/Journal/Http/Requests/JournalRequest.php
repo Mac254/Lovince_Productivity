@@ -12,6 +12,9 @@ class JournalRequest extends FormRequest
      */
     public function rules(): array
     {
-        return ['body' => ['present', 'nullable', 'string', 'max:'.Contract::JOURNAL_MAX]];
+        return [
+            'body' => ['present', 'nullable', 'string', 'max:'.Contract::JOURNAL_MAX],
+            'base_updated_at' => ['sometimes', 'nullable', 'date'],
+        ];
     }
 }
