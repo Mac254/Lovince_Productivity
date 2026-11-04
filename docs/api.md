@@ -60,7 +60,19 @@ Your own kinds of task, shown next to the built-in categories. `GET /task-types`
 
 ## Dashboard
 
-`GET /dashboard` returns `date`, `week`, `stats` (`due_today`, `overdue`, `in_progress`, `open`, `completed_today`, `completed_this_week`, `completed_total`, `active_goals`, `week_due_total`, `week_due_completed`, `weekly_completion_rate` — `null` when nothing is due this week), the lists `today_tasks`, `overdue_tasks`, `completed_today_tasks`, `upcoming_tasks` (next 14 days), `recent_activity`, `weekly_goals`, `active_goals`, an `integration` summary and a `quote` (or `null`).
+`GET /dashboard` returns `date`, `week`, `stats` (`due_today`, `overdue`, `in_progress`, `open`, `completed_today`, `completed_this_week`, `completed_total`, `active_goals`, `week_due_total`, `week_due_completed`, `weekly_completion_rate` — `null` when nothing is due this week), the lists `today_tasks`, `overdue_tasks`, `completed_today_tasks`, `upcoming_tasks` (next 14 days), `recent_activity`, `weekly_goals`, `active_goals`, an `integration` summary, `streak` (`current`, `best`, `active_today`), `achievements` (`this_week`, `total`, `latest` — up to three), `journal` (`written_today`, `this_week`) and a `quote` (or `null`). The web dashboard reads the month's money from `GET /accounting/dashboard`.
+
+## Accounting
+
+Personal money on a double-entry ledger, all under `/accounting`. Amounts are sent as decimal strings (`"1500.50"`) and returned as integer minor units with their `currency` (`KES`, `UGX`, `TZS`, `RWF`, `ETB`, `NGN`, `ZAR`, `USD`, `EUR`, `GBP`).
+
+- **Accounts** `GET|POST /accounts` · `GET|PATCH|DELETE /accounts/{id}`. Body: `name`, `type` (`cash`, `bank`, `mobile_money`, `savings`, `sacco`, `money_market`, `investment`, `credit`, `other`), `currency`, `opening_balance`, `archived`. Responses include `balance` and `available_balance` (less pending outflows). Only an account with no transactions can be deleted.
+- **Categories** `GET|POST /categories` · `PATCH|DELETE /categories/{id}`. Body: `kind` (`income`, `expense`; create only), `name`, `archived`. Default or used categories are archived, not deleted.
+- **Transactions** `GET /transactions?search=&type=&status=&account_id=&category_id=&currency=&from=&to=&per_page=` · `POST /transactions` (needs an `Idempotency-Key` header, 8–64 of `A-Z a-z 0-9 _ -`; repeating it returns the first transaction) · `GET|PATCH /transactions/{id}` · `POST /transactions/{id}/void` · `POST /transactions/{id}/reverse` · `GET /transactions/export` (CSV, same filters, 10 a minute). Body: `type` (`income`, `expense`, `transfer`, `refund`, `adjustment`, `interest`, `fee`), `account_id`, `to_account_id` (transfers), `category_id`, `direction`, `amount`, `status` (`pending`, `posted`), `date`, `description`, `notes`, `reference`. Transactions are never deleted; a posted one is corrected by editing, voiding or reversing.
+- **Budgets** `GET /budgets?month=YYYY-MM` (this month by default; `meta` gives `month`, `from`, `to`) · `POST /budgets` · `PATCH|DELETE /budgets/{id}`. Create with `category_id` (your unarchived expense category), `currency` and `amount`, one per category and currency; update takes `amount` only. Responses add `spent` and `remaining` for the month.
+- **Recurring** `GET|POST /recurring` · `PATCH|DELETE /recurring/{id}`. The transaction body (types `income`, `expense`, `transfer`, `interest`, `fee`) plus `frequency` (`weekly`, `monthly`, `yearly`), `start_date`, `end_date` (≥ start, or `null`) and `paused`. Due dates are posted every fifteen minutes; a new rule catches up on past dates, an edited or resumed one carries on from today. Responses include `next_date` and `occurrences`.
+- **Overview** `GET /dashboard?from=&to=&currency=` (this month by default): balances, `income`, `expenses`, `net_cash_flow`, `previous_totals`, `top_expenses`, `pending`, `recent`, a six-month `trend`, `budgets` (`amount`, `spent`, `over`, `items`), `upcoming` (recurring payments in the next 14 days) and `insights`.
+- **Reports** `GET /reports/income-statement`, `GET /reports/cash-flow` and `GET /reports/trend`, each taking `from`, `to` (both or neither) and `currency`.
 
 ## Quotes
 
