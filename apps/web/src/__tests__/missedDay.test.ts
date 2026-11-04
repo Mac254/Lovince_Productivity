@@ -104,6 +104,18 @@ describe('missed day actions', () => {
         expect(outbox.pending).toEqual([]);
     });
 
+    it('drops a change the server says is stale and reports it once', async () => {
+        const outbox = useTaskOutboxStore();
+        outbox.queue({ id: 3, title: 'A', status: 'completed', base_updated_at: '2026-11-02T08:00:00+03:00' });
+
+        update.mockRejectedValueOnce(new ApiError({ kind: 'conflict', message: 'Changed', status: 409 }));
+        expect(await outbox.flush()).toBe(0);
+        expect(update).toHaveBeenLastCalledWith(3, { status: 'completed', base_updated_at: '2026-11-02T08:00:00+03:00' });
+        expect(outbox.pending).toEqual([]);
+        expect(outbox.takeConflicts()).toEqual(['A']);
+        expect(outbox.takeConflicts()).toEqual([]);
+    });
+
     it('keeps only the latest change per task', () => {
         const outbox = useTaskOutboxStore();
         outbox.queue({ id: 3, title: 'A', status: 'completed', completed_at: '2026-11-02' });

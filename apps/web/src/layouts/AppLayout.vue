@@ -55,6 +55,14 @@ async function syncOutbox(): Promise<number> {
     if (!outbox.pending.length) return 0;
     const synced = await outbox.flush();
     if (synced) toast.success(synced === 1 ? 'Synced 1 task change' : `Synced ${synced} task changes`);
+    const stale = outbox.takeConflicts();
+    if (stale.length) {
+        toast.info(
+            stale.length === 1
+                ? `“${stale[0]}” was changed elsewhere, so your offline change was not applied.`
+                : `${stale.length} tasks were changed elsewhere, so your offline changes to them were not applied.`,
+        );
+    }
     return synced;
 }
 
@@ -66,7 +74,15 @@ const online = useOnline(() => {
 
 const firstName = computed(() => auth.user?.name.split(' ')[0] ?? '');
 
+const signOutOpen = ref(false);
+
+function requestSignOut(): void {
+    if (outbox.pending.length) signOutOpen.value = true;
+    else void signOut();
+}
+
 async function signOut(): Promise<void> {
+    signOutOpen.value = false;
     try {
         await auth.logout();
     } catch {
@@ -85,7 +101,7 @@ const accountMenu = [
         icon: 'clock' as const,
         onSelect: () => router.push({ name: 'focus', query: { mode: 'timer' } }),
     },
-    { label: 'Sign out', icon: 'logout' as const, onSelect: signOut },
+    { label: 'Sign out', icon: 'logout' as const, onSelect: requestSignOut },
 ];
 
 function onQuickTaskSaved(): void {
@@ -252,4 +268,11 @@ function onQuickTaskSaved(): void {
     <FloatingActions />
     <CommandPalette v-model:open="paletteOpen" @new-task="quickTaskOpen = true" @created="onQuickTaskSaved" />
     <TaskFormDialog v-model:open="quickTaskOpen" :defaults="{ due_date: todayIso() }" @saved="onQuickTaskSaved" />
+    <ConfirmDialog
+        v-model:open="signOutOpen"
+        title="Sign out with unsent changes?"
+        :message="`${outbox.pending.length === 1 ? '1 task change made offline has' : `${outbox.pending.length} task changes made offline have`} not reached the server yet. Signing out discards them.`"
+        confirm-label="Sign out"
+        @confirm="signOut"
+    />
 </template>

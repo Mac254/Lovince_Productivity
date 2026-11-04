@@ -24,7 +24,7 @@ export type TaskInput = Partial<
     >
 > & { cover?: Cover | null };
 
-export type TaskUpdateInput = TaskInput & { completed_at?: IsoDate };
+export type TaskUpdateInput = TaskInput & { completed_at?: IsoDate; base_updated_at?: string };
 
 export type TaskNoteInput = Partial<Pick<TaskNote, 'body' | 'logged_on' | 'minutes'>>;
 

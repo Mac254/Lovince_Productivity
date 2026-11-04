@@ -7,7 +7,7 @@ export function useTaskActions(onChange: () => void) {
     const outbox = useTaskOutboxStore();
 
     async function setStatus(
-        task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'next_occurrence_id'>>,
+        task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'next_occurrence_id' | 'updated_at'>>,
         status: TaskStatus,
     ): Promise<void> {
         try {
@@ -28,6 +28,7 @@ export function useTaskActions(onChange: () => void) {
                     title: task.title,
                     status,
                     ...(status === 'completed' && { completed_at: todayIso() }),
+                    ...(task.updated_at && { base_updated_at: task.updated_at }),
                 });
                 toast.info(`You’re offline. “${task.title}” will sync when you’re back.`);
                 return;

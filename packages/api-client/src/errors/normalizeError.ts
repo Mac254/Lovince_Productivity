@@ -15,6 +15,7 @@ const MESSAGES: Record<ApiErrorKind, string> = {
     unauthorized: 'Your session has ended. Please sign in again.',
     forbidden: 'You don’t have permission to do that.',
     not_found: 'That item no longer exists.',
+    conflict: 'This was changed somewhere else in the meantime.',
     csrf: 'Your session expired. Please try again.',
     rate_limited: 'Too many attempts. Please wait a moment and try again.',
     server: 'Something went wrong on the server. Please try again.',
@@ -25,6 +26,7 @@ function kindForStatus(status: number): ApiErrorKind {
     if (status === 401) return 'unauthorized';
     if (status === 403) return 'forbidden';
     if (status === 404) return 'not_found';
+    if (status === 409) return 'conflict';
     if (status === 419) return 'csrf';
     if (status === 422) return 'validation';
     if (status === 429) return 'rate_limited';

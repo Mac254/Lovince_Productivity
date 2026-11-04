@@ -98,6 +98,20 @@ class TaskTest extends TestCase
         $this->assertNull($task->fresh()->completed_at);
     }
 
+    public function test_a_change_based_on_an_older_copy_is_refused(): void
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->for($user)->create(['updated_at' => '2026-11-04 10:00:00']);
+        $this->actingAs($user);
+
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'completed', 'base_updated_at' => '2026-11-04T09:00:00+03:00'])
+            ->assertStatus(409);
+        $this->assertSame('not_started', $task->fresh()->status->value);
+
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'completed', 'base_updated_at' => $task->updated_at->toIso8601String()])
+            ->assertOk();
+    }
+
     public function test_user_can_delete_a_task(): void
     {
         $task = Task::factory()->for($this->user)->create();

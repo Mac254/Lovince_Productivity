@@ -6,10 +6,11 @@ export interface QueuedStatus {
     title: string;
     status: TaskStatus;
     completed_at?: IsoDate;
+    base_updated_at?: string;
 }
 
 const STORAGE_KEY = 'focus.task-outbox';
-const DROPPED = new Set(['validation', 'not_found', 'forbidden']);
+const DROPPED = new Set(['validation', 'not_found', 'forbidden', 'conflict']);
 
 function read(): QueuedStatus[] {
     try {
@@ -20,9 +21,14 @@ function read(): QueuedStatus[] {
     }
 }
 
-/** Task status changes made while offline, kept on this device and replayed once the connection is back. */
+/**
+ * Task status changes made while offline, kept on this device and replayed once the connection is back. Each
+ * carries the task's `updated_at` as last seen, so a change made elsewhere in the meantime wins and the stale
+ * one is dropped and counted in `conflicts`.
+ */
 export const useTaskOutboxStore = defineStore('taskOutbox', () => {
     const pending = ref<QueuedStatus[]>(read());
+    const conflicts = ref<string[]>([]);
 
     watch(
         pending,
@@ -49,12 +55,17 @@ export const useTaskOutboxStore = defineStore('taskOutbox', () => {
         let sent = 0;
         try {
             while (pending.value.length) {
-                const { id, status, completed_at } = pending.value[0]!;
+                const { id, title, status, completed_at, base_updated_at } = pending.value[0]!;
                 try {
-                    await api.tasks.update(id, completed_at ? { status, completed_at } : { status });
+                    await api.tasks.update(id, {
+                        status,
+                        ...(completed_at && { completed_at }),
+                        ...(base_updated_at && { base_updated_at }),
+                    });
                     sent++;
                 } catch (error) {
                     if (!isApiError(error) || !DROPPED.has(error.kind)) break;
+                    if (error.kind === 'conflict') conflicts.value = [...conflicts.value, title];
                 }
                 pending.value = pending.value.slice(1);
             }
@@ -68,5 +79,11 @@ export const useTaskOutboxStore = defineStore('taskOutbox', () => {
         pending.value = [];
     }
 
-    return { pending, queue, flush, clear };
+    function takeConflicts(): string[] {
+        const taken = conflicts.value;
+        conflicts.value = [];
+        return taken;
+    }
+
+    return { pending, conflicts, queue, flush, clear, takeConflicts };
 });

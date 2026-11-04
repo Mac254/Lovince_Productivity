@@ -83,7 +83,12 @@ class TaskController extends Controller
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
         $validated = $request->validated();
-        $task->fill(Arr::except($validated, 'completed_at'));
+        abort_if(
+            isset($validated['base_updated_at']) && $task->updated_at->gt(Carbon::parse($validated['base_updated_at'])),
+            409,
+            'This task was changed somewhere else since.',
+        );
+        $task->fill(Arr::except($validated, ['completed_at', 'base_updated_at']));
         if (isset($validated['completed_at'])) {
             $day = Carbon::createFromFormat('!Y-m-d', $validated['completed_at']);
             $task->completed_at = $day->isToday() ? now() : $day->endOfDay()->startOfSecond();

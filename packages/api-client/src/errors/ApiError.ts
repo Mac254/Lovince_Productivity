@@ -8,6 +8,7 @@ export type ApiErrorKind =
     | 'unauthorized'
     | 'forbidden'
     | 'not_found'
+    | 'conflict'
     | 'csrf'
     | 'rate_limited'
     | 'server'

@@ -30,6 +30,7 @@ class UpdateTaskRequest extends FormRequest
         return [
             ...$this->taskRules('sometimes'),
             'completed_at' => ['sometimes', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'base_updated_at' => ['sometimes', 'date'],
         ];
     }
 
