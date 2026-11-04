@@ -24,6 +24,14 @@ export type { TaskNote } from './models/taskNote';
 export type { ChecklistItem, ChecklistItemInput } from './models/checklist';
 export type { SettingDescription, SettingsChanges, SettingsModuleDescription, SettingsState } from './models/settings';
 
+export type {
+    AccountingCategory,
+    FinancialAccount,
+    FinancialAccountRef,
+    MinorUnits,
+    Transaction,
+} from './models/accounting';
+
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
 export type {
     AchievementInput,
@@ -70,3 +78,16 @@ export type {
     WeeklyReviewInput,
     WeeklyReviewSummary,
 } from './api/reviews';
+export type {
+    AccountInput,
+    AccountingDashboard,
+    AccountingInsight,
+    AccountingPeriod,
+    CashFlow,
+    CashFlowAccount,
+    CategoryAmount,
+    CategoryInput,
+    IncomeStatement,
+    TransactionFilters,
+    TransactionInput,
+} from './api/accounting';

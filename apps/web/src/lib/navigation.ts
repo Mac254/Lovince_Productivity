@@ -28,6 +28,15 @@ export const navigation: { label: string; items: NavItem[] }[] = [
         ],
     },
     {
+        label: 'Money',
+        items: [
+            { name: 'accounting', label: 'Overview', icon: 'wallet', motion: 'pop' },
+            { name: 'transactions', label: 'Transactions', icon: 'transfer', motion: 'nudge' },
+            { name: 'financial-accounts', label: 'Accounts', icon: 'card', motion: 'lift' },
+            { name: 'financial-reports', label: 'Statements', icon: 'report', motion: 'pop' },
+        ],
+    },
+    {
         label: 'Insights',
         items: [
             { name: 'metrics', label: 'Metrics', icon: 'metrics', motion: 'lift' },

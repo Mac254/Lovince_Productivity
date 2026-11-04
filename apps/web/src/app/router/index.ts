@@ -119,6 +119,30 @@ export const router = createRouter({
                     meta: { title: 'Weekly review' },
                 },
                 {
+                    path: 'money',
+                    name: 'accounting',
+                    component: () => import('@/pages/MoneyOverviewPage.vue'),
+                    meta: { title: 'Money' },
+                },
+                {
+                    path: 'money/transactions',
+                    name: 'transactions',
+                    component: () => import('@/pages/MoneyTransactionsPage.vue'),
+                    meta: { title: 'Transactions' },
+                },
+                {
+                    path: 'money/accounts',
+                    name: 'financial-accounts',
+                    component: () => import('@/pages/MoneyAccountsPage.vue'),
+                    meta: { title: 'Accounts' },
+                },
+                {
+                    path: 'money/reports',
+                    name: 'financial-reports',
+                    component: () => import('@/pages/MoneyReportsPage.vue'),
+                    meta: { title: 'Money reports' },
+                },
+                {
                     path: 'journal',
                     name: 'journal',
                     component: () => import('@/pages/JournalPage.vue'),

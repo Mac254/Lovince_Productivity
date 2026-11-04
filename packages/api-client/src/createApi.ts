@@ -1,4 +1,5 @@
 import type { AxiosInstance } from 'axios';
+import { accountingEndpoints } from './endpoints/accounting';
 import { achievementEndpoints } from './endpoints/achievements';
 import { authEndpoints } from './endpoints/auth';
 import { backupEndpoints } from './endpoints/backup';
@@ -49,6 +50,7 @@ export function createApi(http: AxiosInstance) {
         timeBlocks: timeBlockEndpoints(http),
         schedules: scheduleEndpoints(http),
         suggestions: suggestionEndpoints(http),
+        accounting: accountingEndpoints(http),
     };
 }
 

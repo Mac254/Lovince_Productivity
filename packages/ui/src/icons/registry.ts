@@ -83,6 +83,9 @@ import IconTextFormat from '~icons/solar/text-format-linear';
 import IconUpload from '~icons/solar/upload-linear';
 import IconUser from '~icons/solar/user-circle-linear';
 import IconWarning from '~icons/solar/danger-triangle-linear';
+import IconWallet from '~icons/solar/wallet-linear';
+import IconTransfer from '~icons/solar/transfer-horizontal-linear';
+import IconCard from '~icons/solar/card-linear';
 
 export const icons = {
     add: IconAdd,
@@ -96,6 +99,7 @@ export const icons = {
     'calendar-clock': IconCalendarClock,
     'calendar-range': IconCalendarRange,
     camera: IconCamera,
+    card: IconCard,
     check: IconCheck,
     'check-circle': IconCheckCircle,
     checklist: IconChecklist,
@@ -151,10 +155,12 @@ export const icons = {
     tag: IconTag,
     target: IconTarget,
     tasks: IconTasks,
+    transfer: IconTransfer,
     trash: IconTrash,
     undo: IconUndo,
     upload: IconUpload,
     user: IconUser,
+    wallet: IconWallet,
     warning: IconWarning,
     bold: IconBold,
     italic: IconItalic,
