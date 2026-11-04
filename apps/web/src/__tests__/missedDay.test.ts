@@ -6,20 +6,35 @@ import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { useOutboxStore } from '@/stores/outbox';
 import type { Task } from '@focus/types';
 
-const { update, create, remove, removeGoal, createItem, getEntry, saveEntry, moveToToday, info, success, error } =
-    vi.hoisted(() => ({
-        update: vi.fn(),
-        remove: vi.fn(),
-        removeGoal: vi.fn(),
-        createItem: vi.fn(),
-        create: vi.fn(),
-        getEntry: vi.fn(),
-        saveEntry: vi.fn(),
-        moveToToday: vi.fn(),
-        info: vi.fn(),
-        success: vi.fn(),
-        error: vi.fn(),
-    }));
+const {
+    update,
+    create,
+    remove,
+    removeGoal,
+    createItem,
+    uploadCover,
+    getEntry,
+    saveEntry,
+    moveToToday,
+    files,
+    info,
+    success,
+    error,
+} = vi.hoisted(() => ({
+    update: vi.fn(),
+    uploadCover: vi.fn(),
+    files: new Map<string, File>(),
+    remove: vi.fn(),
+    removeGoal: vi.fn(),
+    createItem: vi.fn(),
+    create: vi.fn(),
+    getEntry: vi.fn(),
+    saveEntry: vi.fn(),
+    moveToToday: vi.fn(),
+    info: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+}));
 
 vi.mock('@focus/api-client', async (original) => {
     const actual = await original<typeof import('@focus/api-client')>();
@@ -27,13 +42,20 @@ vi.mock('@focus/api-client', async (original) => {
         ...actual,
         api: {
             ...actual.api,
-            tasks: { ...actual.api.tasks, update, create, remove, moveToToday },
+            tasks: { ...actual.api.tasks, update, create, remove, moveToToday, uploadCover },
             goals: { ...actual.api.goals, remove: removeGoal },
             checklist: { ...actual.api.checklist, create: createItem },
             journal: { ...actual.api.journal, get: getEntry, save: saveEntry },
         },
     };
 });
+
+vi.mock('@/lib/offlineFiles', () => ({
+    saveFile: async (key: string, file: File) => !!files.set(key, file),
+    loadFile: async (key: string) => files.get(key),
+    dropFile: async (key: string) => void files.delete(key),
+    clearFiles: async () => files.clear(),
+}));
 
 vi.mock('@focus/ui', async (original) => ({
     ...(await original<typeof import('@focus/ui')>()),
@@ -71,6 +93,7 @@ describe('missed day actions', () => {
         vi.useFakeTimers({ toFake: ['Date'] });
         vi.setSystemTime(new Date('2026-11-02T20:00:00'));
         localStorage.clear();
+        files.clear();
         vi.clearAllMocks();
         setActivePinia(createPinia());
     });
@@ -307,6 +330,33 @@ describe('missed day actions', () => {
         expect(await outbox.flush()).toBe(2);
         expect(createItem).toHaveBeenCalledWith(3, 'Draft');
         expect(removeGoal).toHaveBeenCalledWith(9);
+    });
+
+    it('uploads a photo picked offline to the task once the task exists', async () => {
+        const outbox = useOutboxStore();
+        const id = outbox.queueTaskCreate({ title: 'Plan the trip' });
+        const photo = new File(['x'], 'beach.jpg', { type: 'image/jpeg' });
+        expect(await outbox.queueCover({ id, title: 'Plan the trip' }, photo)).toBe(true);
+        expect(files.size).toBe(1);
+
+        create.mockResolvedValue(task({ id: 12 }));
+        uploadCover.mockResolvedValue(task({ id: 12 }));
+        expect(await outbox.flush()).toBe(2);
+        expect(uploadCover).toHaveBeenCalledWith(12, photo);
+        expect(files.size).toBe(0);
+    });
+
+    it('lets go of a queued photo when its task is deleted before syncing', async () => {
+        const outbox = useOutboxStore();
+        const id = outbox.queueTaskCreate({ title: 'Plan the trip' });
+        await outbox.queueCover({ id, title: 'Plan the trip' }, new File(['x'], 'a.jpg'));
+        await outbox.queueCover({ id, title: 'Plan the trip' }, new File(['y'], 'b.jpg'));
+        expect(outbox.pending).toHaveLength(2);
+        expect(files.size).toBe(1);
+
+        outbox.queueRemove('tasks', { id, title: 'Plan the trip' });
+        expect(outbox.pending).toEqual([]);
+        expect(files.size).toBe(0);
     });
 
     it('upgrades task changes saved in the earlier outbox format', () => {

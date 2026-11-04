@@ -194,6 +194,13 @@ const sections = computed(() => {
     return groupByDue(tasks);
 });
 
+const total = computed(
+    () =>
+        (data.value?.meta.total ?? 0) +
+        sections.value.reduce((sum, section) => sum + section.tasks.length, 0) -
+        (data.value?.data.length ?? 0),
+);
+
 const refresh = async () => {
     goals.reset();
     void goals.load().catch(() => undefined);
@@ -246,9 +253,7 @@ onMounted(() => {
                 >
                 <div class="ml-auto flex items-center gap-3">
                     <Text role="label" tone="muted" tabular aria-live="polite">
-                        <template v-if="data && !loading"
-                            >{{ data.meta.total }} {{ data.meta.total === 1 ? 'task' : 'tasks' }}</template
-                        >
+                        <template v-if="data && !loading">{{ total }} {{ total === 1 ? 'task' : 'tasks' }}</template>
                         <template v-else-if="loading">Loading…</template>
                     </Text>
                     <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />

@@ -9,6 +9,7 @@ import type {
     TaskUpdateInput,
 } from '@focus/types';
 import { api, isApiError } from '@focus/api-client';
+import { clearFiles, dropFile, loadFile, saveFile } from '@/lib/offlineFiles';
 
 export interface OutboxInputs {
     tasks: TaskUpdateInput;
@@ -16,7 +17,7 @@ export interface OutboxInputs {
     blockers: BlockerInput;
     checklist: ChecklistItemInput;
     taskNotes: TaskNoteInput;
-    taskCovers: Record<string, never>;
+    taskCovers: { file: string };
 }
 export type OutboxResource = keyof OutboxInputs;
 
@@ -116,6 +117,13 @@ function mergeInput<R extends OutboxResource>(
     return { ...kept, ...next };
 }
 
+/** The `file` keys of queued cover uploads, so their saved photos can be let go. */
+function coverFiles(changes: QueuedChange[]): string[] {
+    return changes.flatMap((change) =>
+        change.kind === 'create' && change.resource === 'taskCovers' ? [change.input.file] : [],
+    );
+}
+
 function shownInput(input: TaskUpdateInput): Partial<Task> {
     const shown: TaskUpdateInput = { ...input };
     delete shown.completed_at;
@@ -151,8 +159,9 @@ function localTask(change: TaskCreate): Task {
 
 /**
  * Changes made while offline, kept on this device and replayed in order once the connection is back: creating,
- * editing and deleting tasks, goals, blockers, checklist items and work-log entries, and journal entries. A record
- * made offline gets a negative id until it syncs; edits to it fold into its creation and deleting it drops it.
+ * editing and deleting tasks, goals, blockers, checklist items and work-log entries, task cover photos (the file
+ * waits in IndexedDB) and journal entries. A record made offline gets a negative id until it syncs; edits to it fold
+ * into its creation, deleting it drops it, and once it is created the changes queued after it use its new id.
  * Task edits carry the `updated_at` they were made against, so a change made elsewhere in the meantime wins: a
  * stale task edit is dropped and named in `conflicts`, and a stale journal entry is kept by adding the offline
  * text below what is on the server. `synced` counts the flushes that sent something, so lists can reload.
@@ -222,11 +231,13 @@ export const useOutboxStore = defineStore('outbox', () => {
     }
 
     function queueRemove(resource: OutboxResource, record: { id: number; title: string }): void {
-        const rest = pending.value.filter(
-            (change) =>
-                !targets(change, resource, record.id) &&
-                !(resource === 'tasks' && change.kind === 'create' && change.parent === record.id),
-        );
+        const dropped = (change: QueuedChange) =>
+            targets(change, resource, record.id) ||
+            (change.kind === 'create' &&
+                change.parent === record.id &&
+                (resource === 'tasks' || change.resource === resource));
+        coverFiles(pending.value.filter(dropped)).forEach((file) => void dropFile(file));
+        const rest = pending.value.filter((change) => !dropped(change));
         pending.value = isLocal(record)
             ? rest
             : [...rest, { kind: 'remove', resource, id: record.id, title: record.title } as QueuedChange];
@@ -241,6 +252,20 @@ export const useOutboxStore = defineStore('outbox', () => {
 
     function queueTaskCreate(input: TaskInput): number {
         return queueCreate('tasks', input.title ?? 'New task', input);
+    }
+
+    /** Keeps a photo picked offline on this device and queues it as the task's cover; false if it can't be kept. */
+    async function queueCover(task: { id: number; title: string }, file: File): Promise<boolean> {
+        const key = `cover-${localId()}`;
+        if (!(await saveFile(key, file))) return false;
+        const earlier = (change: QueuedChange) =>
+            change.kind !== 'journal' &&
+            change.resource === 'taskCovers' &&
+            (change.kind === 'create' ? change.parent === task.id : change.id === task.id);
+        coverFiles(pending.value.filter(earlier)).forEach((stale) => void dropFile(stale));
+        pending.value = pending.value.filter((change) => !earlier(change));
+        queueCreate('taskCovers', task.title, { file: key }, task.id);
+        return true;
     }
 
     function queueJournal(date: IsoDate, body: string, base: string | null): void {
@@ -272,7 +297,8 @@ export const useOutboxStore = defineStore('outbox', () => {
         return [...local, ...shown];
     }
 
-    async function send(change: QueuedChange): Promise<void> {
+    /** Sends one change; for a create, resolves to the id the server gave the new record. */
+    async function send(change: QueuedChange): Promise<number | void> {
         if (change.kind === 'journal') {
             try {
                 await api.journal.save(change.date, change.body, change.base_updated_at);
@@ -284,12 +310,15 @@ export const useOutboxStore = defineStore('outbox', () => {
             return;
         }
         if (change.kind === 'create') {
-            if (change.resource === 'tasks') await api.tasks.create(change.input);
-            else if (change.resource === 'goals') await api.goals.create(change.input);
-            else if (change.resource === 'blockers') await api.blockers.create(change.input);
-            else if (change.resource === 'checklist')
-                await api.checklist.create(change.parent!, change.input.title ?? '');
-            else if (change.resource === 'taskNotes') await api.taskNotes.create(change.parent!, change.input);
+            if (change.resource === 'tasks') return (await api.tasks.create(change.input)).id;
+            if (change.resource === 'goals') return (await api.goals.create(change.input)).id;
+            if (change.resource === 'blockers') return (await api.blockers.create(change.input)).id;
+            if (change.resource === 'checklist')
+                return (await api.checklist.create(change.parent!, change.input.title ?? '')).id;
+            if (change.resource === 'taskNotes') return (await api.taskNotes.create(change.parent!, change.input)).id;
+            const file = await loadFile(change.input.file);
+            if (file) await api.tasks.uploadCover(change.parent!, file);
+            await dropFile(change.input.file);
             return;
         }
         if (change.kind === 'update') {
@@ -312,6 +341,20 @@ export const useOutboxStore = defineStore('outbox', () => {
         else await api.tasks.removeCover(change.id);
     }
 
+    /** Points the changes queued after a record made offline at the id the server gave it. */
+    function adopt(local: number, id: number): void {
+        pending.value = pending.value.map((change) => {
+            if (change.kind === 'journal') return change;
+            const parent = change.kind === 'create' && change.parent === local;
+            if (change.id !== local && !parent) return change;
+            return {
+                ...change,
+                ...(change.id === local && { id }),
+                ...(parent && { parent: id }),
+            } as QueuedChange;
+        });
+    }
+
     let flushing = false;
 
     async function flush(): Promise<number> {
@@ -322,8 +365,9 @@ export const useOutboxStore = defineStore('outbox', () => {
             while (pending.value.length) {
                 const change = pending.value[0]!;
                 try {
-                    await send(change);
+                    const created = await send(change);
                     sent++;
+                    if (change.kind === 'create' && created) adopt(change.id, created);
                 } catch (error) {
                     if (!isApiError(error) || !DROPPED.has(error.kind)) break;
                     if (error.kind === 'conflict' && change.kind === 'update') {
@@ -347,6 +391,7 @@ export const useOutboxStore = defineStore('outbox', () => {
 
     function clear(): void {
         pending.value = [];
+        void clearFiles();
     }
 
     return {
@@ -358,6 +403,7 @@ export const useOutboxStore = defineStore('outbox', () => {
         queueRemove,
         queueTaskUpdate,
         queueTaskCreate,
+        queueCover,
         queueJournal,
         withPending,
         flush,
