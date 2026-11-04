@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { Transaction } from '@focus/types';
-import { flowOf, isAmount, monthOf, toDecimal } from '@/features/accounting/money';
+import type { Budget, RecurringTransaction, Transaction } from '@focus/types';
+import {
+    budgetState,
+    elapsedShare,
+    flowOf,
+    isAmount,
+    monthlyAmount,
+    monthOf,
+    toDecimal,
+} from '@/features/accounting/money';
 
 describe('money', () => {
     it('turns minor units into exact decimal strings', () => {
@@ -35,5 +43,31 @@ describe('money', () => {
         expect(monthOf('2026-01-31', 1)).toEqual({ from: '2026-02-01', to: '2026-02-28' });
         expect(monthOf('2026-12-15', 1)).toEqual({ from: '2027-01-01', to: '2027-01-31' });
         expect(monthOf('2028-03-10', -1)).toEqual({ from: '2028-02-01', to: '2028-02-29' });
+    });
+
+    it('measures how far through a month today is', () => {
+        const november = monthOf('2026-11-04');
+        expect(elapsedShare(november, '2026-10-31')).toBe(0);
+        expect(elapsedShare(november, '2026-11-15')).toBe(0.5);
+        expect(elapsedShare(november, '2026-11-30')).toBe(1);
+        expect(elapsedShare(november, '2026-12-01')).toBe(1);
+    });
+
+    it('flags budgets that are over or spending ahead of the month', () => {
+        const budget = (spent: number) => ({ amount: 10_000, spent }) as Budget;
+        expect(budgetState(budget(10_001), 0.5)).toBe('over');
+        expect(budgetState(budget(6_000), 0.5)).toBe('ahead');
+        expect(budgetState(budget(4_000), 0.5)).toBe('on-track');
+        expect(budgetState(budget(500), 0)).toBe('on-track');
+        expect(budgetState(budget(1_500), 0)).toBe('ahead');
+        expect(budgetState(budget(10_000), 1)).toBe('on-track');
+    });
+
+    it('spreads recurring payments over an average month', () => {
+        const rule = (amount: number, frequency: RecurringTransaction['frequency']) =>
+            ({ amount, frequency }) as RecurringTransaction;
+        expect(monthlyAmount(rule(120_000, 'monthly'))).toBe(120_000);
+        expect(monthlyAmount(rule(1_200, 'weekly'))).toBe(5_200);
+        expect(monthlyAmount(rule(120_000, 'yearly'))).toBe(10_000);
     });
 });
