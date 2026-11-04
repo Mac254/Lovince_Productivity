@@ -15,8 +15,10 @@ import {
 import Icon from '../../primitives/Icon/Icon.vue';
 import Field from '../Field/Field.vue';
 import { controlClasses, type ControlSurface } from '../Field/controlClasses';
+import { useFieldAttrs } from '../../composables/useFieldAttrs';
 
 defineOptions({ inheritAttrs: false });
+const { root, control } = useFieldAttrs();
 defineProps<{
     id: string;
     label: string;
@@ -35,6 +37,7 @@ const pager =
 
 <template>
     <Field
+        v-bind="root()"
         :id="id"
         v-slot="{ describedBy, invalid }"
         :label="label"
@@ -53,7 +56,7 @@ const pager =
             <LvDatePickerInput
                 :id="id"
                 :label="label"
-                v-bind="$attrs"
+                v-bind="control()"
                 :aria-describedby="describedBy"
                 :class="[controlClasses(invalid, surface), 'h-(--control-md) pr-12 tabular']"
             />

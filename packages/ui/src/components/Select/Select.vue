@@ -14,6 +14,7 @@ import { useLayer } from '../../composables/useLayer';
 import Icon from '../../primitives/Icon/Icon.vue';
 import Field from '../Field/Field.vue';
 import { controlClasses, type ControlSurface } from '../Field/controlClasses';
+import { useFieldAttrs } from '../../composables/useFieldAttrs';
 
 export interface SelectOption<V> {
     value: V | '';
@@ -21,6 +22,7 @@ export interface SelectOption<V> {
 }
 
 defineOptions({ inheritAttrs: false });
+const { root, control } = useFieldAttrs();
 const props = defineProps<{
     id: string;
     label: string;
@@ -50,6 +52,7 @@ function choose(key: string | string[]): void {
 
 <template>
     <Field
+        v-bind="root()"
         :id="id"
         v-slot="{ describedBy, invalid }"
         :label="label"
@@ -61,7 +64,7 @@ function choose(key: string | string[]): void {
         <LvSelectRoot :model-value="selected" @update:model-value="choose">
             <LvSelectTrigger
                 :id="id"
-                v-bind="$attrs"
+                v-bind="control()"
                 :aria-invalid="invalid || undefined"
                 :aria-describedby="describedBy"
                 :class="[

@@ -2,8 +2,10 @@
 import { LvInput } from '@lovince/ui-vue';
 import Field from '../Field/Field.vue';
 import { controlClasses, type ControlSurface } from '../Field/controlClasses';
+import { useFieldAttrs } from '../../composables/useFieldAttrs';
 
 defineOptions({ inheritAttrs: false });
+const { root, control } = useFieldAttrs();
 defineProps<{
     id: string;
     label: string;
@@ -17,6 +19,7 @@ const model = defineModel<string | null>({ default: '' });
 
 <template>
     <Field
+        v-bind="root()"
         :id="id"
         v-slot="{ describedBy, invalid }"
         :label="label"
@@ -27,7 +30,7 @@ const model = defineModel<string | null>({ default: '' });
     >
         <LvInput
             :model-value="model ?? ''"
-            v-bind="$attrs"
+            v-bind="control()"
             :aria-describedby="describedBy"
             :class="[controlClasses(invalid, surface), 'h-(--control-md) read-only:bg-canvas']"
             @update:model-value="model = $event"

@@ -16,8 +16,10 @@ import Icon from '../../primitives/Icon/Icon.vue';
 import Field from '../Field/Field.vue';
 import { controlClasses, type ControlSurface } from '../Field/controlClasses';
 import type { SelectOption } from '../Select/Select.vue';
+import { useFieldAttrs } from '../../composables/useFieldAttrs';
 
 defineOptions({ inheritAttrs: false });
+const { root, control } = useFieldAttrs();
 const props = withDefaults(
     defineProps<{
         id: string;
@@ -47,6 +49,7 @@ function choose(key: string | string[] | undefined): void {
 
 <template>
     <Field
+        v-bind="root()"
         :id="id"
         v-slot="{ describedBy, invalid }"
         :label="label"
@@ -59,7 +62,7 @@ function choose(key: string | string[] | undefined): void {
             <LvComboboxAnchor class="group relative flex items-center">
                 <LvComboboxInput
                     :id="id"
-                    v-bind="$attrs"
+                    v-bind="control()"
                     :aria-invalid="invalid || undefined"
                     :aria-describedby="describedBy"
                     :class="[controlClasses(invalid, surface), 'h-(--control-md) truncate pr-12']"
