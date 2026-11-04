@@ -195,6 +195,19 @@ class ReportAndMetricsTest extends TestCase
         $this->assertSame(0, $report()['summary']['completed']);
     }
 
+    public function test_deleting_a_task_finished_on_an_earlier_day_refreshes_that_days_report(): void
+    {
+        Carbon::setTestNow('2026-10-27 18:00:00');
+        $user = User::factory()->create();
+        $task = Task::factory()->for($user)->completed()->create();
+        $this->actingAs($user)->postJson('/api/v1/reports')->assertCreated()->assertJsonPath('data.summary.completed', 1);
+
+        Carbon::setTestNow('2026-10-28 09:00:00');
+        $this->deleteJson("/api/v1/tasks/{$task->id}")->assertNoContent();
+
+        $this->getJson('/api/v1/reports/2026-10-27')->assertJsonPath('data.summary.completed', 0);
+    }
+
     public function test_reports_written_after_their_day_describe_the_day_as_it_ended(): void
     {
         Carbon::setTestNow('2026-10-26 09:00:00');

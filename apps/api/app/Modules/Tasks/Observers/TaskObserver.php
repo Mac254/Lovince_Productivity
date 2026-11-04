@@ -10,7 +10,8 @@ use App\Modules\Tasks\Models\Task;
 
 /**
  * A task's work log goes with it. The entries are removed here, not left to the database
- * cascade, so saved reports for the days they were logged on stop listing them.
+ * cascade, so saved reports for the days they were logged on stop listing them. Deleting a task
+ * finished on an earlier day refreshes that day's saved report too.
  */
 class TaskObserver
 {
@@ -42,6 +43,13 @@ class TaskObserver
 
         if ($days->isNotEmpty()) {
             WorkLogChanged::dispatch($task->user, $days->values()->all());
+        }
+    }
+
+    public function deleted(Task $task): void
+    {
+        if ($task->completed_at?->lt(today())) {
+            CompletionsChanged::dispatch($task->user, [$task->completed_at->copy()->startOfDay()]);
         }
     }
 }
