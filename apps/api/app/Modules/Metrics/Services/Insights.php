@@ -25,7 +25,7 @@ class Insights
             $this->estimates($totals['estimate_accuracy'], $totals['estimated_tasks']),
             $this->streak($metrics['consistency']['current']),
             $this->bestHour($focus['best_hour'], $focus['sessions']),
-            $this->bestWeekday($metrics['daily'], $totals['completed']),
+            $this->bestWeekday($metrics['daily'], $totals['completed'], $days),
             $this->topCategory($metrics['by_category'], $totals['completed']),
             $this->suggestions($metrics['suggestions'] ?? null),
             $this->achievements($metrics['achievements'] ?? null, $days),
@@ -96,13 +96,16 @@ class Insights
     /**
      * @param  list<array{date: string, completed: int}>  $daily
      */
-    private function bestWeekday(array $daily, int $completed): ?array
+    private function bestWeekday(array $daily, int $completed, int $days): ?array
     {
-        if ($completed < self::MIN_SAMPLE * 2) {
+        if ($completed < self::MIN_SAMPLE * 2 || $days < 14) {
             return null;
         }
-        $byWeekday = collect($daily)->groupBy(fn (array $day) => Carbon::parse($day['date'])->dayOfWeekIso)->map->sum('completed');
-        $best = $byWeekday->sortDesc()->keys()->first();
+        $byWeekday = collect($daily)->groupBy(fn (array $day) => Carbon::parse($day['date'])->dayOfWeekIso)->map->sum('completed')->sortDesc();
+        if ($byWeekday->values()->get(1) === $byWeekday->first()) {
+            return null;
+        }
+        $best = $byWeekday->keys()->first();
 
         return $this->insight('weekday', 'neutral', 'You finish the most on '.Carbon::create()->isoWeekday($best)->englishDayOfWeek.'s.');
     }

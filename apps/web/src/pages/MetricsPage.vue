@@ -99,7 +99,7 @@ const timeHint = computed(() => {
 const settings = useSettingsStore();
 const estimateHint = computed(() => {
     const totals = data.value?.totals;
-    if (!totals?.estimated_tasks) return 'No completed tasks with an estimate in this period';
+    if (!totals?.estimated_tasks) return 'No completed tasks with an estimate and logged time in this period';
     return `${formatMinutes(totals.estimated_logged_minutes) || '0m'} logged against ${formatMinutes(totals.estimated_minutes)} estimated on ${totals.estimated_tasks} completed ${totals.estimated_tasks === 1 ? 'task' : 'tasks'}`;
 });
 const showTable = ref(false);

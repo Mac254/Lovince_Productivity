@@ -71,8 +71,15 @@ class MetricsService
         $blockers = Blocker::query()->whereBelongsTo($user)->get();
         $resolved = $blockers->filter(fn (Blocker $b) => $b->status === BlockerStatus::Resolved && $b->resolved_at?->between($start, $end));
 
-        $estimated = $completedInRange->filter(fn (Task $t) => $t->estimate_minutes !== null);
-        $estimatedLogged = $estimated->isEmpty() ? 0 : (int) TaskNote::query()->whereIn('task_id', $estimated->modelKeys())->sum('minutes');
+        // Only tasks with time logged say how long the work took; one with no log would read as instant.
+        $withEstimate = $completedInRange->filter(fn (Task $t) => $t->estimate_minutes !== null);
+        $loggedByTask = $withEstimate->isEmpty() ? collect() : TaskNote::query()
+            ->whereIn('task_id', $withEstimate->modelKeys())
+            ->groupBy('task_id')
+            ->selectRaw('task_id, sum(minutes) as minutes')
+            ->pluck('minutes', 'task_id');
+        $estimated = $withEstimate->filter(fn (Task $t) => ($loggedByTask[$t->id] ?? 0) > 0);
+        $estimatedLogged = (int) $estimated->sum(fn (Task $t) => $loggedByTask[$t->id]);
         $estimatedTotal = (int) $estimated->sum('estimate_minutes');
 
         $focus = $this->focus->between($user, $previousStart, $end);
