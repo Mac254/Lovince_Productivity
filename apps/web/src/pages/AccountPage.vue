@@ -139,6 +139,9 @@ function importSummary(result: BackupImportResult): string {
         [result.focus_sessions, 'focus session', 'focus sessions'],
         [result.weekly_reviews, 'weekly review', 'weekly reviews'],
         [result.time_blocks, 'time block', 'time blocks'],
+        [result.schedules, 'schedule', 'schedules'],
+        [result.suggestions, 'suggestion', 'suggestions'],
+        [result.achievements, 'achievement', 'achievements'],
         [result.task_types, 'task type', 'task types'],
     ];
     const added = parts

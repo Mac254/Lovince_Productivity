@@ -8,5 +8,7 @@ export interface BackupImportResult {
     weekly_reviews: number;
     time_blocks: number;
     achievements: number;
+    schedules: number;
+    suggestions: number;
     skipped: number;
 }
