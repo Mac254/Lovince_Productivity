@@ -1,9 +1,35 @@
 <?php
 
+use App\Modules\Suggestions\Feeds\BoredApi;
+
 return [
     'rotate_after_days' => 3,
 
     'cooldown_days' => ['done' => 21, 'dismissed' => 60],
+
+    // Fresh ideas pulled into the shared pool by `suggestions:fetch-ideas` every six hours.
+    'feed' => [
+        'enabled' => (bool) env('SUGGESTIONS_FEED', true),
+        'driver' => BoredApi::class,
+        'url' => env('SUGGESTIONS_FEED_URL', 'https://bored-api.appbrewery.com/random'),
+        'pulls' => 6,
+        'timeout' => 5,
+        'keep' => 200,
+        'max_length' => 80,
+        'types' => [
+            'busywork' => 'focus',
+            'education' => 'growth',
+            'cooking' => 'health',
+            'relaxation' => 'wellbeing',
+            'social' => 'social',
+            'charity' => 'social',
+            'recreational' => 'fun',
+            'diy' => 'fun',
+            'music' => 'fun',
+        ],
+        'minutes' => ['minutes' => 15, 'hours' => 60],
+        'blocked' => ['alcohol', 'beer', 'wine', 'cocktail', 'drunk', 'bar', 'casino', 'gamble', 'gambling', 'bet', 'lottery', 'smoke', 'vape', 'gun', 'weapon', 'hunt', 'hunting'],
+    ],
 
     'library' => [
         ['key' => 'daily-win', 'category' => 'focus', 'title' => 'Pick one win for today', 'body' => 'Choose the one thing you will be proud to tick off tonight, and star it on the dashboard.', 'route' => 'today'],

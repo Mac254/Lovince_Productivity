@@ -7,14 +7,15 @@ use App\Modules\Suggestions\Contracts\SuggestionDraft;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
 use App\Modules\Suggestions\Enums\SuggestionSource as Source;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
+use App\Modules\Suggestions\Models\PooledIdea;
 use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Users\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 /**
- * Tops up the open ideas from `config('suggestions.library')` to the user's daily number, one
- * category at a time in an order that changes each day. An idea that is open or accepted is never
+ * Tops up the open ideas from `config('suggestions.library')` and the shared pool of fetched ideas
+ * to the user's daily number, one category at a time in an order that changes each day. An idea that is open or accepted is never
  * offered twice; one marked done or dismissed rests for its cooldown before it can return.
  */
 class IdeaLibrary implements Suggester
@@ -40,6 +41,7 @@ class IdeaLibrary implements Suggester
         $openCategories = $open->map(fn (Suggestion $row) => $row->category->value)->flip();
 
         $ideas = collect(config('suggestions.library'))
+            ->concat(PooledIdea::query()->get()->map->toIdea())
             ->reject(fn (array $idea) => $blocked->has($idea['key']) || in_array($idea['key'], $this->resting, true))
             ->sortBy(fn (array $idea) => crc32($idea['key'].$seed));
 
@@ -83,7 +85,11 @@ class IdeaLibrary implements Suggester
             ->map->values();
         $spread = collect();
         for ($round = 0; $round < $queues->max(fn (Collection $group) => $group->count()); $round++) {
-            $queues->each(fn (Collection $group) => $group->has($round) && $spread->push($group[$round]));
+            foreach ($queues as $group) {
+                if ($group->has($round)) {
+                    $spread->push($group[$round]);
+                }
+            }
         }
 
         return $spread;
