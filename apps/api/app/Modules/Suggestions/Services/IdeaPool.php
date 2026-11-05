@@ -4,13 +4,18 @@ namespace App\Modules\Suggestions\Services;
 
 use App\Modules\Suggestions\Contracts\IdeaFeed;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
+use App\Modules\Suggestions\Enums\SuggestionSource;
+use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Suggestions\Models\PooledIdea;
+use App\Modules\Suggestions\Models\Suggestion;
 use Illuminate\Support\Str;
 
 /**
- * Fills the shared pool from the configured feed. Each idea is cleaned to plain sentence-case text,
- * keyed by its slug so the same idea is stored once, and dropped if it is too long, looks like markup
- * or a link, mentions a blocked word or repeats a built-in idea. The oldest ideas beyond `keep` go.
+ * Fills the shared pool from the configured feed, letting in only ideas that pass every check:
+ * plain letters, digits and simple punctuation, sentence case with no names or brands, two to twelve
+ * words starting with an approved verb, and no blocked word or phrase. Anything else is dropped,
+ * never repaired. Ideas are keyed by slug, so each is stored once and none repeats a built-in idea.
+ * Each run re-checks the whole pool, so tightening the rules also clears what is already there.
  */
 class IdeaPool
 {
@@ -26,22 +31,16 @@ class IdeaPool
 
         $feed = app($config['driver']);
         assert($feed instanceof IdeaFeed);
-        $library = collect(config('suggestions.library'))->map(fn (array $idea) => self::key($idea['title']))->flip();
         $now = now();
 
         $rows = collect($feed->fetch((int) $config['pulls']))
             ->map(fn (array $idea) => $this->clean($idea))
             ->filter()
-            ->reject(fn (array $idea) => $library->has($idea['key']))
             ->unique('key')
             ->map(fn (array $idea) => $idea + ['feed' => class_basename($config['driver']), 'created_at' => $now, 'updated_at' => $now]);
 
         $added = PooledIdea::query()->insertOrIgnore($rows->values()->all());
-
-        $oldestKept = PooledIdea::query()->latest('id')->skip(max(0, (int) $config['keep'] - 1))->value('id');
-        if ($oldestKept !== null) {
-            PooledIdea::query()->where('id', '<', $oldestKept)->delete();
-        }
+        $this->prune((int) $config['keep']);
 
         return $added;
     }
@@ -52,51 +51,85 @@ class IdeaPool
     }
 
     /**
+     * Drops ideas the rules no longer allow, withdrawing any still open, then keeps the newest `$keep`.
+     */
+    private function prune(int $keep): void
+    {
+        $rejected = PooledIdea::query()->get()
+            ->reject(fn (PooledIdea $idea) => $this->clean(['title' => $idea->title, 'category' => $idea->category->value]) !== null)
+            ->pluck('key');
+        if ($rejected->isNotEmpty()) {
+            PooledIdea::query()->whereIn('key', $rejected)->delete();
+            Suggestion::query()
+                ->where('source', SuggestionSource::Library)
+                ->where('status', SuggestionStatus::New)
+                ->where(fn ($query) => $rejected->each(fn (string $key) => $query->orWhere('key', "idea:{$key}")->orWhere('key', 'like', "idea:{$key}:%")))
+                ->delete();
+        }
+
+        $oldestKept = PooledIdea::query()->latest('id')->skip(max(0, $keep - 1))->value('id');
+        if ($oldestKept !== null) {
+            PooledIdea::query()->where('id', '<', $oldestKept)->delete();
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $idea
      * @return array<string, mixed>|null
      */
     private function clean(array $idea): ?array
     {
-        $category = SuggestionCategory::tryFrom((string) ($idea['category'] ?? ''));
-        $title = $this->text((string) ($idea['title'] ?? ''));
+        $category = SuggestionCategory::tryFrom(is_string($idea['category'] ?? null) ? $idea['category'] : '');
+        $title = is_string($idea['title'] ?? null) ? $this->text($idea['title']) : null;
         if ($category === null || $title === null) {
+            return null;
+        }
+
+        $key = self::key($title);
+        $library = collect(config('suggestions.library'))->map(fn (array $entry) => self::key($entry['title']));
+        if ($library->contains($key)) {
             return null;
         }
 
         $minutes = $idea['minutes'] ?? null;
 
         return [
-            'key' => self::key($title),
+            'key' => $key,
             'category' => $category->value,
             'title' => $title,
-            'minutes' => is_int($minutes) && $minutes > 0 && $minutes <= 600 ? $minutes : null,
+            'minutes' => is_int($minutes) && $minutes > 0 && $minutes <= 120 ? $minutes : null,
         ];
     }
 
     private function text(string $raw): ?string
     {
-        $text = html_entity_decode(strip_tags($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $text = preg_replace('/[\p{C}]+/u', ' ', $text) ?? '';
-        $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '', ' .!;,:-');
-        $length = mb_strlen($text);
-        if ($length < 4 || $length > config('suggestions.feed.max_length')) {
+        $config = config('suggestions.feed');
+        $text = trim(preg_replace('/ +/', ' ', str_replace('’', "'", $raw)) ?? '');
+        $text = rtrim($text, '.');
+
+        // Only letters, digits, spaces, apostrophes, hyphens and commas: no markup, links, symbols or emoji.
+        if (! preg_match("/^[A-Za-z0-9 ',-]+$/", $text) || mb_strlen($text) > $config['max_length']) {
             return null;
         }
 
-        if (preg_match('/https?:|www\.|[<>{}\[\]\\\\|@#$^*=_`~]/i', $text)) {
+        // Sentence case with no capitals after the first letter rules out names, brands and shouting.
+        $words = explode(' ', $text);
+        if (preg_match('/[A-Z]/', substr($text, 1)) || count($words) < 2 || count($words) > 12) {
             return null;
         }
 
-        $blocked = implode('|', array_map(fn (string $word) => preg_quote($word, '/'), config('suggestions.feed.blocked')));
-        if ($blocked !== '' && preg_match("/\b({$blocked})\b/iu", $text)) {
+        if (! in_array(strtolower($words[0]), $config['verbs'], true)) {
             return null;
         }
 
-        // Sentence case: shouted text and shouted words calm down, short acronyms like DIY stay.
-        $text = mb_strtoupper($text) === $text
-            ? mb_strtolower($text)
-            : preg_replace_callback('/\b\p{Lu}{4,}\b/u', fn (array $word) => mb_strtolower($word[0]), $text);
+        $blocked = implode('|', array_map(
+            fn (string $phrase) => str_ends_with($phrase, '*') ? preg_quote(rtrim($phrase, '*'), '/').'\\w*' : preg_quote($phrase, '/').'s?',
+            $config['blocked'],
+        ));
+        if ($blocked !== '' && preg_match("/\\b({$blocked})\\b/i", $text)) {
+            return null;
+        }
 
-        return Str::ucfirst(str_replace("'", '’', $text));
+        return ucfirst(str_replace("'", '’', $text));
     }
 }

@@ -7,28 +7,48 @@ return [
 
     'cooldown_days' => ['done' => 21, 'dismissed' => 60],
 
-    // Fresh ideas pulled into the shared pool by `suggestions:fetch-ideas` every six hours.
+    // Fresh ideas pulled into the shared pool by `suggestions:fetch-ideas` every six hours. An idea
+    // gets in only if it passes every rule below; see `Services/IdeaPool.php` and `Feeds/BoredApi.php`.
     'feed' => [
         'enabled' => (bool) env('SUGGESTIONS_FEED', true),
         'driver' => BoredApi::class,
         'url' => env('SUGGESTIONS_FEED_URL', 'https://bored-api.appbrewery.com/random'),
-        'pulls' => 6,
+        'pulls' => 10,
         'timeout' => 5,
         'keep' => 200,
-        'max_length' => 80,
+        'max_length' => 70,
+        'max_price' => 0.3,
         'types' => [
             'busywork' => 'focus',
             'education' => 'growth',
             'cooking' => 'health',
             'relaxation' => 'wellbeing',
             'social' => 'social',
-            'charity' => 'social',
             'recreational' => 'fun',
             'diy' => 'fun',
             'music' => 'fun',
         ],
+        // Durations that fit in a day; longer ones are skipped.
         'minutes' => ['minutes' => 15, 'hours' => 60],
-        'blocked' => ['alcohol', 'beer', 'wine', 'cocktail', 'drunk', 'bar', 'casino', 'gamble', 'gambling', 'bet', 'lottery', 'smoke', 'vape', 'gun', 'weapon', 'hunt', 'hunting'],
+        // An idea must open with one of these verbs.
+        'verbs' => [
+            'bake', 'catch', 'clean', 'compliment', 'cook', 'create', 'do', 'draw', 'explore', 'give', 'have', 'host',
+            'invite', 'learn', 'listen', 'look', 'make', 'meditate', 'memorize', 'organize', 'paint', 'pick', 'plan', 'play',
+            'practice', 'prepare', 'read', 'rearrange', 'research', 'solve', 'start', 'study', 'take', 'text', 'try',
+            'uninstall', 'visit', 'watch', 'write',
+        ],
+        // Whole words or phrases (plurals included) that rule an idea out; a trailing * matches any
+        // ending. Covers substances, nightlife, risk, money, driving, medical, pranks, pets and property
+        // the user may not have, things not local to them, and words misspelt at the source.
+        'blocked' => [
+            'alcohol*', 'beer', 'wine', 'cocktail', 'drunk', 'bar', 'pub', 'club', 'nightlife', 'party', 'parties', 'casino',
+            'gambl*', 'bet', 'betting', 'lottery', 'smok*', 'vap*', 'cigar*', 'drug', 'caffeine', 'gun', 'weapon', 'knife',
+            'knives', 'hunt*', 'fish*', 'fire', 'bonfire', 'swim*', 'prank', 'fear', 'stranger', 'date', 'significant other',
+            'drive', 'driving', 'car', 'road trip', 'blood', 'will', 'buy', 'shop*', 'donat*', 'money', 'financ*', 'invest*',
+            'loan', 'debt', 'stock', 'crypto*', 'dog', 'cat', 'pet', 'lawn', 'garage', 'basement', 'yard', 'broadway',
+            'states', 'bracket', 'webinar', 'business', 'binge', 'video game', 'news', 'trending', 'diy', 'nap', 'dark',
+            'lanaguage',
+        ],
     ],
 
     'library' => [
