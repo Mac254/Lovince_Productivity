@@ -2,6 +2,7 @@
 
 namespace App\Modules\Suggestions\Tests\Feature;
 
+use App\Modules\Suggestions\Feeds\BoredApi;
 use App\Modules\Suggestions\Models\PooledIdea;
 use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Suggestions\Services\SuggestionEngine;
@@ -17,6 +18,12 @@ class IdeaFeedTest extends TestCase
     use RefreshDatabase;
 
     private const URL = 'https://bored-api.appbrewery.com/random';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['suggestions.feed.driver' => BoredApi::class]);
+    }
 
     private function activity(string $activity, string $type = 'relaxation', array $extra = []): array
     {

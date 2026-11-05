@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Suggestions\Feeds\BoredApi;
+use App\Modules\Suggestions\Feeds\LocalClaude;
 
 return [
     'rotate_after_days' => 3,
@@ -11,7 +12,15 @@ return [
     // gets in only if it passes every rule below; see `Services/IdeaPool.php` and `Feeds/BoredApi.php`.
     'feed' => [
         'enabled' => (bool) env('SUGGESTIONS_FEED', true),
-        'driver' => BoredApi::class,
+        // LocalClaude asks the Claude Code CLI on this machine; BoredApi fetches from the public Bored API.
+        'driver' => env('SUGGESTIONS_FEED_DRIVER') === 'bored' ? BoredApi::class : LocalClaude::class,
+        'claude' => [
+            // Found on the PATH, in ~/.local/bin or /usr/local/bin when empty; set a full path otherwise.
+            'binary' => env('SUGGESTIONS_CLAUDE_BIN'),
+            'model' => env('SUGGESTIONS_CLAUDE_MODEL', 'haiku'),
+            'timeout' => 120,
+            'max_budget_usd' => 0.05,
+        ],
         'url' => env('SUGGESTIONS_FEED_URL', 'https://bored-api.appbrewery.com/random'),
         'pulls' => 10,
         'timeout' => 5,
