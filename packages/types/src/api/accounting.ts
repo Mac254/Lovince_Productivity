@@ -2,6 +2,7 @@ import type {
     CategoryKind,
     Currency,
     FinancialAccountType,
+    FinancialGoalKind,
     Frequency,
     RecurringTransactionType,
     TransactionDirection,
@@ -47,6 +48,42 @@ export interface BudgetInput {
     currency?: Currency;
     /** The monthly limit as a decimal string. */
     amount?: string;
+}
+
+export interface FinancialGoalInput {
+    name?: string;
+    kind?: FinancialGoalKind;
+    currency?: Currency;
+    /** A decimal string such as "60000"; the server converts it to minor units. */
+    target_amount?: string;
+    target_date?: IsoDate | null;
+    account_id?: number | null;
+    archived?: boolean;
+}
+
+export interface GoalContributionInput {
+    /** A positive decimal string. */
+    amount: string;
+    /** Take the amount out instead of putting it in. */
+    withdraw?: boolean;
+    date?: IsoDate;
+    note?: string | null;
+}
+
+export interface GoalSummary {
+    count: number;
+    /** Saved across the open goals, each counted up to its target. */
+    saved: MinorUnits;
+    target: MinorUnits;
+    /** Nearest target date first, at most five. */
+    items: {
+        id: number;
+        name: string;
+        kind: FinancialGoalKind;
+        saved: MinorUnits;
+        target_amount: MinorUnits;
+        target_date: IsoDate | null;
+    }[];
 }
 
 export interface BudgetMonth {
@@ -142,6 +179,7 @@ export interface AccountingDashboard {
     /** The six months ending with the period's month. */
     trend: MonthTotals[];
     budgets: BudgetSummary;
+    goals: GoalSummary;
     /** Recurring payments due in the next two weeks. */
     upcoming: RecurringTransaction[];
     insights: AccountingInsight[];

@@ -4,6 +4,7 @@ import {
     budgetState,
     elapsedShare,
     flowOf,
+    goalPercent,
     isAmount,
     monthlyAmount,
     monthOf,
@@ -69,5 +70,12 @@ describe('money', () => {
         expect(monthlyAmount(rule(120_000, 'monthly'))).toBe(120_000);
         expect(monthlyAmount(rule(1_200, 'weekly'))).toBe(5_200);
         expect(monthlyAmount(rule(120_000, 'yearly'))).toBe(10_000);
+    });
+
+    it('shows goal progress as a whole percent that never passes 100', () => {
+        expect(goalPercent({ saved: 0, target_amount: 6_000_000 })).toBe(0);
+        expect(goalPercent({ saved: 1_999_999, target_amount: 6_000_000 })).toBe(33);
+        expect(goalPercent({ saved: 7_000_000, target_amount: 6_000_000 })).toBe(100);
+        expect(goalPercent({ saved: -500, target_amount: 6_000_000 })).toBe(0);
     });
 });

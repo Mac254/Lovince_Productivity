@@ -11,6 +11,10 @@ import type {
     CategoryInput,
     CategoryKind,
     FinancialAccount,
+    FinancialGoal,
+    FinancialGoalInput,
+    GoalContribution,
+    GoalContributionInput,
     IncomeStatement,
     MoneyTrend,
     Paginated,
@@ -143,6 +147,43 @@ export function accountingEndpoints(http: AxiosInstance) {
             },
             async remove(id: number): Promise<void> {
                 await http.delete(`/accounting/budgets/${id}`);
+            },
+        },
+        goals: {
+            async list(filters: { archived?: boolean } = {}, options: RequestOptions = {}): Promise<FinancialGoal[]> {
+                const params = filters.archived ? { archived: 1 } : {};
+                const { data } = await http.get<Resource<FinancialGoal[]>>('/accounting/goals', { params, ...options });
+                return data.data;
+            },
+            async create(input: FinancialGoalInput): Promise<FinancialGoal> {
+                const { data } = await http.post<Resource<FinancialGoal>>('/accounting/goals', input);
+                return data.data;
+            },
+            async update(id: number, input: FinancialGoalInput): Promise<FinancialGoal> {
+                const { data } = await http.patch<Resource<FinancialGoal>>(`/accounting/goals/${id}`, input);
+                return data.data;
+            },
+            async remove(id: number): Promise<void> {
+                await http.delete(`/accounting/goals/${id}`);
+            },
+            contributions: {
+                async list(goalId: number, options: RequestOptions = {}): Promise<GoalContribution[]> {
+                    const { data } = await http.get<Resource<GoalContribution[]>>(
+                        `/accounting/goals/${goalId}/contributions`,
+                        options,
+                    );
+                    return data.data;
+                },
+                async create(goalId: number, input: GoalContributionInput): Promise<GoalContribution> {
+                    const { data } = await http.post<Resource<GoalContribution>>(
+                        `/accounting/goals/${goalId}/contributions`,
+                        input,
+                    );
+                    return data.data;
+                },
+                async remove(goalId: number, id: number): Promise<void> {
+                    await http.delete(`/accounting/goals/${goalId}/contributions/${id}`);
+                },
             },
         },
         recurring: {

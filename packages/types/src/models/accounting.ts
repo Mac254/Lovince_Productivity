@@ -1,6 +1,7 @@
 import type {
     CategoryKind,
     Currency,
+    FinancialGoalKind,
     FinancialAccountType,
     Frequency,
     RecurringTransactionType,
@@ -105,4 +106,33 @@ export interface RecurringTransaction {
     paused: boolean;
     created_at: IsoDateTime;
     updated_at: IsoDateTime;
+}
+
+export interface FinancialGoal {
+    id: number;
+    name: string;
+    kind: FinancialGoalKind;
+    target_amount: MinorUnits;
+    currency: Currency;
+    target_date: IsoDate | null;
+    /** When set, progress is this account's balance; otherwise the contributions recorded against the goal. */
+    account: FinancialAccountRef | null;
+    saved: MinorUnits;
+    /** What is left to reach the target, never below zero. */
+    remaining: MinorUnits;
+    /** What to put aside each month, this month included, to reach the target by its date; null without a date or once reached. */
+    monthly_needed: MinorUnits | null;
+    achieved: boolean;
+    archived: boolean;
+    created_at: IsoDateTime;
+    updated_at: IsoDateTime;
+}
+
+/** Money put towards a goal without an account; negative when taken out. */
+export interface GoalContribution {
+    id: number;
+    amount: MinorUnits;
+    date: IsoDate;
+    note: string | null;
+    created_at: IsoDateTime;
 }

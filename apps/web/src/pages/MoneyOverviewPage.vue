@@ -4,7 +4,14 @@ import type { Currency, Transaction } from '@focus/types';
 import { todayIso } from '@/lib/dates';
 import { useAccountingLists, useTransactionActions } from '@/features/accounting/useAccounting';
 import { daysUntil, formatDate } from '@/lib/dates';
-import { currencyOptions, formatMoney, frequencyLabels, monthOf, type Period } from '@/features/accounting/money';
+import {
+    currencyOptions,
+    formatMoney,
+    frequencyLabels,
+    goalPercent,
+    monthOf,
+    type Period,
+} from '@/features/accounting/money';
 
 const period = ref<Period>(monthOf(todayIso()));
 const currency = ref<Currency | ''>('');
@@ -176,6 +183,42 @@ onMounted(refresh);
                     >
                 </Card>
             </div>
+
+            <Card as="section" aria-labelledby="goals-heading" class="flex flex-col gap-4">
+                <CardHeader title="Goals" title-id="goals-heading" icon="star" class="mb-0">
+                    <Button variant="ghost" size="sm" icon-end="arrow-right" :to="{ name: 'money-goals' }">{{
+                        data.goals.count ? 'All' : 'Set one'
+                    }}</Button>
+                </CardHeader>
+                <template v-if="data.goals.count">
+                    <div>
+                        <p class="font-display text-title font-semibold tabular">{{ money(data.goals.saved) }}</p>
+                        <p class="text-label text-fg-muted">
+                            saved of {{ money(data.goals.target) }} across {{ data.goals.count }}
+                            {{ data.goals.count === 1 ? 'goal' : 'goals' }}
+                        </p>
+                    </div>
+                    <ul class="grid gap-x-8 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
+                        <li v-for="goal in data.goals.items" :key="goal.id" class="flex flex-col gap-1">
+                            <div class="flex items-baseline justify-between gap-3 text-label">
+                                <span class="truncate">{{ goal.name }}</span>
+                                <span class="text-fg-muted tabular">{{ goalPercent(goal) }}%</span>
+                            </div>
+                            <ProgressBar
+                                :value="goalPercent(goal)"
+                                :tone="goal.saved >= goal.target_amount ? 'highlight' : 'accent'"
+                                :label="`${goal.name}: ${goalPercent(goal)}% of the target saved`"
+                            />
+                            <span class="text-caption text-fg-muted tabular"
+                                >{{ money(goal.saved) }} of {{ money(goal.target_amount) }}</span
+                            >
+                        </li>
+                    </ul>
+                </template>
+                <Text v-else tone="muted"
+                    >Save towards an emergency fund, an investment or something you want, and track it here.</Text
+                >
+            </Card>
 
             <div class="grid gap-6 lg:grid-cols-3">
                 <Card as="section" aria-labelledby="insights-heading" class="flex flex-col gap-3">

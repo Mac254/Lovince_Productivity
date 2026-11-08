@@ -6,6 +6,7 @@ use App\Modules\Accounting\Enums\TransactionDirection;
 use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Accounting\Models\Budget;
 use App\Modules\Accounting\Models\FinancialAccount;
+use App\Modules\Accounting\Models\FinancialGoal;
 use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Accounting\Models\Transaction;
 use App\Modules\Users\Models\User;
@@ -14,8 +15,8 @@ use Illuminate\Support\Carbon;
 /**
  * The accounting dashboard for one currency and period: balances, the period's income,
  * spending and cash flow, a six-month trend, budgets, upcoming recurring payments, recent
- * transactions and rule-based insights. Each insight needs enough transactions on both sides
- * of a comparison before it says anything.
+ * transactions, progress on goals and rule-based insights. Each insight needs enough
+ * transactions on both sides of a comparison before it says anything.
  */
 final class Overview
 {
@@ -34,7 +35,7 @@ final class Overview
     /** The share of spending a single category needs before it is called out, in percent. */
     public const NOTABLE_SHARE = 30;
 
-    public function __construct(private Ledger $ledger, private Statement $statement) {}
+    public function __construct(private Ledger $ledger, private Statement $statement, private GoalProgress $progress) {}
 
     public static function currencyFor(User $user, ?string $requested): string
     {
@@ -103,6 +104,7 @@ final class Overview
                 ->orderBy('next_date')
                 ->limit(5)
                 ->get(),
+            'goals' => $this->goals($user, $currency),
             'insights' => $this->insights($current, $previous, (int) $pending->count, (int) $pending->total, $budgets),
         ];
     }
@@ -131,6 +133,33 @@ final class Overview
             'spent' => (int) $items->sum('spent'),
             'over' => $items->filter(fn (array $row) => $row['spent'] > $row['amount'])->count(),
             'items' => $items->take(5)->all(),
+        ];
+    }
+
+    /**
+     * Open goals in the currency, those with the nearest target date first.
+     *
+     * @return array{count: int, saved: int, target: int, items: list<array{id: int, name: string, kind: string, saved: int, target_amount: int, target_date: string|null}>}
+     */
+    private function goals(User $user, string $currency): array
+    {
+        $goals = $this->progress->measure(
+            FinancialGoal::query()->whereBelongsTo($user)->whereNull('archived_at')->where('currency', $currency)
+                ->orderByRaw('CASE WHEN target_date IS NULL THEN 1 ELSE 0 END')->orderBy('target_date')->orderBy('name')->get()
+        );
+
+        return [
+            'count' => $goals->count(),
+            'saved' => (int) $goals->sum(fn (FinancialGoal $goal) => max(0, min($goal->saved, $goal->target_amount))),
+            'target' => (int) $goals->sum('target_amount'),
+            'items' => $goals->take(5)->map(fn (FinancialGoal $goal) => [
+                'id' => $goal->id,
+                'name' => $goal->name,
+                'kind' => $goal->kind->value,
+                'saved' => (int) $goal->saved,
+                'target_amount' => $goal->target_amount,
+                'target_date' => $goal->target_date?->toDateString(),
+            ])->values()->all(),
         ];
     }
 

@@ -52,6 +52,7 @@ final class AuditTrail
         return match (class_basename($subject)) {
             'FinancialAccount' => 'account',
             'RecurringTransaction' => 'recurring',
+            'FinancialGoal' => 'goal',
             default => strtolower(class_basename($subject)),
         };
     }

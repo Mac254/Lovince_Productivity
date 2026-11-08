@@ -67,6 +67,9 @@ export type CategoryKind = (typeof CATEGORY_KINDS)[number];
 export const FREQUENCIES = ['weekly', 'monthly', 'yearly'] as const;
 export type Frequency = (typeof FREQUENCIES)[number];
 
+export const FINANCIAL_GOAL_KINDS = ['savings', 'emergency_fund', 'investment', 'other'] as const;
+export type FinancialGoalKind = (typeof FINANCIAL_GOAL_KINDS)[number];
+
 export const RECURRING_TRANSACTION_TYPES = ['income', 'expense', 'transfer', 'interest', 'fee'] as const;
 export type RecurringTransactionType = (typeof RECURRING_TRANSACTION_TYPES)[number];
 
@@ -130,6 +133,7 @@ export const LIMITS = {
         description: 160,
         notes: 1000,
         reference: 80,
+        goalName: 80,
     },
     currencyDecimals: {
         KES: 2,

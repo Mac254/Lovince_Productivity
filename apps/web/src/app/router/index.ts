@@ -143,6 +143,12 @@ export const router = createRouter({
                     meta: { title: 'Budgets' },
                 },
                 {
+                    path: 'money/goals',
+                    name: 'money-goals',
+                    component: () => import('@/pages/MoneyGoalsPage.vue'),
+                    meta: { title: 'Goals' },
+                },
+                {
                     path: 'money/recurring',
                     name: 'recurring',
                     component: () => import('@/pages/MoneyRecurringPage.vue'),

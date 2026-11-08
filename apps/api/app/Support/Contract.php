@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Modules\Accounting\Enums\AccountType;
 use App\Modules\Accounting\Enums\CategoryKind;
 use App\Modules\Accounting\Enums\Frequency;
+use App\Modules\Accounting\Enums\GoalKind;
 use App\Modules\Accounting\Enums\TransactionDirection;
 use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Accounting\Enums\TransactionType;
@@ -105,6 +106,8 @@ final class Contract
 
     public const ACCOUNTING_REFERENCE_MAX = 80;
 
+    public const ACCOUNTING_GOAL_NAME_MAX = 80;
+
     /** The largest single amount in minor units: just under 10 trillion in a two-decimal currency. */
     public const ACCOUNTING_AMOUNT_MAX = 999_999_999_999_999;
 
@@ -141,6 +144,7 @@ final class Contract
             'TransactionDirection' => $values(TransactionDirection::cases()),
             'CategoryKind' => $values(CategoryKind::cases()),
             'Frequency' => $values(Frequency::cases()),
+            'FinancialGoalKind' => $values(GoalKind::cases()),
             'RecurringTransactionType' => $values(RecurringTransaction::TYPES),
             'Currency' => array_keys(self::CURRENCY_DECIMALS),
         ];
@@ -179,6 +183,7 @@ final class Contract
                 'description' => self::ACCOUNTING_DESCRIPTION_MAX,
                 'notes' => self::ACCOUNTING_NOTES_MAX,
                 'reference' => self::ACCOUNTING_REFERENCE_MAX,
+                'goalName' => self::ACCOUNTING_GOAL_NAME_MAX,
             ],
             'currencyDecimals' => self::CURRENCY_DECIMALS,
         ];

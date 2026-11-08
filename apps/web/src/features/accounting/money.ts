@@ -1,9 +1,11 @@
 import {
     FINANCIAL_ACCOUNT_TYPES,
+    FINANCIAL_GOAL_KINDS,
     LIMITS,
     TRANSACTION_TYPES,
     type Currency,
     type FinancialAccountType,
+    type FinancialGoalKind,
     type Budget,
     type Frequency,
     type RecurringTransaction,
@@ -173,4 +175,26 @@ const perMonth: Record<Frequency, number> = { weekly: 52 / 12, monthly: 1, yearl
 /** What a recurring payment comes to over an average month, in minor units. */
 export function monthlyAmount(rule: RecurringTransaction): MinorUnits {
     return Math.round(rule.amount * perMonth[rule.frequency]);
+}
+
+export const goalKindLabels: Record<FinancialGoalKind, string> = {
+    savings: 'Savings',
+    emergency_fund: 'Emergency fund',
+    investment: 'Investment',
+    other: 'Other',
+};
+
+export const goalKindIcons: Record<FinancialGoalKind, IconName> = {
+    savings: 'target',
+    emergency_fund: 'lock',
+    investment: 'metrics',
+    other: 'star',
+};
+
+export const goalKindOptions = FINANCIAL_GOAL_KINDS.map((value) => ({ value, label: goalKindLabels[value] }));
+
+/** How much of the target is saved, as a whole percent from 0 to 100. */
+export function goalPercent(goal: { saved: MinorUnits; target_amount: MinorUnits }): number {
+    if (goal.target_amount <= 0 || goal.saved <= 0) return 0;
+    return Math.min(100, Math.floor((goal.saved / goal.target_amount) * 100));
 }
