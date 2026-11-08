@@ -553,7 +553,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
             </template>
             <template #features>
                 <ModuleSettings
-                    :modules="['tasks', 'planner', 'timer', 'review', 'journal']"
+                    :modules="['tasks', 'planner', 'timer', 'review', 'journal', 'books', 'roadmap']"
                     :skip="['timer.chime', 'timer.auto_break', 'journal.font']"
                 />
             </template>

@@ -1,10 +1,13 @@
 import type { IconName, IconMotion } from '@focus/ui';
+import type { Settings } from '@focus/types';
 
 export interface NavItem {
     name: string;
     label: string;
     icon: IconName;
     motion: IconMotion;
+    /** A module whose `show_in_sidebar` setting can hide this item. */
+    module?: { [K in keyof Settings]: Settings[K] extends { show_in_sidebar: boolean } ? K : never }[keyof Settings];
 }
 
 export const navigation: { label: string; items: NavItem[] }[] = [
@@ -23,9 +26,10 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'tasks', label: 'Tasks', icon: 'tasks', motion: 'nudge' },
             { name: 'goals', label: 'Goals', icon: 'target', motion: 'spin' },
             { name: 'achievements', label: 'Achievements', icon: 'star', motion: 'pop' },
-            { name: 'books', label: 'Books', icon: 'book', motion: 'lift' },
+            { name: 'books', label: 'Books', icon: 'book', motion: 'lift', module: 'books' },
             { name: 'types', label: 'Types', icon: 'tag', motion: 'wiggle' },
             { name: 'blockers', label: 'Blockers', icon: 'blocker', motion: 'wiggle' },
+            { name: 'roadmap', label: 'Roadmap', icon: 'roadmap', motion: 'nudge', module: 'roadmap' },
         ],
     },
     {
@@ -50,3 +54,13 @@ export const navigation: { label: string; items: NavItem[] }[] = [
         ],
     },
 ];
+
+/** The sidebar's sections without the items the account has hidden. */
+export function visibleNavigation(settings: Settings) {
+    return navigation
+        .map((section) => ({
+            ...section,
+            items: section.items.filter((item) => !item.module || settings[item.module].show_in_sidebar),
+        }))
+        .filter((section) => section.items.length);
+}

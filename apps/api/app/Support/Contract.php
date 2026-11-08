@@ -15,6 +15,7 @@ use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
+use App\Modules\Roadmap\Enums\RoadmapStage;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
 use App\Modules\Suggestions\Enums\SuggestionSource;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
@@ -108,6 +109,10 @@ final class Contract
 
     public const BOOK_READING_NOTE_MAX = 1000;
 
+    public const ROADMAP_TITLE_MAX = 160;
+
+    public const ROADMAP_AREA_MAX = 40;
+
     public const ACCOUNTING_ACCOUNT_NAME_MAX = 80;
 
     public const ACCOUNTING_CATEGORY_NAME_MAX = 60;
@@ -151,6 +156,7 @@ final class Contract
             'SuggestionSource' => $values(SuggestionSource::cases()),
             'AchievementCategory' => $values(SuggestionCategory::cases()),
             'BookStatus' => $values(BookStatus::cases()),
+            'RoadmapStage' => $values(RoadmapStage::cases()),
             'FinancialAccountType' => $values(AccountType::cases()),
             'TransactionType' => $values(TransactionType::cases()),
             'TransactionStatus' => $values(TransactionStatus::cases()),
@@ -199,6 +205,7 @@ final class Contract
                 'readingMinutes' => self::TASK_NOTE_MINUTES_MAX,
                 'readingNote' => self::BOOK_READING_NOTE_MAX,
             ],
+            'roadmap' => ['title' => self::ROADMAP_TITLE_MAX, 'area' => self::ROADMAP_AREA_MAX, 'details' => self::DESCRIPTION_MAX],
             'accounting' => [
                 'accountName' => self::ACCOUNTING_ACCOUNT_NAME_MAX,
                 'categoryName' => self::ACCOUNTING_CATEGORY_NAME_MAX,

@@ -7,6 +7,7 @@ use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
+use App\Modules\Roadmap\Enums\RoadmapStage;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
 use App\Modules\Suggestions\Enums\SuggestionSource;
@@ -167,6 +168,13 @@ class BackupRules
             'books.*.readings.*.chapters' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_READING_CHAPTERS_MAX],
             'books.*.readings.*.minutes' => ['nullable', 'integer', 'min:1', 'max:'.Contract::TASK_NOTE_MINUTES_MAX],
             'books.*.readings.*.note' => ['nullable', 'string', 'max:'.Contract::BOOK_READING_NOTE_MAX],
+            'roadmap' => $list,
+            'roadmap.*.title' => ['required', 'string', 'max:'.Contract::ROADMAP_TITLE_MAX],
+            'roadmap.*.details' => ['nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
+            'roadmap.*.area' => ['nullable', 'string', 'max:'.Contract::ROADMAP_AREA_MAX],
+            'roadmap.*.stage' => ['required', Rule::enum(RoadmapStage::class)],
+            'roadmap.*.position' => ['sometimes', 'integer', 'min:0'],
+            'roadmap.*.shipped_on' => $date,
         ];
     }
 }

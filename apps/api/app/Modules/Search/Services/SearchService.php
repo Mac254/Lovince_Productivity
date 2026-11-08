@@ -9,6 +9,7 @@ use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Planner\Models\Schedule;
 use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Roadmap\Models\RoadmapItem;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Suggestions\Models\Suggestion;
@@ -38,6 +39,7 @@ class SearchService
             ...($journal ? $this->journal($user, $pattern, $query) : []),
             ...$this->achievements($user, $pattern, $query),
             ...$this->books($user, $pattern, $query),
+            ...$this->roadmap($user, $pattern, $query),
             ...$this->suggestions($user, $pattern, $query),
             ...$this->reviews($user, $pattern, $query),
             ...$this->schedules($user, $pattern, $query),
@@ -59,6 +61,15 @@ class SearchService
             ->where(fn (Builder $q) => $this->like($q, ['title', 'author', 'notes'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
             ->map(fn (Book $book) => $this->result('book', $book->id, $book->title, $book->author ?? $book->notes, $query, $book->finished_on?->toDateString()))
+            ->all();
+    }
+
+    private function roadmap(User $user, string $pattern, string $query): array
+    {
+        return RoadmapItem::query()->whereBelongsTo($user)
+            ->where(fn (Builder $q) => $this->like($q, ['title', 'details', 'area'], $pattern))
+            ->latest('updated_at')->limit(self::PER_KIND)->get()
+            ->map(fn (RoadmapItem $item) => $this->result('roadmap', $item->id, $item->title, $item->details ?? $item->area, $query, $item->shipped_on?->toDateString()))
             ->all();
     }
 

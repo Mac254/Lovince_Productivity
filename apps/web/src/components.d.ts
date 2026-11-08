@@ -96,6 +96,8 @@ declare module 'vue' {
     RadioGroup: typeof import('@focus/ui')['RadioGroup']
     ReadingLogDialog: typeof import('./features/books/ReadingLogDialog.vue')['default']
     ReviewTaskList: typeof import('./features/reviews/ReviewTaskList.vue')['default']
+    RoadmapCard: typeof import('./features/roadmap/RoadmapCard.vue')['default']
+    RoadmapItemDialog: typeof import('./features/roadmap/RoadmapItemDialog.vue')['default']
     RollingDigits: typeof import('./features/clock/RollingDigits.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

@@ -9,6 +9,7 @@ import IconArrowRight from '~icons/solar/arrow-right-linear';
 import IconArrowUpRight from '~icons/solar/arrow-right-up-linear';
 import IconBlocker from '~icons/solar/shield-warning-linear';
 import IconBook from '~icons/solar/book-2-linear';
+import IconRoadmap from '~icons/solar/routing-2-linear';
 import IconCalendar from '~icons/solar/calendar-linear';
 import IconCalendarCheck from '~icons/solar/calendar-mark-linear';
 import IconCalendarClock from '~icons/solar/alarm-linear';
@@ -96,6 +97,7 @@ export const icons = {
     'arrow-up-right': IconArrowUpRight,
     blocker: IconBlocker,
     book: IconBook,
+    roadmap: IconRoadmap,
     calendar: IconCalendar,
     'calendar-check': IconCalendarCheck,
     'calendar-clock': IconCalendarClock,

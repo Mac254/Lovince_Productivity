@@ -53,7 +53,7 @@ class BackupImporter
      */
     private function run(User $user, array $backup): array
     {
-        $counts = array_fill_keys(['task_types', 'goals', 'tasks', 'blockers', 'journal', 'focus_sessions', 'weekly_reviews', 'time_blocks', 'achievements', 'schedules', 'suggestions', 'books', 'skipped'], 0);
+        $counts = array_fill_keys(['task_types', 'goals', 'tasks', 'blockers', 'journal', 'focus_sessions', 'weekly_reviews', 'time_blocks', 'achievements', 'schedules', 'suggestions', 'books', 'roadmap', 'skipped'], 0);
 
         if (isset($backup['settings'])) {
             $user->forceFill(['settings' => $this->settings->merge($user->settings, $backup['settings'])])->save();
@@ -259,6 +259,19 @@ class BackupImporter
             }
             $books[$key] = true;
             $counts['books']++;
+        }
+
+        $roadmap = $user->roadmapItems()->pluck('title')->mapWithKeys(fn ($title) => [mb_strtolower($title) => true])->all();
+        foreach ($backup['roadmap'] ?? [] as $row) {
+            $key = mb_strtolower($row['title']);
+            if (isset($roadmap[$key])) {
+                $counts['skipped']++;
+
+                continue;
+            }
+            $user->roadmapItems()->create($row);
+            $roadmap[$key] = true;
+            $counts['roadmap']++;
         }
 
         $suggestionKey = fn (?string $key, string $source, string $title) => $key ?? "{$source}|{$title}";

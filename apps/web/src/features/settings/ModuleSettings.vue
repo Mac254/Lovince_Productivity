@@ -12,6 +12,8 @@ const icons: Partial<Record<SettingsModuleKey, IconName>> = {
     timer: 'hourglass',
     review: 'calendar-check',
     journal: 'journal',
+    books: 'book',
+    roadmap: 'roadmap',
 };
 
 const settings = useSettingsStore();

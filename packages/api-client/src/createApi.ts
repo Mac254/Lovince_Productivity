@@ -2,6 +2,7 @@ import type { AxiosInstance } from 'axios';
 import { accountingEndpoints } from './endpoints/accounting';
 import { achievementEndpoints } from './endpoints/achievements';
 import { bookEndpoints } from './endpoints/books';
+import { roadmapEndpoints } from './endpoints/roadmap';
 import { authEndpoints } from './endpoints/auth';
 import { backupEndpoints } from './endpoints/backup';
 import { blockerEndpoints } from './endpoints/blockers';
@@ -35,6 +36,7 @@ export function createApi(http: AxiosInstance) {
         blockers: blockerEndpoints(http),
         achievements: achievementEndpoints(http),
         books: bookEndpoints(http),
+        roadmap: roadmapEndpoints(http),
         journal: journalEndpoints(http),
         reports: reportEndpoints(http),
         reviews: reviewEndpoints(http),

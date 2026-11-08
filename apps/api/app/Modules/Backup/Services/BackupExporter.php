@@ -13,6 +13,7 @@ use App\Modules\Planner\Models\Schedule;
 use App\Modules\Planner\Models\ScheduleItem;
 use App\Modules\Planner\Models\TimeBlock;
 use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Roadmap\Models\RoadmapItem;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionSource;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
@@ -172,6 +173,14 @@ class BackupExporter
                     'minutes' => $reading->minutes,
                     'note' => $reading->note,
                 ])->all(),
+            ])->all(),
+            'roadmap' => $user->roadmapItems()->orderBy('stage')->orderBy('position')->get()->map(fn (RoadmapItem $item) => [
+                'title' => $item->title,
+                'details' => $item->details,
+                'area' => $item->area,
+                'stage' => $this->value($item->stage),
+                'position' => $item->position,
+                'shipped_on' => $item->shipped_on?->toDateString(),
             ])->all(),
         ];
     }

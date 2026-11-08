@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { navigation } from '@/lib/navigation';
+import { visibleNavigation } from '@/lib/navigation';
 
 const emit = defineEmits<{ navigate: [] }>();
 const route = useRoute();
+const settings = useSettingsStore();
+const sections = computed(() => visibleNavigation(settings.values));
 const nav = ref<HTMLElement | null>(null);
 useLiquid(nav);
 
@@ -16,7 +18,7 @@ function isActive(name: string): boolean {
 <template>
     <nav ref="nav" data-liquid aria-label="Primary" class="flex flex-col gap-6">
         <span data-liquid-indicator aria-hidden="true" class="bg-highlight" />
-        <div v-for="section in navigation" :key="section.label" class="flex flex-col gap-1">
+        <div v-for="section in sections" :key="section.label" class="flex flex-col gap-1">
             <p class="px-3 pb-1 text-caption font-semibold tracking-wide text-chrome-fg-muted uppercase">
                 {{ section.label }}
             </p>

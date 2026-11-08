@@ -18,7 +18,7 @@ class SettingsTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->getJson('/api/v1/settings')
             ->assertOk()
-            ->assertJsonPath('data.modules.*.key', ['general', 'appearance', 'tasks', 'planner', 'suggestions', 'clock', 'timer', 'review', 'journal'])
+            ->assertJsonPath('data.modules.*.key', ['general', 'appearance', 'tasks', 'planner', 'suggestions', 'clock', 'timer', 'review', 'journal', 'books', 'roadmap'])
             ->assertJsonPath('data.values.appearance.theme', 'dark')
             ->assertJsonPath('data.values.timer.chime', true)
             ->assertJsonPath('data.modules.1.settings.0.options.1', ['value' => 'light', 'label' => 'Light'])

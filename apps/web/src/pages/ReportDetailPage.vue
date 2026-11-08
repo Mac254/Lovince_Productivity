@@ -14,6 +14,7 @@ import {
 } from '@/lib/labels';
 
 const route = useRoute();
+const settings = useSettingsStore();
 const toast = useToast();
 const report = ref<DailyReport | null>(null);
 const loading = ref(true);
@@ -351,7 +352,12 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                             <Text v-else role="label" tone="muted">No achievements were recorded this day.</Text>
                         </Card>
 
-                        <Card as="section" aria-labelledby="reading-heading" class="group">
+                        <Card
+                            v-if="settings.values.books.show_in_insights"
+                            as="section"
+                            aria-labelledby="reading-heading"
+                            class="group"
+                        >
                             <CardHeader
                                 title="Reading"
                                 title-id="reading-heading"

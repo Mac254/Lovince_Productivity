@@ -107,6 +107,12 @@ export const router = createRouter({
                     meta: { title: 'Book' },
                 },
                 {
+                    path: 'roadmap',
+                    name: 'roadmap',
+                    component: () => import('@/pages/RoadmapPage.vue'),
+                    meta: { title: 'Roadmap' },
+                },
+                {
                     path: 'metrics',
                     name: 'metrics',
                     component: () => import('@/pages/MetricsPage.vue'),

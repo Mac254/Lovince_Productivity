@@ -7,5 +7,6 @@ The books you've read, are reading, have on the shelf or still need to find, wit
 - `POST books/{book}/readings`, `PATCH`/`DELETE book-readings/{reading}`: a reading log entry (day, chapters, minutes, note). Each moves the book's `chapters_read` by its chapters: the first starts a book still to find or to read, reaching the last chapter finishes it, and removing chapters from a finished book reopens it.
 - `POST books/{book}/tasks` creates a reading task (it takes the book's goal) or, with `task_id`, links one of your tasks; `DELETE books/{book}/tasks/{task}` unlinks it. A repeating task's next copy keeps the link.
 - Owns `books`, `book_readings` and the `tasks.book_id` column; adds the `User::books`, `Goal::books` and `Task::book` relations. Deleting a book removes its reading log and unlinks its tasks; deleting a goal unlinks its books.
+- Settings (`books`): `show_in_sidebar`, `start_tab` (the Books page's first tab) and `show_in_insights` (the reading card on reports and metrics).
 
 Depends on Users, Goals and Tasks. Reports, Metrics, Search and Backup read it.

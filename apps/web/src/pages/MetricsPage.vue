@@ -383,7 +383,7 @@ onMounted(run);
                             <Text v-else role="label" tone="muted">No achievements recorded in this range.</Text>
                         </Card>
                         <Card
-                            v-if="data.reading"
+                            v-if="data.reading && settings.values.books.show_in_insights"
                             as="section"
                             aria-labelledby="reading-metrics-heading"
                             class="group lg:col-span-2"

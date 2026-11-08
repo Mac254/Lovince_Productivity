@@ -22,13 +22,14 @@ Users ← Settings ← Auth
 Users ← Goals ← Tasks ← Blockers ← Journal
 Users ← Quotes
 Users ← Accounting
+Users ← Roadmap
 Goals, Tasks ← Books
 Tasks ← Clock
 Tasks ← Planner
 Tasks, Goals, Blockers, Journal, Clock ← Reviews
-Tasks, Goals, Blockers, Journal, Achievements, Books, Suggestions, Reviews, Planner ← Search
+Tasks, Goals, Blockers, Journal, Achievements, Books, Roadmap, Suggestions, Reviews, Planner ← Search
 Tasks, Goals, Suggestions ← Achievements
-Tasks, Goals, Blockers, Journal, Clock, Reviews, Planner, Suggestions, Achievements, Books, Reports ← Backup
+Tasks, Goals, Blockers, Journal, Clock, Reviews, Planner, Suggestions, Achievements, Books, Roadmap, Reports ← Backup
 Tasks, Goals, Journal, Planner ← Suggestions
 Tasks, Goals, Blockers, Journal, Quotes, Clock, Reviews, Books ← Dashboard, Metrics, Reports (read models)
 ```

@@ -52,6 +52,9 @@ export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
 export const BOOK_STATUSES = ['to_find', 'to_read', 'reading', 'finished'] as const;
 export type BookStatus = (typeof BOOK_STATUSES)[number];
 
+export const ROADMAP_STAGES = ['now', 'next', 'later', 'shipped'] as const;
+export type RoadmapStage = (typeof ROADMAP_STAGES)[number];
+
 export const FINANCIAL_ACCOUNT_TYPES = ['cash', 'bank', 'mobile_money', 'savings', 'sacco', 'money_market', 'investment', 'credit', 'other'] as const;
 export type FinancialAccountType = (typeof FINANCIAL_ACCOUNT_TYPES)[number];
 
@@ -139,6 +142,11 @@ export const LIMITS = {
         readingMinutes: 720,
         readingNote: 1000,
     },
+    roadmap: {
+        title: 160,
+        area: 40,
+        details: 5000,
+    },
     accounting: {
         accountName: 80,
         categoryName: 60,
@@ -219,6 +227,15 @@ export interface Settings {
         font: 'mono' | 'sans' | 'serif' | 'literata' | 'newsreader' | 'lora' | 'garamond' | 'merriweather' | 'crimson' | 'atkinson' | 'lexend' | 'quicksand' | 'nunito' | 'fira_code' | 'geist_mono' | 'source_code' | 'courier' | 'typewriter' | 'hand' | 'patrick_hand' | 'kalam' | 'indie_flower' | 'dancing' | 'architects';
         searchable: boolean;
     };
+    books: {
+        show_in_sidebar: boolean;
+        start_tab: 'reading' | 'to_read' | 'to_find' | 'finished';
+        show_in_insights: boolean;
+    };
+    roadmap: {
+        show_in_sidebar: boolean;
+        show_shipped: boolean;
+    };
 }
 
 export type SettingsModuleKey = keyof Settings;
@@ -279,5 +296,14 @@ export const SETTINGS_DEFAULTS: Settings = {
     journal: {
         font: 'mono',
         searchable: true,
+    },
+    books: {
+        show_in_sidebar: true,
+        start_tab: 'reading',
+        show_in_insights: true,
+    },
+    roadmap: {
+        show_in_sidebar: true,
+        show_shipped: true,
     },
 };

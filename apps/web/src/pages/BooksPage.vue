@@ -15,7 +15,8 @@ const deleteBusy = ref(false);
 const { data, loading, error, run } = useAsync((signal) => api.books.list({}, { signal }));
 
 const order: BookStatus[] = ['reading', 'to_read', 'to_find', 'finished'];
-const tab = useTabQuery(order, 'reading');
+const settings = useSettingsStore();
+const tab = useTabQuery(order, settings.values.books.start_tab);
 const groups = computed(() =>
     order.map((status) => ({ status, items: (data.value ?? []).filter((book) => book.status === status) })),
 );
