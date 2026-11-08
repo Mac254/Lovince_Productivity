@@ -13,7 +13,8 @@ use App\Modules\Users\Models\User;
 use Illuminate\Support\Carbon;
 
 /**
- * The accounting dashboard for one currency and period: balances, the period's income,
+ * The accounting dashboard for one currency and period: balances (in all, and split into
+ * spending money and money set aside in savings and investments), the period's income,
  * spending and cash flow, a six-month trend, budgets, upcoming recurring payments, recent
  * transactions, progress on goals and rule-based insights. Each insight needs enough
  * transactions on both sides of a comparison before it says anything.
@@ -55,6 +56,7 @@ final class Overview
         $accounts = $this->ledger->balances(
             FinancialAccount::query()->whereBelongsTo($user)->whereNull('archived_at')->where('currency', $currency)->orderBy('name')->get()
         );
+        [$setAside, $spending] = $accounts->partition(fn (FinancialAccount $account) => $account->type->isSetAside());
         [$previousFrom, $previousTo, $monthly] = $this->previous($from, $to);
 
         $current = $this->totals($user, $from, $to, $currency);
@@ -77,6 +79,15 @@ final class Overview
             'balance' => (int) $accounts->sum('balance'),
             'available_balance' => (int) $accounts->sum('available_balance'),
             'accounts_count' => $accounts->count(),
+            'spending' => [
+                'balance' => (int) $spending->sum('balance'),
+                'available_balance' => (int) $spending->sum('available_balance'),
+                'accounts_count' => $spending->count(),
+            ],
+            'set_aside' => [
+                'balance' => (int) $setAside->sum('balance'),
+                'accounts_count' => $setAside->count(),
+            ],
             'income' => $current['income'],
             'expenses' => $current['expenses'],
             'net_cash_flow' => $current['net_cash_flow'],

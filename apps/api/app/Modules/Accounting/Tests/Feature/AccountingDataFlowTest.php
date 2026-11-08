@@ -76,6 +76,8 @@ class AccountingDataFlowTest extends AccountingTestCase
         $overview = $this->getJson("/api/v1/accounting/dashboard?{$period}")->assertOk()->json('data');
         $this->same('overview balance', array_sum($balances), $overview['balance']);
         $this->same('overview available', array_sum($balances) - 100_000, $overview['available_balance']);
+        $this->same('overview set aside is the savings account', $balances[$savings->id], $overview['set_aside']['balance']);
+        $this->same('overview spending money leaves savings out', array_sum($balances) - $balances[$savings->id] - 100_000, $overview['spending']['available_balance']);
         $this->same('overview income', $income, $overview['income']);
         $this->same('overview expenses', $expenses, $overview['expenses']);
         $this->same('overview net', $income - $expenses, $overview['net_cash_flow']);

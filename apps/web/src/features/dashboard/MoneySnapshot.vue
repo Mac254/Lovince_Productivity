@@ -23,10 +23,13 @@ onMounted(run);
         <Skeleton v-else-if="!data" class="h-28" />
         <template v-else-if="data.accounts_count">
             <div>
-                <p class="font-display text-title font-semibold tabular">{{ money(data.available_balance) }}</p>
-                <Text role="caption" tone="muted"
-                    >Available across {{ data.accounts_count }}
-                    {{ data.accounts_count === 1 ? 'account' : 'accounts' }}</Text
+                <p class="font-display text-title font-semibold tabular">
+                    {{ money(data.spending.available_balance) }}
+                </p>
+                <Text role="caption" tone="muted" tabular
+                    >Available to spend<template v-if="data.set_aside.balance">
+                        · {{ money(data.set_aside.balance) }} saved and invested</template
+                    ></Text
                 >
             </div>
             <dl class="grid grid-cols-2 gap-3 text-label">

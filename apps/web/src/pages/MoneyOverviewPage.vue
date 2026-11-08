@@ -91,18 +91,31 @@ onMounted(refresh);
             <Button icon-start="add" @click="accountOpen = true">Add an account</Button>
         </EmptyState>
         <template v-else-if="data">
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid gap-4 sm:grid-cols-2">
                 <MoneyTile
-                    label="Available"
-                    :value="money(data.available_balance)"
+                    label="Available to spend"
+                    :value="money(data.spending.available_balance)"
                     icon="wallet"
                     emphasis
                     :hint="
-                        data.available_balance !== data.balance
-                            ? `${money(data.balance)} before pending payments`
-                            : `Across ${data.accounts_count} ${data.accounts_count === 1 ? 'account' : 'accounts'}`
+                        data.spending.available_balance !== data.spending.balance
+                            ? `${money(data.spending.balance)} before pending payments`
+                            : `In ${data.spending.accounts_count} ${data.spending.accounts_count === 1 ? 'account' : 'accounts'} · ${money(data.balance)} in all`
                     "
                 />
+                <MoneyTile
+                    label="Savings and investments"
+                    :value="money(data.set_aside.balance)"
+                    icon="star"
+                    motion="pop"
+                    :hint="
+                        data.set_aside.accounts_count
+                            ? `Set aside in ${data.set_aside.accounts_count} ${data.set_aside.accounts_count === 1 ? 'account' : 'accounts'}, not counted as spending money`
+                            : 'Add a savings, SACCO or investment account to track it here'
+                    "
+                />
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3">
                 <MoneyTile
                     label="Income"
                     :value="money(data.income)"

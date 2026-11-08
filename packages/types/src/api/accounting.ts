@@ -169,6 +169,10 @@ export interface AccountingDashboard {
     balance: MinorUnits;
     available_balance: MinorUnits;
     accounts_count: number;
+    /** Accounts kept for spending: cash, bank, mobile money, credit and other. */
+    spending: { balance: MinorUnits; available_balance: MinorUnits; accounts_count: number };
+    /** Savings, SACCO, money market and investment accounts. */
+    set_aside: { balance: MinorUnits; accounts_count: number };
     income: MinorUnits;
     expenses: MinorUnits;
     net_cash_flow: MinorUnits;
