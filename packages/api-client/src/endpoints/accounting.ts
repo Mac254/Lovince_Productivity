@@ -48,6 +48,10 @@ export function accountingEndpoints(http: AxiosInstance) {
                 });
                 return data.data;
             },
+            async get(id: number, options: RequestOptions = {}): Promise<FinancialAccount> {
+                const { data } = await http.get<Resource<FinancialAccount>>(`/accounting/accounts/${id}`, options);
+                return data.data;
+            },
             async create(input: AccountInput): Promise<FinancialAccount> {
                 const { data } = await http.post<Resource<FinancialAccount>>('/accounting/accounts', input);
                 return data.data;

@@ -88,7 +88,7 @@ onMounted(run);
                             </span>
                             <div class="min-w-0">
                                 <RouterLink
-                                    :to="{ name: 'transactions', query: { account: account.id } }"
+                                    :to="{ name: 'financial-account-detail', params: { id: account.id } }"
                                     class="block truncate font-semibold underline-offset-4 hover:underline"
                                     >{{ account.name }}</RouterLink
                                 >

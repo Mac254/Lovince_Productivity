@@ -149,6 +149,12 @@ export const router = createRouter({
                     meta: { title: 'Transactions' },
                 },
                 {
+                    path: 'money/accounts/:id(\\d+)',
+                    name: 'financial-account-detail',
+                    component: () => import('@/pages/MoneyAccountDetailPage.vue'),
+                    meta: { title: 'Account' },
+                },
+                {
                     path: 'money/accounts',
                     name: 'financial-accounts',
                     component: () => import('@/pages/MoneyAccountsPage.vue'),
