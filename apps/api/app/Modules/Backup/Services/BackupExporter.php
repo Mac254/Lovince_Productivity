@@ -175,12 +175,15 @@ class BackupExporter
                 ])->all(),
             ])->all(),
             'roadmap' => $user->roadmapItems()->orderBy('stage')->orderBy('position')->get()->map(fn (RoadmapItem $item) => [
+                'goal_ref' => $item->goal_id,
+                'starts_on' => $item->starts_on?->toDateString(),
+                'ends_on' => $item->ends_on?->toDateString(),
                 'title' => $item->title,
                 'details' => $item->details,
                 'area' => $item->area,
                 'stage' => $this->value($item->stage),
                 'position' => $item->position,
-                'shipped_on' => $item->shipped_on?->toDateString(),
+                'done_on' => $item->done_on?->toDateString(),
             ])->all(),
         ];
     }

@@ -69,7 +69,7 @@ class SearchService
         return RoadmapItem::query()->whereBelongsTo($user)
             ->where(fn (Builder $q) => $this->like($q, ['title', 'details', 'area'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
-            ->map(fn (RoadmapItem $item) => $this->result('roadmap', $item->id, $item->title, $item->details ?? $item->area, $query, $item->shipped_on?->toDateString()))
+            ->map(fn (RoadmapItem $item) => $this->result('roadmap', $item->id, $item->title, $item->details ?? $item->area, $query, $item->done_on?->toDateString()))
             ->all();
     }
 

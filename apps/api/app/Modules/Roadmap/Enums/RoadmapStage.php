@@ -7,5 +7,5 @@ enum RoadmapStage: string
     case Now = 'now';
     case Next = 'next';
     case Later = 'later';
-    case Shipped = 'shipped';
+    case Done = 'done';
 }

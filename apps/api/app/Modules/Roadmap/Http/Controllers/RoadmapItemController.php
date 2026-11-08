@@ -6,6 +6,7 @@ use App\Modules\Roadmap\Http\Requests\ReorderRoadmapRequest;
 use App\Modules\Roadmap\Http\Requests\RoadmapItemRequest;
 use App\Modules\Roadmap\Http\Resources\RoadmapItemResource;
 use App\Modules\Roadmap\Models\RoadmapItem;
+use App\Modules\Roadmap\Services\PhaseMilestones;
 use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,36 +17,46 @@ use Illuminate\Support\Facades\Gate;
 
 class RoadmapItemController extends Controller
 {
+    public function __construct(private readonly PhaseMilestones $milestones) {}
+
+    private function detailed(RoadmapItem $item): RoadmapItem
+    {
+        $item->load('goal:id,title,tone');
+
+        return $this->milestones->attach(collect([$item]), $item->user)->first();
+    }
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $items = RoadmapItem::query()->whereBelongsTo($request->user())
+            ->with('goal:id,title,tone')
             ->orderBy('position')
             ->orderBy('id')
             ->limit(500)
             ->get();
 
-        return RoadmapItemResource::collection($items);
+        return RoadmapItemResource::collection($this->milestones->attach($items, $request->user()));
     }
 
     public function store(RoadmapItemRequest $request): JsonResponse
     {
         $item = $request->user()->roadmapItems()->create($request->validated());
 
-        return RoadmapItemResource::make($item)->response()->setStatusCode(201);
+        return RoadmapItemResource::make($this->detailed($item))->response()->setStatusCode(201);
     }
 
     public function show(RoadmapItem $item): RoadmapItemResource
     {
         Gate::authorize('view', $item);
 
-        return RoadmapItemResource::make($item);
+        return RoadmapItemResource::make($this->detailed($item));
     }
 
     public function update(RoadmapItemRequest $request, RoadmapItem $item): RoadmapItemResource
     {
         $item->update($request->validated());
 
-        return RoadmapItemResource::make($item);
+        return RoadmapItemResource::make($this->detailed($item));
     }
 
     public function destroy(RoadmapItem $item): Response

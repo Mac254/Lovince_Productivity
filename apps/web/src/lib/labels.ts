@@ -79,14 +79,14 @@ export const roadmapStageLabels: Record<RoadmapStage, string> = {
     now: 'Now',
     next: 'Next',
     later: 'Later',
-    shipped: 'Shipped',
+    done: 'Done',
 };
 
 export const roadmapStageTones: Record<RoadmapStage, BadgeTone> = {
     now: 'accent',
     next: 'info',
     later: 'neutral',
-    shipped: 'success',
+    done: 'success',
 };
 
 export const goalStatusLabels: Record<GoalStatus, string> = {

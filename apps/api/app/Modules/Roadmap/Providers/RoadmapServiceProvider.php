@@ -2,6 +2,7 @@
 
 namespace App\Modules\Roadmap\Providers;
 
+use App\Modules\Goals\Models\Goal;
 use App\Modules\Roadmap\Models\RoadmapItem;
 use App\Modules\Roadmap\Policies\RoadmapItemPolicy;
 use App\Modules\Users\Models\User;
@@ -18,5 +19,6 @@ class RoadmapServiceProvider extends ModuleProvider
         parent::boot();
 
         User::resolveRelationUsing('roadmapItems', fn (User $user) => $user->hasMany(RoadmapItem::class));
+        Goal::resolveRelationUsing('roadmapItems', fn (Goal $goal) => $goal->hasMany(RoadmapItem::class));
     }
 }

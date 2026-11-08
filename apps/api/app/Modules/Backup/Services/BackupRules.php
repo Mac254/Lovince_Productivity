@@ -174,7 +174,10 @@ class BackupRules
             'roadmap.*.area' => ['nullable', 'string', 'max:'.Contract::ROADMAP_AREA_MAX],
             'roadmap.*.stage' => ['required', Rule::enum(RoadmapStage::class)],
             'roadmap.*.position' => ['sometimes', 'integer', 'min:0'],
-            'roadmap.*.shipped_on' => $date,
+            'roadmap.*.done_on' => $date,
+            'roadmap.*.goal_ref' => $optionalRef,
+            'roadmap.*.starts_on' => $date,
+            'roadmap.*.ends_on' => $date,
         ];
     }
 }

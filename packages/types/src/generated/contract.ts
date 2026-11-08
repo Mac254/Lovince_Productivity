@@ -52,7 +52,7 @@ export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
 export const BOOK_STATUSES = ['to_find', 'to_read', 'reading', 'finished'] as const;
 export type BookStatus = (typeof BOOK_STATUSES)[number];
 
-export const ROADMAP_STAGES = ['now', 'next', 'later', 'shipped'] as const;
+export const ROADMAP_STAGES = ['now', 'next', 'later', 'done'] as const;
 export type RoadmapStage = (typeof ROADMAP_STAGES)[number];
 
 export const FINANCIAL_ACCOUNT_TYPES = ['cash', 'bank', 'mobile_money', 'savings', 'sacco', 'money_market', 'investment', 'credit', 'other'] as const;
@@ -234,7 +234,7 @@ export interface Settings {
     };
     roadmap: {
         show_in_sidebar: boolean;
-        show_shipped: boolean;
+        show_done: boolean;
     };
 }
 
@@ -304,6 +304,6 @@ export const SETTINGS_DEFAULTS: Settings = {
     },
     roadmap: {
         show_in_sidebar: true,
-        show_shipped: true,
+        show_done: true,
     },
 };

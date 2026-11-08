@@ -2,6 +2,7 @@
 
 namespace App\Modules\Roadmap\Models;
 
+use App\Modules\Goals\Models\Goal;
 use App\Modules\Roadmap\Database\Factories\RoadmapItemFactory;
 use App\Modules\Roadmap\Enums\RoadmapStage;
 use App\Modules\Users\Models\User;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['title', 'details', 'area', 'stage', 'position', 'shipped_on'])]
+#[Fillable(['goal_id', 'title', 'details', 'area', 'stage', 'starts_on', 'ends_on', 'position', 'done_on'])]
 #[UseFactory(RoadmapItemFactory::class)]
 class RoadmapItem extends Model
 {
@@ -33,10 +34,10 @@ class RoadmapItem extends Model
                     ->max('position') + 1;
             }
 
-            if ($item->stage === RoadmapStage::Shipped) {
-                $item->shipped_on ??= today();
+            if ($item->stage === RoadmapStage::Done) {
+                $item->done_on ??= today();
             } else {
-                $item->shipped_on = null;
+                $item->done_on = null;
             }
         });
     }
@@ -46,8 +47,16 @@ class RoadmapItem extends Model
         return [
             'stage' => RoadmapStage::class,
             'position' => 'integer',
-            'shipped_on' => 'date',
+            'starts_on' => 'date',
+            'ends_on' => 'date',
+            'done_on' => 'date',
         ];
+    }
+
+    /** @return BelongsTo<Goal, $this> */
+    public function goal(): BelongsTo
+    {
+        return $this->belongsTo(Goal::class);
     }
 
     /** @return BelongsTo<User, $this> */

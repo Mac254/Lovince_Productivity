@@ -26,7 +26,7 @@ class RoadmapSettings extends SettingsModule
     {
         return [
             Setting::toggle('show_in_sidebar', 'Show in the sidebar', true, 'Hide Roadmap from the sidebar when you’re not using it. The page stays reachable from search.'),
-            Setting::toggle('show_shipped', 'Show shipped items', true, 'Keep the Shipped lane on the roadmap page.'),
+            Setting::toggle('show_done', 'Show done phases', true, 'Keep the Done lane on the roadmap page.'),
         ];
     }
 }

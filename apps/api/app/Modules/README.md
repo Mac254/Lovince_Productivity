@@ -22,7 +22,7 @@ Users ← Settings ← Auth
 Users ← Goals ← Tasks ← Blockers ← Journal
 Users ← Quotes
 Users ← Accounting
-Users ← Roadmap
+Goals, Tasks ← Roadmap
 Goals, Tasks ← Books
 Tasks ← Clock
 Tasks ← Planner

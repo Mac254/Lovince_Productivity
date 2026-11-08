@@ -15,16 +15,15 @@ const deleteBusy = ref(false);
 const { data, loading, error, run } = useAsync((signal) => api.roadmap.list({ signal }));
 
 const hints: Record<RoadmapStage, string> = {
-    now: 'Being built right now',
-    next: 'Up after what’s in progress',
-    later: 'Good ideas that can wait',
-    shipped: 'Done and in the app',
+    now: 'What you’re working on',
+    next: 'Up after the current phase',
+    later: 'Further down the road',
+    done: 'Phases you’ve completed',
 };
 const lanes = computed(() =>
-    ROADMAP_STAGES.filter((stage) => stage !== 'shipped' || settings.values.roadmap.show_shipped).map((stage) => {
+    ROADMAP_STAGES.filter((stage) => stage !== 'done' || settings.values.roadmap.show_done).map((stage) => {
         const items = (data.value ?? []).filter((item) => item.stage === stage);
-        if (stage === 'shipped')
-            items.sort((a, b) => (b.shipped_on ?? '').localeCompare(a.shipped_on ?? '') || b.id - a.id);
+        if (stage === 'done') items.sort((a, b) => (b.done_on ?? '').localeCompare(a.done_on ?? '') || b.id - a.id);
         return { stage, items };
     }),
 );
@@ -106,8 +105,8 @@ function drop(): void {
     const moved = item.stage !== to.stage;
     const message = !moved
         ? undefined
-        : to.stage === 'shipped'
-          ? `“${item.title}” shipped`
+        : to.stage === 'done'
+          ? `“${item.title}” done`
           : `Moved to ${roadmapStageLabels[to.stage]}`;
     void reorder(to.stage, lane, message);
 }
@@ -115,7 +114,7 @@ function drop(): void {
 async function changeStage(item: RoadmapItem, stage: RoadmapStage): Promise<void> {
     try {
         await api.roadmap.update(item.id, { stage });
-        toast.success(stage === 'shipped' ? `“${item.title}” shipped` : `Moved to ${roadmapStageLabels[stage]}`);
+        toast.success(stage === 'done' ? `“${item.title}” done` : `Moved to ${roadmapStageLabels[stage]}`);
         await run();
     } catch (e) {
         toast.error(errorMessage(e, 'Could not move the item.'));
@@ -127,7 +126,7 @@ async function confirmDelete(): Promise<void> {
     deleteBusy.value = true;
     try {
         await api.roadmap.remove(deleting.value.id);
-        toast.success('Removed from the roadmap');
+        toast.success('Phase deleted');
         deleting.value = null;
         await run();
     } catch (e) {
@@ -150,10 +149,10 @@ onMounted(run);
         <PageHeader
             title="Roadmap"
             title-id="page-title"
-            description="Where LovinceTracker is heading: what you’re building now, what’s next, what can wait and what has shipped. Drag cards to reorder them or move them between lanes."
+            description="Your plans, phase by phase. Each phase follows a goal’s milestones over its months, so ticking off a task moves it along. Drag cards to reorder them or move them between lanes."
         >
             <template #actions>
-                <Button icon-start="add" @click="add('next')">Add item</Button>
+                <Button icon-start="add" @click="add('next')">Add phase</Button>
             </template>
         </PageHeader>
 
@@ -250,8 +249,8 @@ onMounted(run);
         <RoadmapItemDialog v-model:open="formOpen" :item="editing" :stage="newStage" @saved="run" />
         <ConfirmDialog
             :open="!!deleting"
-            title="Delete roadmap item?"
-            :message="`“${deleting?.title}” will be removed from the roadmap.`"
+            title="Delete phase?"
+            :message="`“${deleting?.title}” will be removed from the roadmap. Its goal and tasks are kept.`"
             :loading="deleteBusy"
             @update:open="(value: boolean) => !value && (deleting = null)"
             @confirm="confirmDelete"

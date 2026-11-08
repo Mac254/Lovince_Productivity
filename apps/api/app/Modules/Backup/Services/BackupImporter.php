@@ -269,7 +269,10 @@ class BackupImporter
 
                 continue;
             }
-            $user->roadmapItems()->create($row);
+            $user->roadmapItems()->create([
+                ...$this->except($row, ['goal_ref']),
+                'goal_id' => $goalRefs[$row['goal_ref'] ?? null] ?? null,
+            ]);
             $roadmap[$key] = true;
             $counts['roadmap']++;
         }
