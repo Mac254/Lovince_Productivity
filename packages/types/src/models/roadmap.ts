@@ -10,6 +10,15 @@ export interface RoadmapMilestone {
     recurrence: TaskRecurrence | null;
 }
 
+/** The money goal a phase saves towards, with what is saved so far. */
+export interface RoadmapMoneyGoal {
+    id: number;
+    name: string;
+    currency: string;
+    saved: number;
+    target_amount: number;
+}
+
 export interface RoadmapItem {
     id: number;
     title: string;
@@ -21,6 +30,10 @@ export interface RoadmapItem {
     done_on: IsoDate | null;
     goal_id: number | null;
     goal?: GoalRef | null;
+    money_goal_id: number | null;
+    money_goal?: RoadmapMoneyGoal | null;
+    /** Where the money goal should be by the end of the phase, in minor units; the goal's own target when null. */
+    target_amount: number | null;
     starts_on: IsoDate | null;
     ends_on: IsoDate | null;
     milestones?: RoadmapMilestone[];
@@ -29,5 +42,5 @@ export interface RoadmapItem {
 }
 
 export type RoadmapItemInput = Partial<
-    Pick<RoadmapItem, 'title' | 'details' | 'area' | 'stage' | 'done_on' | 'goal_id' | 'starts_on' | 'ends_on'>
+    Pick<RoadmapItem, 'title' | 'details' | 'area' | 'stage' | 'done_on' | 'goal_id' | 'money_goal_id' | 'target_amount' | 'starts_on' | 'ends_on'>
 >;

@@ -24,6 +24,15 @@ class RoadmapItemResource extends JsonResource
             'done_on' => $this->done_on?->toDateString(),
             'goal_id' => $this->goal_id,
             'goal' => $this->whenLoaded('goal', fn () => $this->goal ? ['id' => $this->goal->id, 'title' => $this->goal->title, 'tone' => $this->goal->tone] : null),
+            'money_goal_id' => $this->money_goal_id,
+            'money_goal' => $this->whenLoaded('moneyGoal', fn () => $this->moneyGoal ? [
+                'id' => $this->moneyGoal->id,
+                'name' => $this->moneyGoal->name,
+                'currency' => $this->moneyGoal->currency,
+                'saved' => (int) $this->moneyGoal->saved,
+                'target_amount' => $this->moneyGoal->target_amount,
+            ] : null),
+            'target_amount' => $this->target_amount,
             'starts_on' => $this->starts_on?->toDateString(),
             'ends_on' => $this->ends_on?->toDateString(),
             'milestones' => $this->whenLoaded('milestones', fn () => $this->milestones->map(fn ($task) => [

@@ -3,6 +3,7 @@ import type { MenuItem } from '@focus/ui';
 import { ROADMAP_STAGES, type RoadmapItem, type RoadmapStage } from '@focus/types';
 import { formatDate } from '@/lib/dates';
 import { roadmapStageLabels } from '@/lib/labels';
+import { formatMoney } from '@/features/accounting/money';
 
 const props = defineProps<{ item: RoadmapItem; first: boolean; last: boolean; highlighted?: boolean }>();
 const emit = defineEmits<{
@@ -26,19 +27,38 @@ const progress = computed(() =>
     milestones.value.length ? Math.round((done.value / milestones.value.length) * 100) : null,
 );
 
+const money = computed(() => {
+    const goal = props.item.money_goal;
+    if (!goal) return null;
+    const target = props.item.target_amount ?? goal.target_amount;
+    const saved = Math.min(goal.saved, target);
+    return {
+        saved: formatMoney(saved, goal.currency),
+        target: formatMoney(target, goal.currency),
+        left: formatMoney(target - saved, goal.currency),
+        percent: target > 0 ? Math.round((saved / target) * 100) : 0,
+        name: goal.name,
+    };
+});
+
 const menu = computed<MenuItem[]>(() => {
     const { item } = props;
     const ordered = item.stage !== 'done';
     return [
         { label: 'Edit', icon: 'edit', onSelect: () => emit('edit', item) },
         ...(ordered && !props.first
-            ? [{ label: 'Move up', icon: 'chevron-up' as const, onSelect: () => emit('move', item, -1) }]
+            ? [{ label: 'Move earlier', icon: 'chevron-up' as const, onSelect: () => emit('move', item, -1) }]
             : []),
         ...(ordered && !props.last
-            ? [{ label: 'Move down', icon: 'chevron-down' as const, onSelect: () => emit('move', item, 1) }]
+            ? [{ label: 'Move later', icon: 'chevron-down' as const, onSelect: () => emit('move', item, 1) }]
             : []),
         ...ROADMAP_STAGES.filter((stage) => stage !== item.stage).map((stage) => ({
-            label: stage === 'done' ? 'Mark done' : `Move to ${roadmapStageLabels[stage]}`,
+            label:
+                stage === 'done'
+                    ? 'Mark done'
+                    : stage === 'now'
+                      ? 'I’m here now'
+                      : `Move to ${roadmapStageLabels[stage]}`,
             icon: (stage === 'done' ? 'check-circle' : 'arrow-right') as 'check-circle' | 'arrow-right',
             onSelect: () => emit('stage', item, stage),
         })),
@@ -57,7 +77,6 @@ const menu = computed<MenuItem[]>(() => {
             <div class="flex min-w-0 flex-col gap-1">
                 <Heading :level="3" role="title" class="text-pretty">{{ item.title }}</Heading>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Badge v-if="item.area" tone="neutral">{{ item.area }}</Badge>
                     <Text v-if="span" as="span" role="label" tone="muted" tabular>{{ span }}</Text>
                     <Text v-if="item.done_on" as="span" role="label" tone="muted" tabular
                         >Done {{ formatDate(item.done_on) }}</Text
@@ -65,6 +84,21 @@ const menu = computed<MenuItem[]>(() => {
                 </div>
             </div>
             <DropdownMenu :items="menu" :label="`Actions for “${item.title}”`" size="sm" />
+        </div>
+        <div v-if="money" class="flex flex-col gap-2">
+            <div class="flex items-baseline justify-between gap-2">
+                <Text as="span" role="label" class="font-semibold" tabular>{{ money.saved }}</Text>
+                <Text as="span" role="label" tone="muted" tabular>of {{ money.target }}</Text>
+            </div>
+            <ProgressBar
+                :value="money.percent"
+                :label="`${item.title}: ${money.name}`"
+                :tone="money.percent === 100 ? 'highlight' : 'accent'"
+            />
+            <Text role="caption" tone="muted" tabular>
+                {{ money.name }} ·
+                {{ money.percent === 100 ? 'reached' : `${money.left} to go (${money.percent}%)` }}
+            </Text>
         </div>
         <Text v-if="item.goal" role="label" tone="muted" class="flex items-center gap-2">
             <Icon name="target" />

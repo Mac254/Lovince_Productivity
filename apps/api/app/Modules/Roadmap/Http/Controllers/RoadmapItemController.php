@@ -2,12 +2,15 @@
 
 namespace App\Modules\Roadmap\Http\Controllers;
 
+use App\Modules\Accounting\Services\GoalProgress;
 use App\Modules\Roadmap\Http\Requests\ReorderRoadmapRequest;
 use App\Modules\Roadmap\Http\Requests\RoadmapItemRequest;
 use App\Modules\Roadmap\Http\Resources\RoadmapItemResource;
 use App\Modules\Roadmap\Models\RoadmapItem;
 use App\Modules\Roadmap\Services\PhaseMilestones;
+use App\Modules\Users\Models\User;
 use App\Shared\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -17,25 +20,34 @@ use Illuminate\Support\Facades\Gate;
 
 class RoadmapItemController extends Controller
 {
-    public function __construct(private readonly PhaseMilestones $milestones) {}
+    public function __construct(private readonly PhaseMilestones $milestones, private readonly GoalProgress $progress) {}
+
+    /**
+     * @param  Collection<int, RoadmapItem>  $items
+     * @return Collection<int, RoadmapItem>
+     */
+    private function withProgress(Collection $items, User $user): Collection
+    {
+        $items->loadMissing(['goal:id,title,tone', 'moneyGoal']);
+        $this->progress->measure($items->pluck('moneyGoal')->filter()->values());
+
+        return $this->milestones->attach($items, $user);
+    }
 
     private function detailed(RoadmapItem $item): RoadmapItem
     {
-        $item->load('goal:id,title,tone');
-
-        return $this->milestones->attach(collect([$item]), $item->user)->first();
+        return $this->withProgress(new Collection([$item]), $item->user)->first();
     }
 
     public function index(Request $request): AnonymousResourceCollection
     {
         $items = RoadmapItem::query()->whereBelongsTo($request->user())
-            ->with('goal:id,title,tone')
             ->orderBy('position')
             ->orderBy('id')
             ->limit(500)
             ->get();
 
-        return RoadmapItemResource::collection($this->milestones->attach($items, $request->user()));
+        return RoadmapItemResource::collection($this->withProgress($items, $request->user()));
     }
 
     public function store(RoadmapItemRequest $request): JsonResponse

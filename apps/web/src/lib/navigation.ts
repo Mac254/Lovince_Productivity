@@ -29,7 +29,6 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'books', label: 'Books', icon: 'book', motion: 'lift', module: 'books' },
             { name: 'types', label: 'Types', icon: 'tag', motion: 'wiggle' },
             { name: 'blockers', label: 'Blockers', icon: 'blocker', motion: 'wiggle' },
-            { name: 'roadmap', label: 'Roadmap', icon: 'roadmap', motion: 'nudge', module: 'roadmap' },
         ],
     },
     {
@@ -40,6 +39,7 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'financial-accounts', label: 'Accounts', icon: 'card', motion: 'lift' },
             { name: 'budgets', label: 'Budgets', icon: 'target', motion: 'pop' },
             { name: 'money-goals', label: 'Goals', icon: 'star', motion: 'pop' },
+            { name: 'roadmap', label: 'Roadmap', icon: 'roadmap', motion: 'nudge', module: 'roadmap' },
             { name: 'recurring', label: 'Recurring', icon: 'calendar-clock', motion: 'nudge' },
             { name: 'financial-reports', label: 'Statements', icon: 'report', motion: 'pop' },
         ],

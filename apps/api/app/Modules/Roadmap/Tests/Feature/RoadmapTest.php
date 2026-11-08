@@ -119,4 +119,24 @@ class RoadmapTest extends TestCase
         $item = $fresh->roadmapItems()->sole();
         $this->assertSame(['done', '2026-11-08', 'Books'], [$item->stage->value, $item->done_on->toDateString(), $item->area]);
     }
+
+    public function test_a_phase_shows_how_far_its_money_goal_has_come(): void
+    {
+        $goal = $this->postJson('/api/v1/accounting/goals', ['name' => 'Emergency fund', 'kind' => 'emergency_fund', 'currency' => 'KES', 'target_amount' => '210000'])->json('data.id');
+        $this->postJson("/api/v1/accounting/goals/{$goal}/contributions", ['amount' => '30000'])->assertCreated();
+
+        $this->postJson('/api/v1/roadmap-items', ['title' => 'Get a cushion', 'money_goal_id' => $goal, 'target_amount' => 7_500_000])
+            ->assertCreated()
+            ->assertJsonPath('data.target_amount', 7_500_000)
+            ->assertJsonPath('data.money_goal.name', 'Emergency fund')
+            ->assertJsonPath('data.money_goal.saved', 3_000_000);
+
+        $this->getJson('/api/v1/roadmap-items')->assertJsonPath('data.0.money_goal.saved', 3_000_000);
+
+        $other = User::factory()->create();
+        $theirs = $this->actingAs($other)->postJson('/api/v1/accounting/goals', ['name' => 'Theirs', 'kind' => 'savings', 'currency' => 'KES', 'target_amount' => '100'])->json('data.id');
+        $this->actingAs($this->user)->postJson('/api/v1/roadmap-items', ['title' => 'Nope', 'money_goal_id' => $theirs])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('money_goal_id');
+    }
 }

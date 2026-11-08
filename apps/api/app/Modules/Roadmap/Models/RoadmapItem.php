@@ -2,6 +2,7 @@
 
 namespace App\Modules\Roadmap\Models;
 
+use App\Modules\Accounting\Models\FinancialGoal;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Roadmap\Database\Factories\RoadmapItemFactory;
 use App\Modules\Roadmap\Enums\RoadmapStage;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['goal_id', 'title', 'details', 'area', 'stage', 'starts_on', 'ends_on', 'position', 'done_on'])]
+#[Fillable(['goal_id', 'money_goal_id', 'target_amount', 'title', 'details', 'area', 'stage', 'starts_on', 'ends_on', 'position', 'done_on'])]
 #[UseFactory(RoadmapItemFactory::class)]
 class RoadmapItem extends Model
 {
@@ -47,6 +48,7 @@ class RoadmapItem extends Model
         return [
             'stage' => RoadmapStage::class,
             'position' => 'integer',
+            'target_amount' => 'integer',
             'starts_on' => 'date',
             'ends_on' => 'date',
             'done_on' => 'date',
@@ -57,6 +59,12 @@ class RoadmapItem extends Model
     public function goal(): BelongsTo
     {
         return $this->belongsTo(Goal::class);
+    }
+
+    /** @return BelongsTo<FinancialGoal, $this> */
+    public function moneyGoal(): BelongsTo
+    {
+        return $this->belongsTo(FinancialGoal::class, 'money_goal_id');
     }
 
     /** @return BelongsTo<User, $this> */

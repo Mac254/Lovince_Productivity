@@ -76,8 +76,8 @@ export const bookStatusTones: Record<BookStatus, BadgeTone> = {
 };
 
 export const roadmapStageLabels: Record<RoadmapStage, string> = {
-    now: 'Now',
-    next: 'Next',
+    now: 'You’re here',
+    next: 'Up next',
     later: 'Later',
     done: 'Done',
 };

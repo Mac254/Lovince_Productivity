@@ -178,6 +178,7 @@ class BackupRules
             'roadmap.*.goal_ref' => $optionalRef,
             'roadmap.*.starts_on' => $date,
             'roadmap.*.ends_on' => $date,
+            'roadmap.*.target_amount' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::ACCOUNTING_AMOUNT_MAX],
         ];
     }
 }

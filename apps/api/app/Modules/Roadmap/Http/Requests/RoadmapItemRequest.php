@@ -36,6 +36,8 @@ class RoadmapItemRequest extends FormRequest
             'stage' => ['sometimes', Rule::enum(RoadmapStage::class)],
             'done_on' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'goal_id' => ['sometimes', 'nullable', 'integer', Rule::exists('goals', 'id')->where('user_id', $this->user()->id)],
+            'money_goal_id' => ['sometimes', 'nullable', 'integer', Rule::exists('accounting_goals', 'id')->where('user_id', $this->user()->id)],
+            'target_amount' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::ACCOUNTING_AMOUNT_MAX],
             'starts_on' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'ends_on' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
         ];

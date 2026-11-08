@@ -7,7 +7,7 @@ export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
 export type { Achievement } from './models/achievement';
 export type { Book, BookReading, BookTask } from './models/book';
-export type { RoadmapItem, RoadmapItemInput, RoadmapMilestone } from './models/roadmap';
+export type { RoadmapItem, RoadmapItemInput, RoadmapMilestone, RoadmapMoneyGoal } from './models/roadmap';
 export type { JournalContext, JournalEntry } from './models/journal';
 export type {
     FocusDay,

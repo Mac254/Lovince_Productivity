@@ -178,6 +178,7 @@ class BackupExporter
                 'goal_ref' => $item->goal_id,
                 'starts_on' => $item->starts_on?->toDateString(),
                 'ends_on' => $item->ends_on?->toDateString(),
+                'target_amount' => $item->target_amount,
                 'title' => $item->title,
                 'details' => $item->details,
                 'area' => $item->area,
