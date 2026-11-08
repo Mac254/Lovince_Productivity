@@ -3,6 +3,7 @@
 namespace App\Modules\Backup\Services;
 
 use App\Modules\Blockers\Enums\BlockerStatus;
+use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
@@ -147,6 +148,25 @@ class BackupRules
             'achievements.*.description' => ['nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
             'achievements.*.achieved_on' => ['required', 'date_format:Y-m-d'],
             'achievements.*.category' => ['nullable', Rule::enum(SuggestionCategory::class)],
+
+            'books' => $list,
+            'books.*.goal_ref' => $optionalRef,
+            'books.*.task_refs' => ['sometimes', 'array'],
+            'books.*.task_refs.*' => ['integer'],
+            'books.*.title' => ['required', 'string', 'max:'.Contract::BOOK_TITLE_MAX],
+            'books.*.author' => ['nullable', 'string', 'max:'.Contract::BOOK_AUTHOR_MAX],
+            'books.*.status' => ['required', Rule::enum(BookStatus::class)],
+            'books.*.chapters_total' => ['nullable', 'integer', 'min:1', 'max:'.Contract::BOOK_CHAPTERS_MAX],
+            'books.*.chapters_read' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_CHAPTERS_MAX],
+            'books.*.started_on' => $date,
+            'books.*.finished_on' => $date,
+            'books.*.rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'books.*.notes' => ['nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
+            'books.*.readings' => ['sometimes', 'array'],
+            'books.*.readings.*.read_on' => ['required', 'date_format:Y-m-d'],
+            'books.*.readings.*.chapters' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_READING_CHAPTERS_MAX],
+            'books.*.readings.*.minutes' => ['nullable', 'integer', 'min:1', 'max:'.Contract::TASK_NOTE_MINUTES_MAX],
+            'books.*.readings.*.note' => ['nullable', 'string', 'max:'.Contract::BOOK_READING_NOTE_MAX],
         ];
     }
 }

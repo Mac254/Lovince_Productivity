@@ -44,6 +44,7 @@ class DailyReportResource extends JsonResource
                 'integration' => $data['integration'] ?? null,
                 'suggestions' => $data['suggestions'] ?? [],
                 'achievements' => $data['achievements'] ?? [],
+                'reading' => $data['reading'] ?? null,
                 'journal' => $data['journal'] ?? null,
             ] : []),
         ];

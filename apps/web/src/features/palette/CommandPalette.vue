@@ -44,6 +44,7 @@ const kindIcons: Record<SearchKind, IconName> = {
     blocker: 'blocker',
     journal: 'journal',
     achievement: 'star',
+    book: 'book',
     suggestion: 'lightbulb',
     review: 'calendar-range',
     schedule: 'calendar-clock',
@@ -54,6 +55,7 @@ const kindLabels: Record<SearchKind, string> = {
     blocker: 'Blocker',
     journal: 'Journal',
     achievement: 'Achievement',
+    book: 'Book',
     suggestion: 'Suggestion',
     review: 'Weekly review',
     schedule: 'Schedule',
@@ -107,6 +109,7 @@ function target(result: SearchResult): RouteLocationRaw {
     if (result.kind === 'schedule') return { name: 'schedules' };
     if (result.kind === 'suggestion') return { name: 'suggestions' };
     if (result.kind === 'achievement') return { name: 'achievements' };
+    if (result.kind === 'book') return { name: 'book-detail', params: { id: result.id } };
     if (result.task_id) return { name: 'task-detail', params: { id: result.task_id } };
     return { name: 'blockers' };
 }

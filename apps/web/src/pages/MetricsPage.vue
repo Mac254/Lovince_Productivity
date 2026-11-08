@@ -35,6 +35,19 @@ const suggestionRows = computed(() =>
         .filter((row) => row.acted + row.dismissed > 0)
         .map((row) => ({ label: suggestionCategoryLabels[row.key], completed: row.acted, open: row.dismissed })),
 );
+const readingStats = computed(() => {
+    const r = data.value?.reading;
+    if (!r) return [];
+    return [
+        { label: 'Chapters', value: r.chapters },
+        { label: 'Time read', value: r.minutes ? formatMinutes(r.minutes) : '—' },
+        { label: 'Days read', value: r.days },
+        { label: 'Finished', value: r.finished },
+        { label: 'Finished this year', value: r.finished_this_year },
+        { label: 'Still to find', value: r.by_status.find((row) => row.key === 'to_find')?.count ?? 0 },
+    ];
+});
+
 const suggestionStats = computed(() => {
     const s = data.value?.suggestions;
     if (!s) return [];
@@ -368,6 +381,56 @@ onMounted(run);
                                 </li>
                             </ul>
                             <Text v-else role="label" tone="muted">No achievements recorded in this range.</Text>
+                        </Card>
+                        <Card
+                            v-if="data.reading"
+                            as="section"
+                            aria-labelledby="reading-metrics-heading"
+                            class="group lg:col-span-2"
+                        >
+                            <CardHeader
+                                title="Reading"
+                                title-id="reading-metrics-heading"
+                                icon="book"
+                                :subtitle="`${data.reading.chapters} chapters, ${data.reading.chapters_previous} in the ${range} days before`"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'books' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+                                <div v-for="stat in readingStats" :key="stat.label" class="flex flex-col gap-1">
+                                    <dt class="text-caption text-fg-muted">{{ stat.label }}</dt>
+                                    <dd class="text-title font-semibold tabular">{{ stat.value }}</dd>
+                                </div>
+                            </dl>
+                            <ul
+                                v-if="data.reading.current.length"
+                                class="flex flex-col gap-4 border-t border-border pt-4"
+                            >
+                                <li v-for="book in data.reading.current" :key="book.id" class="flex flex-col gap-2">
+                                    <div class="flex items-baseline justify-between gap-3">
+                                        <RouterLink
+                                            :to="{ name: 'book-detail', params: { id: book.id } }"
+                                            class="truncate font-semibold underline-offset-4 hover:underline"
+                                            >{{ book.title }}</RouterLink
+                                        >
+                                        <Text as="span" role="label" tone="muted" tabular class="shrink-0">{{
+                                            book.chapters_total
+                                                ? `${book.chapters_read} of ${book.chapters_total} · +${book.chapters_in_range}`
+                                                : `${book.chapters_read} read · +${book.chapters_in_range}`
+                                        }}</Text>
+                                    </div>
+                                    <ProgressBar
+                                        v-if="book.progress !== null"
+                                        :value="book.progress"
+                                        :label="`${book.title} progress`"
+                                    />
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted" class="border-t border-border pt-4"
+                                >No book in progress.</Text
+                            >
                         </Card>
                     </div>
                 </template>

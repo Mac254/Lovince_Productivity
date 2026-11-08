@@ -2,9 +2,11 @@
 
 namespace App\Modules\Backup\Services;
 
+use App\Modules\Books\Models\BookReading;
 use App\Modules\Reports\Models\DailyReport;
 use App\Modules\Reports\Services\DailyReportGenerator;
 use App\Modules\Settings\Services\SettingsRegistry;
+use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
 use App\Support\Contract;
 use BackedEnum;
@@ -51,7 +53,7 @@ class BackupImporter
      */
     private function run(User $user, array $backup): array
     {
-        $counts = array_fill_keys(['task_types', 'goals', 'tasks', 'blockers', 'journal', 'focus_sessions', 'weekly_reviews', 'time_blocks', 'achievements', 'schedules', 'suggestions', 'skipped'], 0);
+        $counts = array_fill_keys(['task_types', 'goals', 'tasks', 'blockers', 'journal', 'focus_sessions', 'weekly_reviews', 'time_blocks', 'achievements', 'schedules', 'suggestions', 'books', 'skipped'], 0);
 
         if (isset($backup['settings'])) {
             $user->forceFill(['settings' => $this->settings->merge($user->settings, $backup['settings'])])->save();
@@ -227,6 +229,36 @@ class BackupImporter
             $achievements[$key] = true;
             $counts['achievements']++;
             $this->touch($row['achieved_on']);
+        }
+
+        // Progress comes across as saved, so the log goes in without moving it a second time.
+        $books = $user->books()->get(['title', 'author'])->mapWithKeys(fn ($book) => [mb_strtolower($book->title.'|'.$book->author) => true])->all();
+        foreach ($backup['books'] ?? [] as $row) {
+            $key = mb_strtolower($row['title'].'|'.($row['author'] ?? ''));
+            if (isset($books[$key])) {
+                $counts['skipped']++;
+
+                continue;
+            }
+            $book = $user->books()->create([
+                ...$this->except($row, ['goal_ref', 'task_refs', 'readings']),
+                'goal_id' => $goalRefs[$row['goal_ref'] ?? null] ?? null,
+            ]);
+            BookReading::withoutEvents(function () use ($book, $user, $row) {
+                foreach ($row['readings'] ?? [] as $reading) {
+                    $model = new BookReading($reading);
+                    $model->user()->associate($user);
+                    $model->book()->associate($book);
+                    $model->save();
+                    $this->touch($reading['read_on']);
+                }
+            });
+            $taskIds = array_values(array_filter(array_map(fn ($ref) => $taskRefs[$ref] ?? null, $row['task_refs'] ?? [])));
+            if ($taskIds !== []) {
+                Task::query()->whereBelongsTo($user)->whereKey($taskIds)->update(['book_id' => $book->id]);
+            }
+            $books[$key] = true;
+            $counts['books']++;
         }
 
         $suggestionKey = fn (?string $key, string $source, string $title) => $key ?? "{$source}|{$title}";

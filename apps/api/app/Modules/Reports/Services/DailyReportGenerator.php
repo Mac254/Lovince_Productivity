@@ -5,6 +5,8 @@ namespace App\Modules\Reports\Services;
 use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Books\Models\Book;
+use App\Modules\Books\Models\BookReading;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
@@ -89,6 +91,16 @@ class DailyReportGenerator
             ->where('created_at', '<=', $asOf)
             ->orderBy('id')
             ->get();
+        $readings = BookReading::query()->whereBelongsTo($user)->with('book:id,title,author')
+            ->whereDate('read_on', $date)
+            ->where('created_at', '<=', $asOf)
+            ->orderBy('id')
+            ->get();
+        $booksFinished = Book::query()->whereBelongsTo($user)
+            ->whereDate('finished_on', $date)
+            ->where('created_at', '<=', $asOf)
+            ->orderBy('id')
+            ->get(['id', 'title', 'author', 'rating']);
 
         $summary = [
             'completed' => $completed->count(),
@@ -110,6 +122,9 @@ class DailyReportGenerator
             'suggestions_accepted' => $suggestions->filter(fn (Suggestion $s) => $s->accepted_at?->between($date, $asOf))->count(),
             'suggestions_done' => $suggestions->filter(fn (Suggestion $s) => $s->done_at?->between($date, $asOf))->count(),
             'achievements' => $achievements->count(),
+            'chapters_read' => (int) $readings->sum('chapters'),
+            'reading_minutes' => (int) $readings->sum('minutes'),
+            'books_finished' => $booksFinished->count(),
         ];
 
         $data = [
@@ -154,6 +169,21 @@ class DailyReportGenerator
                 'category' => $a->category?->value,
                 'goal' => $a->goal ? ['id' => $a->goal->id, 'title' => $a->goal->title] : null,
             ])->values()->all(),
+            'reading' => [
+                'sessions' => $readings->map(fn (BookReading $r) => [
+                    'id' => $r->id,
+                    'chapters' => $r->chapters,
+                    'minutes' => $r->minutes,
+                    'note' => $r->note,
+                    'book' => $r->book ? ['id' => $r->book->id, 'title' => $r->book->title, 'author' => $r->book->author] : null,
+                ])->values()->all(),
+                'finished' => $booksFinished->map(fn (Book $b) => [
+                    'id' => $b->id,
+                    'title' => $b->title,
+                    'author' => $b->author,
+                    'rating' => $b->rating,
+                ])->values()->all(),
+            ],
             'journal' => JournalEntry::query()->whereBelongsTo($user)->whereDate('date', $date)->value('body'),
         ];
 
@@ -313,6 +343,14 @@ class DailyReportGenerator
         $actedOn = ($s['suggestions_accepted'] ?? 0) + ($s['suggestions_done'] ?? 0);
         if ($actedOn > 0) {
             $parts[] = "{$actedOn} ".($actedOn === 1 ? 'suggestion was' : 'suggestions were').' acted on.';
+        }
+        if (($s['chapters_read'] ?? 0) > 0 || ($s['reading_minutes'] ?? 0) > 0) {
+            $chapters = $s['chapters_read'] ?? 0;
+            $parts[] = ($chapters > 0 ? "{$chapters} ".($chapters === 1 ? 'chapter was' : 'chapters were').' read' : 'Some reading was done')
+                .($s['reading_minutes'] > 0 ? ' ('.$this->duration($s['reading_minutes']).')' : '').'.';
+        }
+        if (($s['books_finished'] ?? 0) > 0) {
+            $parts[] = $s['books_finished'] === 1 ? 'A book was finished.' : "{$s['books_finished']} books were finished.";
         }
         if (($s['achievements'] ?? 0) > 0) {
             $parts[] = "{$s['achievements']} ".($s['achievements'] === 1 ? 'achievement was' : 'achievements were').' recorded.';

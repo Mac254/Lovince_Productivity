@@ -11,6 +11,7 @@ use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Accounting\Enums\TransactionType;
 use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Blockers\Enums\BlockerStatus;
+use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
@@ -96,6 +97,17 @@ final class Contract
 
     public const ACHIEVEMENT_TITLE_MAX = 160;
 
+    public const BOOK_TITLE_MAX = 200;
+
+    public const BOOK_AUTHOR_MAX = 120;
+
+    public const BOOK_CHAPTERS_MAX = 1000;
+
+    /** The most chapters one sitting can claim. */
+    public const BOOK_READING_CHAPTERS_MAX = 100;
+
+    public const BOOK_READING_NOTE_MAX = 1000;
+
     public const ACCOUNTING_ACCOUNT_NAME_MAX = 80;
 
     public const ACCOUNTING_CATEGORY_NAME_MAX = 60;
@@ -138,6 +150,7 @@ final class Contract
             'SuggestionStatus' => $values(SuggestionStatus::cases()),
             'SuggestionSource' => $values(SuggestionSource::cases()),
             'AchievementCategory' => $values(SuggestionCategory::cases()),
+            'BookStatus' => $values(BookStatus::cases()),
             'FinancialAccountType' => $values(AccountType::cases()),
             'TransactionType' => $values(TransactionType::cases()),
             'TransactionStatus' => $values(TransactionStatus::cases()),
@@ -177,6 +190,15 @@ final class Contract
             'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT],
             'suggestion' => ['title' => self::SUGGESTION_TITLE_MAX, 'body' => self::SUGGESTION_BODY_MAX],
             'achievement' => ['title' => self::ACHIEVEMENT_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
+            'book' => [
+                'title' => self::BOOK_TITLE_MAX,
+                'author' => self::BOOK_AUTHOR_MAX,
+                'notes' => self::DESCRIPTION_MAX,
+                'chapters' => self::BOOK_CHAPTERS_MAX,
+                'readingChapters' => self::BOOK_READING_CHAPTERS_MAX,
+                'readingMinutes' => self::TASK_NOTE_MINUTES_MAX,
+                'readingNote' => self::BOOK_READING_NOTE_MAX,
+            ],
             'accounting' => [
                 'accountName' => self::ACCOUNTING_ACCOUNT_NAME_MAX,
                 'categoryName' => self::ACCOUNTING_CATEGORY_NAME_MAX,

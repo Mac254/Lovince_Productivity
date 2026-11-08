@@ -161,8 +161,8 @@ class ReportAndMetricsTest extends TestCase
         TaskNote::factory()->create(['logged_on' => '2026-10-28']);
 
         $heatmap = collect($this->actingAs($user)->getJson('/api/v1/metrics')->assertOk()->json('data.heatmap'))->keyBy('date');
-        $this->assertSame(['date' => '2026-10-28', 'count' => 2, 'completed' => 1, 'logged' => 1, 'focus_minutes' => 0], $heatmap['2026-10-28']);
-        $this->assertSame(['date' => '2026-10-27', 'count' => 1, 'completed' => 0, 'logged' => 1, 'focus_minutes' => 0], $heatmap['2026-10-27']);
+        $this->assertSame(['date' => '2026-10-28', 'count' => 2, 'completed' => 1, 'logged' => 1, 'read' => 0, 'focus_minutes' => 0], $heatmap['2026-10-28']);
+        $this->assertSame(['date' => '2026-10-27', 'count' => 1, 'completed' => 0, 'logged' => 1, 'read' => 0, 'focus_minutes' => 0], $heatmap['2026-10-27']);
 
         $this->postJson('/api/v1/reports')->assertCreated()
             ->assertJsonPath('data.summary.planned', 1)

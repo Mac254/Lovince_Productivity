@@ -4,6 +4,7 @@ namespace App\Modules\Search\Services;
 
 use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Books\Models\Book;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Planner\Models\Schedule;
@@ -36,6 +37,7 @@ class SearchService
             ...$this->blockers($user, $pattern, $query),
             ...($journal ? $this->journal($user, $pattern, $query) : []),
             ...$this->achievements($user, $pattern, $query),
+            ...$this->books($user, $pattern, $query),
             ...$this->suggestions($user, $pattern, $query),
             ...$this->reviews($user, $pattern, $query),
             ...$this->schedules($user, $pattern, $query),
@@ -48,6 +50,15 @@ class SearchService
             ->where(fn (Builder $q) => $this->like($q, ['title', 'description'], $pattern))
             ->latest('achieved_on')->limit(self::PER_KIND)->get()
             ->map(fn (Achievement $achievement) => $this->result('achievement', $achievement->id, $achievement->title, $achievement->description, $query, $achievement->achieved_on->toDateString(), $achievement->task_id))
+            ->all();
+    }
+
+    private function books(User $user, string $pattern, string $query): array
+    {
+        return Book::query()->whereBelongsTo($user)
+            ->where(fn (Builder $q) => $this->like($q, ['title', 'author', 'notes'], $pattern))
+            ->latest('updated_at')->limit(self::PER_KIND)->get()
+            ->map(fn (Book $book) => $this->result('book', $book->id, $book->title, $book->author ?? $book->notes, $query, $book->finished_on?->toDateString()))
             ->all();
     }
 

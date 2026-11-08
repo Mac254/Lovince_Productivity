@@ -1,6 +1,7 @@
 import type { IsoDate } from '../models/task';
 
-export type SearchKind = 'task' | 'goal' | 'blocker' | 'journal' | 'achievement' | 'suggestion' | 'review' | 'schedule';
+export type SearchKind =
+    'task' | 'goal' | 'blocker' | 'journal' | 'achievement' | 'book' | 'suggestion' | 'review' | 'schedule';
 
 export interface SearchResult {
     kind: SearchKind;

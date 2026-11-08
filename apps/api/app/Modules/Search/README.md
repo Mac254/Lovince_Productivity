@@ -1,9 +1,9 @@
 # Search
 
-One search box over everything you've written: tasks, goals, blockers, journal entries, achievements, suggestions (except dismissed ones), weekly reviews and schedules.
+One search box over everything you've written: tasks, goals, blockers, journal entries, achievements, books, suggestions (except dismissed ones), weekly reviews and schedules.
 
 - `GET /api/v1/search?q=` returns up to five matches of each kind with a plain-text excerpt around the match.
 - Journal entries are left out when the journal's `searchable` setting is off.
 - No tables of its own.
 
-A read model over Tasks, Goals, Blockers, Journal, Achievements, Suggestions, Reviews and Planner.
+A read model over Tasks, Goals, Blockers, Journal, Achievements, Books, Suggestions, Reviews and Planner.

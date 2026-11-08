@@ -2,6 +2,7 @@
 
 namespace App\Modules\Metrics\Services;
 
+use App\Modules\Books\Models\BookReading;
 use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Models\Task;
@@ -18,7 +19,7 @@ class ActivityDays
     public function __construct(private readonly FocusStats $focus) {}
 
     /**
-     * @return list<array{date: string, count: int, completed: int, logged: int, focus_minutes: int}>
+     * @return list<array{date: string, count: int, completed: int, logged: int, read: int, focus_minutes: int}>
      */
     public function between(User $user, Carbon $from, Carbon $to): array
     {
@@ -36,19 +37,26 @@ class ActivityDays
             ->whereDate('logged_on', '<=', $to->toDateString())
             ->pluck('logged_on')
             ->countBy(fn ($on) => Carbon::parse($on)->toDateString());
+        $read = BookReading::query()->whereBelongsTo($user)
+            ->whereDate('read_on', '>=', $from->toDateString())
+            ->whereDate('read_on', '<=', $to->toDateString())
+            ->pluck('read_on')
+            ->countBy(fn ($on) => Carbon::parse($on)->toDateString());
         $focus = FocusStats::minutesByDay($this->focus->between($user, $from, $to));
 
-        return collect(range(0, (int) $from->diffInDays($to)))->map(function (int $offset) use ($from, $completed, $logged, $focus) {
+        return collect(range(0, (int) $from->diffInDays($to)))->map(function (int $offset) use ($from, $completed, $logged, $read, $focus) {
             $date = $from->copy()->addDays($offset)->toDateString();
             $done = $completed[$date] ?? 0;
             $notes = $logged[$date] ?? 0;
+            $sittings = $read[$date] ?? 0;
             $minutes = $focus[$date] ?? 0;
 
             return [
                 'date' => $date,
-                'count' => $done + $notes + (int) ceil($minutes / self::FOCUS_UNIT_MINUTES),
+                'count' => $done + $notes + $sittings + (int) ceil($minutes / self::FOCUS_UNIT_MINUTES),
                 'completed' => $done,
                 'logged' => $notes,
+                'read' => $sittings,
                 'focus_minutes' => $minutes,
             ];
         })->all();

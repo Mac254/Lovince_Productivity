@@ -351,6 +351,58 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                             <Text v-else role="label" tone="muted">No achievements were recorded this day.</Text>
                         </Card>
 
+                        <Card as="section" aria-labelledby="reading-heading" class="group">
+                            <CardHeader
+                                title="Reading"
+                                title-id="reading-heading"
+                                icon="book"
+                                :subtitle="`${plural(report.summary.chapters_read ?? 0, 'chapter')}${report.summary.reading_minutes ? ` · ${formatMinutes(report.summary.reading_minutes)}` : ''}`"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'books' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <ul
+                                v-if="report.reading?.sessions.length || report.reading?.finished.length"
+                                class="flex flex-col divide-y divide-border"
+                            >
+                                <li
+                                    v-for="book in report.reading?.finished"
+                                    :key="`finished-${book.id}`"
+                                    class="flex items-center justify-between gap-3 py-2"
+                                >
+                                    <RouterLink
+                                        :to="{ name: 'book-detail', params: { id: book.id } }"
+                                        class="truncate font-semibold underline-offset-4 hover:underline"
+                                        >{{ book.title }}</RouterLink
+                                    >
+                                    <Badge tone="success" icon="check-circle">Finished</Badge>
+                                </li>
+                                <li
+                                    v-for="session in report.reading?.sessions"
+                                    :key="session.id"
+                                    class="flex items-center justify-between gap-3 py-2"
+                                >
+                                    <span class="flex min-w-0 flex-col">
+                                        <RouterLink
+                                            v-if="session.book"
+                                            :to="{ name: 'book-detail', params: { id: session.book.id } }"
+                                            class="truncate font-semibold underline-offset-4 hover:underline"
+                                            >{{ session.book.title }}</RouterLink
+                                        >
+                                        <Text v-if="session.note" as="span" role="caption" tone="muted">{{
+                                            session.note
+                                        }}</Text>
+                                    </span>
+                                    <Text as="span" role="label" tone="muted" tabular class="shrink-0"
+                                        >{{ plural(session.chapters, 'chapter')
+                                        }}{{ session.minutes ? ` · ${formatMinutes(session.minutes)}` : '' }}</Text
+                                    >
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted">No reading was logged this day.</Text>
+                        </Card>
+
                         <Card as="section" aria-labelledby="suggestions-heading" class="group">
                             <CardHeader
                                 title="Suggestions acted on"

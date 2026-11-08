@@ -1,5 +1,6 @@
 import {
     BLOCKER_STATUSES,
+    BOOK_STATUSES,
     GOAL_STATUSES,
     GOAL_TONES,
     GOAL_TIMEFRAMES,
@@ -10,6 +11,7 @@ import {
     TASK_RECURRENCES,
     TASK_STATUSES,
     type BlockerStatus,
+    type BookStatus,
     type GoalStatus,
     type GoalTone,
     type GoalTimeframe,
@@ -55,6 +57,20 @@ export const taskCategoryLabels: Record<TaskCategory, string> = {
     general: 'General',
     development: 'Development',
     integration: 'Integration',
+};
+
+export const bookStatusLabels: Record<BookStatus, string> = {
+    to_find: 'To find',
+    to_read: 'To read',
+    reading: 'Reading',
+    finished: 'Finished',
+};
+
+export const bookStatusTones: Record<BookStatus, BadgeTone> = {
+    to_find: 'warning',
+    to_read: 'neutral',
+    reading: 'accent',
+    finished: 'success',
 };
 
 export const goalStatusLabels: Record<GoalStatus, string> = {
@@ -162,6 +178,7 @@ export const taskRecurrenceOptions = [
     ...toOptions(TASK_RECURRENCES, taskRecurrenceLabels),
 ];
 export const taskCategoryOptions = toOptions(TASK_CATEGORIES, taskCategoryLabels);
+export const bookStatusOptions = toOptions(BOOK_STATUSES, bookStatusLabels);
 export const goalStatusOptions = toOptions(GOAL_STATUSES, goalStatusLabels);
 export const goalTimeframeOptions = toOptions(GOAL_TIMEFRAMES, goalTimeframeLabels);
 export const goalToneOptions = toOptions(GOAL_TONES, goalToneLabels);

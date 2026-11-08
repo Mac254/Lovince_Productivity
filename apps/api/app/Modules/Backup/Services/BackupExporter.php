@@ -4,6 +4,8 @@ namespace App\Modules\Backup\Services;
 
 use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Books\Models\Book;
+use App\Modules\Books\Models\BookReading;
 use App\Modules\Clock\Models\FocusSession;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
@@ -151,6 +153,25 @@ class BackupExporter
                 'description' => $achievement->description,
                 'achieved_on' => $achievement->achieved_on->toDateString(),
                 'category' => $this->value($achievement->category),
+            ])->all(),
+            'books' => $user->books()->with(['readings', 'tasks:id,book_id'])->orderBy('id')->get()->map(fn (Book $book) => [
+                'goal_ref' => $book->goal_id,
+                'task_refs' => $book->tasks->modelKeys(),
+                'title' => $book->title,
+                'author' => $book->author,
+                'status' => $this->value($book->status),
+                'chapters_total' => $book->chapters_total,
+                'chapters_read' => $book->chapters_read,
+                'started_on' => $book->started_on?->toDateString(),
+                'finished_on' => $book->finished_on?->toDateString(),
+                'rating' => $book->rating,
+                'notes' => $book->notes,
+                'readings' => $book->readings->sortBy('read_on')->values()->map(fn (BookReading $reading) => [
+                    'read_on' => $reading->read_on->toDateString(),
+                    'chapters' => $reading->chapters,
+                    'minutes' => $reading->minutes,
+                    'note' => $reading->note,
+                ])->all(),
             ])->all(),
         ];
     }

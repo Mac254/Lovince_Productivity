@@ -76,6 +76,7 @@ const series = computed(() =>
                 completed: day?.completed ?? 0,
                 logged: day?.logged ?? 0,
                 focus: day?.focus_minutes ?? 0,
+                read: day?.read ?? 0,
             };
         }),
     })).reverse(),
@@ -126,6 +127,7 @@ const options = computed<ApexOptions>(() => ({
                     ? `<strong>${point.logged}</strong> work ${point.logged === 1 ? 'entry' : 'entries'} logged`
                     : '',
                 point.focus ? `<strong>${formatMinutes(point.focus)}</strong> focused` : '',
+                point.read ? `<strong>${point.read}</strong> reading ${point.read === 1 ? 'sitting' : 'sittings'}` : '',
             ].filter(Boolean);
             return `<div class="apex-tip">${parts.join('<br>') || 'No activity'}<br><span>${label}</span></div>`;
         },

@@ -6,6 +6,7 @@ export type { Goal } from './models/goal';
 export type { Quote } from './models/quote';
 export type { Blocker } from './models/blocker';
 export type { Achievement } from './models/achievement';
+export type { Book, BookReading, BookTask } from './models/book';
 export type { JournalContext, JournalEntry } from './models/journal';
 export type {
     FocusDay,
@@ -39,6 +40,9 @@ export type {
 export type { Paginated, PaginationMeta, Resource, ValidationErrors } from './api/envelope';
 export type {
     AchievementInput,
+    BookInput,
+    BookReadingInput,
+    BookTaskInput,
     BlockerInput,
     GoalInput,
     LoginInput,
@@ -48,13 +52,14 @@ export type {
     TaskNoteInput,
     TaskTypeInput,
 } from './api/inputs';
-export type { AchievementFilters, BlockerFilters, GoalFilters, TaskFilters } from './api/filters';
+export type { AchievementFilters, BlockerFilters, BookFilters, GoalFilters, TaskFilters } from './api/filters';
 export type { Dashboard, DashboardStats, FocusToday, IntegrationSummary } from './api/dashboard';
 export type {
     DailyReport,
     DailyReportSummary,
     ReportAchievement,
     ReportBlocker,
+    ReportReading,
     ReportGoal,
     ReportSuggestion,
     ReportSummary,
@@ -69,6 +74,7 @@ export type {
     MetricInsight,
     MetricRange,
     Metrics,
+    ReadingMetrics,
     SuggestionMetrics,
 } from './api/metrics';
 export type { SearchKind, SearchResult } from './api/search';

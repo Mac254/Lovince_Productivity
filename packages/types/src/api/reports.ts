@@ -49,6 +49,10 @@ export interface ReportSummary {
     suggestions_accepted?: number;
     suggestions_done?: number;
     achievements?: number;
+    /** Reading logged this day; absent on reports made before books existed. */
+    chapters_read?: number;
+    reading_minutes?: number;
+    books_finished?: number;
 }
 
 export interface ReportSuggestion {
@@ -64,6 +68,17 @@ export interface ReportAchievement {
     title: string;
     category: AchievementCategory | null;
     goal: { id: number; title: string } | null;
+}
+
+export interface ReportReading {
+    sessions: {
+        id: number;
+        chapters: number;
+        minutes: number | null;
+        note: string | null;
+        book: { id: number; title: string; author: string | null } | null;
+    }[];
+    finished: { id: number; title: string; author: string | null; rating: number | null }[];
 }
 
 export interface ReportTask {
@@ -122,4 +137,5 @@ export interface DailyReport extends DailyReportSummary {
     journal: string | null;
     suggestions?: ReportSuggestion[];
     achievements?: ReportAchievement[];
+    reading?: ReportReading | null;
 }

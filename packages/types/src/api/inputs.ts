@@ -1,6 +1,7 @@
 import type { Cover } from '../generated/contract';
 import type { Achievement } from '../models/achievement';
 import type { Blocker } from '../models/blocker';
+import type { Book, BookReading } from '../models/book';
 import type { Goal } from '../models/goal';
 import type { IsoDate, Task } from '../models/task';
 import type { TaskNote } from '../models/taskNote';
@@ -37,6 +38,32 @@ export type GoalInput = Partial<
 export type AchievementInput = Partial<
     Pick<Achievement, 'title' | 'description' | 'achieved_on' | 'category' | 'goal_id' | 'task_id'>
 >;
+
+export type BookInput = Partial<
+    Pick<
+        Book,
+        | 'title'
+        | 'author'
+        | 'status'
+        | 'chapters_total'
+        | 'chapters_read'
+        | 'started_on'
+        | 'finished_on'
+        | 'rating'
+        | 'notes'
+        | 'goal_id'
+    >
+>;
+
+export type BookReadingInput = Partial<Pick<BookReading, 'read_on' | 'chapters' | 'minutes' | 'note'>>;
+
+/** A new reading task, or `task_id` to link one of your tasks. */
+export interface BookTaskInput {
+    task_id?: number;
+    title?: string;
+    due_date?: IsoDate | null;
+    recurrence?: Task['recurrence'];
+}
 
 export type BlockerInput = Partial<Pick<Blocker, 'description' | 'status' | 'task_id'>>;
 

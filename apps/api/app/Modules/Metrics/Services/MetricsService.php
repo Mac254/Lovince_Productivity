@@ -5,6 +5,9 @@ namespace App\Modules\Metrics\Services;
 use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Books\Enums\BookStatus;
+use App\Modules\Books\Models\Book;
+use App\Modules\Books\Models\BookReading;
 use App\Modules\Clock\Models\FocusSession;
 use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Goals\Enums\GoalStatus;
@@ -145,6 +148,7 @@ class MetricsService
                 ])->all(),
             'suggestions' => $this->suggestions($user, $start, $end, $previousStart),
             'achievements' => $this->achievements($user, $start, $end, $previousStart),
+            'reading' => $this->reading($user, $start, $end, $previousStart),
         ];
 
         return $metrics + ['insights' => $this->insights->for($metrics)];
@@ -208,6 +212,46 @@ class MetricsService
                 'achieved_on' => $a->achieved_on->toDateString(),
                 'category' => $a->category?->value,
                 'goal' => $a->goal ? ['id' => $a->goal->id, 'title' => $a->goal->title] : null,
+            ])->values()->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function reading(User $user, Carbon $start, Carbon $end, Carbon $previousStart): array
+    {
+        $readings = BookReading::query()->whereBelongsTo($user)
+            ->whereDate('read_on', '>=', $previousStart->toDateString())
+            ->whereDate('read_on', '<=', $end->toDateString())
+            ->get(['id', 'book_id', 'read_on', 'chapters', 'minutes']);
+        $inRange = $readings->filter(fn (BookReading $r) => $r->read_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
+        $previous = $readings->diff($inRange);
+        $books = Book::query()->whereBelongsTo($user)->get(['id', 'title', 'author', 'status', 'chapters_total', 'chapters_read', 'finished_on']);
+        $finished = fn (Carbon $from, Carbon $to) => $books->filter(fn (Book $b) => $b->finished_on?->between($from->copy()->startOfDay(), $to))->count();
+        $byDay = $inRange->groupBy(fn (BookReading $r) => $r->read_on->toDateString());
+
+        return [
+            'chapters' => (int) $inRange->sum('chapters'),
+            'chapters_previous' => (int) $previous->sum('chapters'),
+            'minutes' => (int) $inRange->sum('minutes'),
+            'sessions' => $inRange->count(),
+            'days' => $byDay->count(),
+            'finished' => $finished($start, $end),
+            'finished_previous' => $finished($previousStart, $start->copy()->subSecond()),
+            'finished_this_year' => $books->filter(fn (Book $b) => $b->finished_on?->year === today()->year)->count(),
+            'by_status' => collect(BookStatus::cases())->map(fn (BookStatus $s) => [
+                'key' => $s->value,
+                'count' => $books->where('status', $s)->count(),
+            ])->all(),
+            'current' => $books->where('status', BookStatus::Reading)->sortByDesc('chapters_read')->take(5)->map(fn (Book $b) => [
+                'id' => $b->id,
+                'title' => $b->title,
+                'author' => $b->author,
+                'chapters_read' => $b->chapters_read,
+                'chapters_total' => $b->chapters_total,
+                'progress' => $b->progress(),
+                'chapters_in_range' => (int) $inRange->where('book_id', $b->id)->sum('chapters'),
             ])->values()->all(),
         ];
     }

@@ -95,6 +95,18 @@ export const router = createRouter({
                     meta: { title: 'Achievements' },
                 },
                 {
+                    path: 'books',
+                    name: 'books',
+                    component: () => import('@/pages/BooksPage.vue'),
+                    meta: { title: 'Books' },
+                },
+                {
+                    path: 'books/:id(\\d+)',
+                    name: 'book-detail',
+                    component: () => import('@/pages/BookDetailPage.vue'),
+                    meta: { title: 'Book' },
+                },
+                {
                     path: 'metrics',
                     name: 'metrics',
                     component: () => import('@/pages/MetricsPage.vue'),

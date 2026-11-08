@@ -49,6 +49,9 @@ export type SuggestionSource = (typeof SUGGESTION_SOURCES)[number];
 export const ACHIEVEMENT_CATEGORIES = ['focus', 'growth', 'health', 'wellbeing', 'social', 'fun'] as const;
 export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
 
+export const BOOK_STATUSES = ['to_find', 'to_read', 'reading', 'finished'] as const;
+export type BookStatus = (typeof BOOK_STATUSES)[number];
+
 export const FINANCIAL_ACCOUNT_TYPES = ['cash', 'bank', 'mobile_money', 'savings', 'sacco', 'money_market', 'investment', 'credit', 'other'] as const;
 export type FinancialAccountType = (typeof FINANCIAL_ACCOUNT_TYPES)[number];
 
@@ -126,6 +129,15 @@ export const LIMITS = {
     achievement: {
         title: 160,
         description: 5000,
+    },
+    book: {
+        title: 200,
+        author: 120,
+        notes: 5000,
+        chapters: 1000,
+        readingChapters: 100,
+        readingMinutes: 720,
+        readingNote: 1000,
     },
     accounting: {
         accountName: 80,

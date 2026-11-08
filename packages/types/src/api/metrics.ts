@@ -1,4 +1,10 @@
-import type { AchievementCategory, SuggestionCategory, TaskCategory, TaskPriority } from '../generated/contract';
+import type {
+    AchievementCategory,
+    BookStatus,
+    SuggestionCategory,
+    TaskCategory,
+    TaskPriority,
+} from '../generated/contract';
 import type { IsoDate } from '../models/task';
 import type { ReportAchievement, ReportGoal, TypeBreakdownRow } from './reports';
 
@@ -49,6 +55,28 @@ export interface AchievementMetrics {
     latest: (ReportAchievement & { achieved_on: IsoDate })[];
 }
 
+export interface ReadingMetrics {
+    chapters: number;
+    chapters_previous: number;
+    minutes: number;
+    sessions: number;
+    /** Days with reading logged in the range. */
+    days: number;
+    finished: number;
+    finished_previous: number;
+    finished_this_year: number;
+    by_status: { key: BookStatus; count: number }[];
+    current: {
+        id: number;
+        title: string;
+        author: string | null;
+        chapters_read: number;
+        chapters_total: number | null;
+        progress: number | null;
+        chapters_in_range: number;
+    }[];
+}
+
 export interface Metrics {
     range: { days: MetricRange; start: IsoDate; end: IsoDate };
     totals: {
@@ -75,7 +103,14 @@ export interface Metrics {
     /** `logged` counts work log entries for the day; `minutes` is the time recorded on them. */
     daily: { date: IsoDate; created: number; completed: number; logged: number; minutes: number; focus: number }[];
     focus: FocusMetrics;
-    heatmap: { date: IsoDate; count: number; completed: number; logged: number; focus_minutes: number }[];
+    heatmap: {
+        date: IsoDate;
+        count: number;
+        completed: number;
+        logged: number;
+        read?: number;
+        focus_minutes: number;
+    }[];
     consistency: ActivityStreak & { days: number };
     insights: MetricInsight[];
     by_priority: { key: TaskPriority; completed: number; open: number }[];
@@ -84,4 +119,5 @@ export interface Metrics {
     goals: ReportGoal[];
     suggestions: SuggestionMetrics;
     achievements: AchievementMetrics;
+    reading?: ReadingMetrics;
 }

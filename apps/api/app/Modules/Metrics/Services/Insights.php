@@ -29,6 +29,7 @@ class Insights
             $this->topCategory($metrics['by_category'], $totals['completed']),
             $this->suggestions($metrics['suggestions'] ?? null),
             $this->achievements($metrics['achievements'] ?? null, $days),
+            $this->reading($metrics['reading'] ?? null, $days),
         ]));
     }
 
@@ -150,6 +151,32 @@ class Insights
         $count = $achievements['count'];
 
         return $this->insight('achievements', 'positive', ($count === 1 ? '1 achievement' : "{$count} achievements")." recorded in the last {$days} days.");
+    }
+
+    /**
+     * @param  array{chapters: int, days: int, finished: int, current: list<array{title: string}>}|null  $reading
+     */
+    private function reading(?array $reading, int $days): ?array
+    {
+        if ($reading === null) {
+            return null;
+        }
+        if ($reading['finished'] > 0) {
+            $books = $reading['finished'] === 1 ? 'a book' : "{$reading['finished']} books";
+
+            return $this->insight('reading', 'positive', "You finished {$books} and read {$reading['chapters']} chapters in the last {$days} days.");
+        }
+        if ($reading['chapters'] > 0) {
+            $chapters = $reading['chapters'] === 1 ? '1 chapter' : "{$reading['chapters']} chapters";
+            $on = $reading['days'] === 1 ? '1 day' : "{$reading['days']} days";
+
+            return $this->insight('reading', 'positive', "You read {$chapters} on {$on} in the last {$days} days.");
+        }
+        if ($reading['current'] !== []) {
+            return $this->insight('reading', 'neutral', "No reading logged for {$reading['current'][0]['title']} in the last {$days} days.");
+        }
+
+        return null;
     }
 
     /**
