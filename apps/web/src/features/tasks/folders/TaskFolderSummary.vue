@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { formatDate, formatMinutes } from '@/lib/dates';
-import type { TaskTitleGroup } from './titleGroups';
+import type { TaskFolderGroup } from './taskGroups';
 
-const props = defineProps<{ group: TaskTitleGroup }>();
+const props = defineProps<{ group: TaskFolderGroup }>();
 
 const percent = computed(() => (props.group.total ? Math.round((props.group.done / props.group.total) * 100) : 0));
 const logged = computed(() => formatMinutes(props.group.loggedMinutes));
@@ -25,7 +25,7 @@ const logged = computed(() => formatMinutes(props.group.loggedMinutes));
         </p>
         <ProgressBar
             :value="percent"
-            :label="`${group.lead.title}: ${group.done} of ${group.total} done`"
+            :label="`${group.title}: ${group.done} of ${group.total} done`"
             :tone="group.missed ? 'warning' : 'accent'"
         />
     </div>

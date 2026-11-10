@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '@focus/types';
-import { groupByTitle } from './titleGroups';
+import { groupByTitle } from './taskGroups';
 
 /** Task rows where repeated titles fold into one folder each; one-off titles stay plain rows. */
 const props = defineProps<{ tasks: Task[] }>();

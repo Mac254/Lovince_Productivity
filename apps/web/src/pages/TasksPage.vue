@@ -15,7 +15,7 @@ import {
 } from '@focus/types';
 import type { LocationQuery } from 'vue-router';
 import { groupByDue } from '@/features/tasks/dueGroups';
-import { groupByTitle } from '@/features/tasks/folders/titleGroups';
+import { groupByTitle, groupInto, type TaskFolderBy } from '@/features/tasks/folders/taskGroups';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { allFacet, withoutAll } from '@/lib/facets';
 import { taskPriorityOptions } from '@/lib/labels';
@@ -56,6 +56,7 @@ const filters = reactive({
     goal_id: (Number(route.query.goal_id) || '') as number | '',
     task_type_id: (Number(route.query.task_type_id) || '') as number | '',
     sort: fromQuery<TaskSort>(route.query, 'sort', TASK_SORTS),
+    group: fromQuery<TaskFolderBy>(route.query, 'group', ['goal', 'type']),
     page: Number(route.query.page) || 1,
 });
 
@@ -79,6 +80,10 @@ const sortLabels: Record<TaskSort, string> = {
 const dueOptions = TASK_DUE_FILTERS.map((value) => ({ value, label: dueLabels[value] }));
 /** No sort chosen is the API's smart order (open first). */
 const sortOptions = TASK_SORTS.map((value) => ({ value, label: sortLabels[value] }));
+const groupOptions: { value: TaskFolderBy; label: string }[] = [
+    { value: 'goal', label: 'Goal' },
+    { value: 'type', label: 'Type' },
+];
 const view = ref<'cards' | 'list'>(route.query.view === 'list' ? 'list' : 'cards');
 const viewOptions = [
     { value: 'cards' as const, label: 'Cards' },
@@ -191,6 +196,18 @@ const sections = computed(() => {
                     ? !['completed', 'cancelled'].includes(task.status)
                     : task.status === filters.status)),
     );
+    if (filters.group) {
+        return [
+            {
+                key: 'all',
+                title: '',
+                icon: 'tasks' as const,
+                tasks,
+                groups: groupInto(tasks, filters.group),
+                count: tasks.length,
+            },
+        ];
+    }
     const titled = groupByTitle(tasks);
     const byLead = new Map(titled.map((group) => [group.lead.id, group]));
     const sorted = filters.sort
@@ -265,6 +282,7 @@ onMounted(() => {
                         <template v-if="data && !loading">{{ total }} {{ total === 1 ? 'task' : 'tasks' }}</template>
                         <template v-else-if="loading">Loading…</template>
                     </Text>
+                    <FacetFilter v-model="filters.group" label="Group" :options="groupOptions" />
                     <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
                     <ChipGroup v-model="view" label="View" :options="viewOptions" />
                 </div>
@@ -297,7 +315,18 @@ onMounted(() => {
                         <Text :id="`group-${section.key}`" as="h2" role="label" weight="bold">{{ section.title }}</Text>
                         <Text as="span" role="caption" tone="muted" tabular>{{ section.count }}</Text>
                     </header>
-                    <div v-if="view === 'cards'" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <Card v-if="filters.group" as="div" padding="none" class="p-2">
+                        <ul class="flex flex-col">
+                            <TaskFolder
+                                v-for="group in section.groups"
+                                :key="group.key"
+                                :group="group"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                            />
+                        </ul>
+                    </Card>
+                    <div v-else-if="view === 'cards'" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         <template v-for="group in section.groups" :key="group.key">
                             <TaskCard
                                 v-if="group.tasks.length === 1"

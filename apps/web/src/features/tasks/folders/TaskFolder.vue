@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { Task } from '@focus/types';
 import { taskRecurrenceLabels } from '@/lib/labels';
-import type { TaskTitleGroup } from './titleGroups';
+import type { TaskFolderGroup } from './taskGroups';
 
-/** Same-titled tasks as one folder: progress across them on the outside, each instance inside. */
-const props = defineProps<{ group: TaskTitleGroup }>();
+/** A folder of tasks — one repeated title, or a whole goal or type — with progress across them on the outside. */
+const props = defineProps<{ group: TaskFolderGroup }>();
 const emit = defineEmits<{ toggle: [task: Task]; star: [task: Task] }>();
 defineSlots<{ actions?: (props: { task: Task }) => unknown }>();
 
 const open = ref(false);
-const recurrence = computed(() => props.group.tasks.find((task) => task.recurrence)?.recurrence ?? null);
+const recurrence = computed(() =>
+    props.group.nested ? null : (props.group.tasks.find((task) => task.recurrence)?.recurrence ?? null),
+);
 </script>
 
 <template>
@@ -24,7 +26,7 @@ const recurrence = computed(() => props.group.tasks.find((task) => task.recurren
                         size="lg"
                         :class="group.missed ? 'text-danger-fg' : 'text-highlight-fg'"
                     />
-                    <span class="min-w-0 flex-1 truncate text-body font-semibold">{{ group.lead.title }}</span>
+                    <span class="min-w-0 flex-1 truncate text-body font-semibold">{{ group.title }}</span>
                     <Icon
                         v-if="recurrence"
                         name="retry"
@@ -39,17 +41,29 @@ const recurrence = computed(() => props.group.tasks.find((task) => task.recurren
             </div>
             <DisclosureContent>
                 <ul class="ml-4 flex flex-col border-l border-border pl-2">
-                    <TaskRow
-                        v-for="task in group.tasks"
-                        :key="task.id"
-                        :task="task"
+                    <TaskFolderList
+                        v-if="group.nested"
+                        :tasks="group.tasks"
                         @toggle="emit('toggle', $event)"
                         @star="emit('star', $event)"
                     >
                         <template v-if="$slots.actions" #actions="slotProps">
                             <slot name="actions" v-bind="slotProps" />
                         </template>
-                    </TaskRow>
+                    </TaskFolderList>
+                    <template v-else>
+                        <TaskRow
+                            v-for="task in group.tasks"
+                            :key="task.id"
+                            :task="task"
+                            @toggle="emit('toggle', $event)"
+                            @star="emit('star', $event)"
+                        >
+                            <template v-if="$slots.actions" #actions="slotProps">
+                                <slot name="actions" v-bind="slotProps" />
+                            </template>
+                        </TaskRow>
+                    </template>
                 </ul>
             </DisclosureContent>
         </Disclosure>

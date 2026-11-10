@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import type { Task } from '@focus/types';
 import { describe, expect, it } from 'vitest';
 import TaskFolderList from '@/features/tasks/folders/TaskFolderList.vue';
-import { groupByTitle, normaliseTitle } from '@/features/tasks/folders/titleGroups';
+import { groupByTitle, groupInto, normaliseTitle } from '@/features/tasks/folders/taskGroups';
 
 const now = new Date('2026-11-10T09:00:00');
 
@@ -74,6 +74,29 @@ describe('groupByTitle', () => {
 
     it('reports no logged time when the list carries none', () => {
         expect(groupByTitle([make(1), make(2)], now)[0]!.loggedMinutes).toBeNull();
+    });
+});
+
+describe('groupInto', () => {
+    const goal = { id: 25, title: 'BizSure version one' };
+    const work = { id: 3, name: 'Work', tone: 'rose' as const };
+    const tasks = [
+        make(1, { title: 'Read a book', recurrence: null }),
+        make(2, { title: 'Portal redesign', goal_id: 25, goal, task_type_id: 3, type: work, status: 'completed' }),
+        make(3, { title: 'Accident flow', goal_id: 25, goal, task_type_id: 3, type: work }),
+    ];
+
+    it('files tasks under their goal, with unfiled tasks last', () => {
+        const folders = groupInto(tasks, 'goal', now);
+        expect(folders.map((folder) => [folder.title, folder.tasks.length])).toEqual([
+            ['BizSure version one', 2],
+            ['No goal', 1],
+        ]);
+        expect(folders[0]).toMatchObject({ nested: true, done: 1, total: 2 });
+    });
+
+    it('files tasks under their type, falling back to the category', () => {
+        expect(groupInto(tasks, 'type', now).map((folder) => folder.title)).toEqual(['General', 'Work']);
     });
 });
 
