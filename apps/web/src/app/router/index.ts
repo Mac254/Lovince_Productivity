@@ -173,6 +173,12 @@ export const router = createRouter({
                     meta: { title: 'Goals' },
                 },
                 {
+                    path: 'money/rules',
+                    name: 'money-rules',
+                    component: () => import('@/pages/MoneyRulesPage.vue'),
+                    meta: { title: 'Rules' },
+                },
+                {
                     path: 'money/recurring',
                     name: 'recurring',
                     component: () => import('@/pages/MoneyRecurringPage.vue'),

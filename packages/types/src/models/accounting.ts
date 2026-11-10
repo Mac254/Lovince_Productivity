@@ -136,3 +136,25 @@ export interface GoalContribution {
     note: string | null;
     created_at: IsoDateTime;
 }
+
+/** A money rule kept in sight as a reminder; it is never checked against the ledger. */
+export interface MoneyRule {
+    id: number;
+    title: string;
+    reason: string | null;
+    pinned: boolean;
+    position: number;
+    /** The key of the suggestion the rule was added from, if any. */
+    suggestion: string | null;
+    archived: boolean;
+    created_at: IsoDateTime;
+    updated_at: IsoDateTime;
+}
+
+/** A rule worked out from the user's goals or recent spending, offered until it is added. */
+export interface MoneyRuleSuggestion {
+    key: string;
+    title: string;
+    reason: string;
+    source: 'goals' | 'spending';
+}

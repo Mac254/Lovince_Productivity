@@ -154,6 +154,8 @@ export const LIMITS = {
         notes: 1000,
         reference: 80,
         goalName: 80,
+        ruleTitle: 120,
+        ruleReason: 500,
     },
     currencyDecimals: {
         KES: 2,

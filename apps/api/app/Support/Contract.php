@@ -125,6 +125,10 @@ final class Contract
 
     public const ACCOUNTING_GOAL_NAME_MAX = 80;
 
+    public const ACCOUNTING_RULE_TITLE_MAX = 120;
+
+    public const ACCOUNTING_RULE_REASON_MAX = 500;
+
     /** The largest single amount in minor units: just under 10 trillion in a two-decimal currency. */
     public const ACCOUNTING_AMOUNT_MAX = 999_999_999_999_999;
 
@@ -213,6 +217,8 @@ final class Contract
                 'notes' => self::ACCOUNTING_NOTES_MAX,
                 'reference' => self::ACCOUNTING_REFERENCE_MAX,
                 'goalName' => self::ACCOUNTING_GOAL_NAME_MAX,
+                'ruleTitle' => self::ACCOUNTING_RULE_TITLE_MAX,
+                'ruleReason' => self::ACCOUNTING_RULE_REASON_MAX,
             ],
             'currencyDecimals' => self::CURRENCY_DECIMALS,
         ];

@@ -61,6 +61,15 @@ export interface FinancialGoalInput {
     archived?: boolean;
 }
 
+export interface MoneyRuleInput {
+    title?: string;
+    reason?: string | null;
+    pinned?: boolean;
+    /** The key of the suggestion being added; only read when creating. */
+    suggestion?: string | null;
+    archived?: boolean;
+}
+
 export interface GoalContributionInput {
     /** A positive decimal string. */
     amount: string;

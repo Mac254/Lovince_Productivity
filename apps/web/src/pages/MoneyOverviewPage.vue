@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api } from '@focus/api-client';
-import type { Currency, Transaction } from '@focus/types';
+import type { Currency, MoneyRule, Transaction } from '@focus/types';
 import { todayIso } from '@/lib/dates';
 import { useAccountingLists, useTransactionActions } from '@/features/accounting/useAccounting';
 import { daysUntil, formatDate } from '@/lib/dates';
@@ -42,8 +42,18 @@ const due = (date: string) => {
     return days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : formatDate(date);
 };
 
+const pinnedRules = shallowRef<MoneyRule[]>([]);
+
+async function loadRules(): Promise<void> {
+    try {
+        pinnedRules.value = (await api.accounting.rules.list()).filter((r) => r.pinned);
+    } catch {
+        pinnedRules.value = [];
+    }
+}
+
 async function refresh(): Promise<void> {
-    await Promise.all([run(), lists.load()]);
+    await Promise.all([run(), lists.load(), loadRules()]);
 }
 
 function record(transaction: Transaction | null): void {
@@ -231,6 +241,18 @@ onMounted(refresh);
                 <Text v-else tone="muted"
                     >Save towards an emergency fund, an investment or something you want, and track it here.</Text
                 >
+            </Card>
+
+            <Card v-if="pinnedRules.length" as="section" aria-labelledby="rules-heading" class="flex flex-col gap-4">
+                <CardHeader title="My rules" title-id="rules-heading" icon="quote" class="mb-0">
+                    <Button variant="ghost" size="sm" icon-end="arrow-right" :to="{ name: 'money-rules' }">All</Button>
+                </CardHeader>
+                <ul class="grid gap-x-8 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
+                    <li v-for="rule in pinnedRules" :key="rule.id" class="flex flex-col gap-1">
+                        <span class="font-semibold">{{ rule.title }}</span>
+                        <Text v-if="rule.reason" as="span" role="caption" tone="muted">{{ rule.reason }}</Text>
+                    </li>
+                </ul>
             </Card>
 
             <div class="grid gap-6 lg:grid-cols-3">

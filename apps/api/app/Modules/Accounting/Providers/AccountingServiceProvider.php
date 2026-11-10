@@ -7,12 +7,14 @@ use App\Modules\Accounting\Models\Budget;
 use App\Modules\Accounting\Models\Category;
 use App\Modules\Accounting\Models\FinancialAccount;
 use App\Modules\Accounting\Models\FinancialGoal;
+use App\Modules\Accounting\Models\MoneyRule;
 use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Accounting\Models\Transaction;
 use App\Modules\Accounting\Policies\BudgetPolicy;
 use App\Modules\Accounting\Policies\CategoryPolicy;
 use App\Modules\Accounting\Policies\FinancialAccountPolicy;
 use App\Modules\Accounting\Policies\FinancialGoalPolicy;
+use App\Modules\Accounting\Policies\MoneyRulePolicy;
 use App\Modules\Accounting\Policies\RecurringTransactionPolicy;
 use App\Modules\Accounting\Policies\TransactionPolicy;
 use App\Modules\Users\Models\User;
@@ -28,6 +30,7 @@ class AccountingServiceProvider extends ModuleProvider
         Budget::class => BudgetPolicy::class,
         RecurringTransaction::class => RecurringTransactionPolicy::class,
         FinancialGoal::class => FinancialGoalPolicy::class,
+        MoneyRule::class => MoneyRulePolicy::class,
     ];
 
     public function boot(): void
@@ -38,6 +41,7 @@ class AccountingServiceProvider extends ModuleProvider
         User::resolveRelationUsing('accountingCategories', fn (User $user) => $user->hasMany(Category::class));
         User::resolveRelationUsing('accountingBudgets', fn (User $user) => $user->hasMany(Budget::class));
         User::resolveRelationUsing('accountingGoals', fn (User $user) => $user->hasMany(FinancialGoal::class));
+        User::resolveRelationUsing('accountingRules', fn (User $user) => $user->hasMany(MoneyRule::class));
 
         $this->commands([PostRecurring::class]);
 

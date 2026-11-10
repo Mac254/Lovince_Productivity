@@ -34,6 +34,8 @@ export type {
     FinancialGoal,
     GoalContribution,
     MinorUnits,
+    MoneyRule,
+    MoneyRuleSuggestion,
     RecurringTransaction,
     Transaction,
 } from './models/accounting';
@@ -105,6 +107,7 @@ export type {
     GoalContributionInput,
     GoalSummary,
     IncomeStatement,
+    MoneyRuleInput,
     MonthTotals,
     MoneyTrend,
     RecurringTransactionInput,

@@ -8,6 +8,7 @@ use App\Modules\Accounting\Http\Controllers\GoalContributionController;
 use App\Modules\Accounting\Http\Controllers\GoalController;
 use App\Modules\Accounting\Http\Controllers\RecurringTransactionController;
 use App\Modules\Accounting\Http\Controllers\ReportController;
+use App\Modules\Accounting\Http\Controllers\RuleController;
 use App\Modules\Accounting\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('accounting')->name(
     Route::apiResource('budgets', BudgetController::class)->except('show')->whereNumber('budget');
     Route::apiResource('goals', GoalController::class)->whereNumber('goal');
     Route::apiResource('goals.contributions', GoalContributionController::class)->only(['index', 'store', 'destroy'])->scoped()->whereNumber(['goal', 'contribution']);
+    Route::get('rules/suggestions', [RuleController::class, 'suggestions']);
+    Route::put('rules/order', [RuleController::class, 'order']);
+    Route::apiResource('rules', RuleController::class)->except('show')->whereNumber('rule');
     Route::apiResource('recurring', RecurringTransactionController::class)->except('show')->parameters(['recurring' => 'recurring'])->whereNumber('recurring');
     Route::get('transactions/export', [TransactionController::class, 'export'])->middleware('throttle:10,1');
     Route::post('transactions/{transaction}/void', [TransactionController::class, 'void'])->whereNumber('transaction');

@@ -16,6 +16,9 @@ import type {
     GoalContribution,
     GoalContributionInput,
     IncomeStatement,
+    MoneyRule,
+    MoneyRuleInput,
+    MoneyRuleSuggestion,
     MoneyTrend,
     Paginated,
     RecurringTransaction,
@@ -188,6 +191,34 @@ export function accountingEndpoints(http: AxiosInstance) {
                 async remove(goalId: number, id: number): Promise<void> {
                     await http.delete(`/accounting/goals/${goalId}/contributions/${id}`);
                 },
+            },
+        },
+        rules: {
+            async list(filters: { archived?: boolean } = {}, options: RequestOptions = {}): Promise<MoneyRule[]> {
+                const params = filters.archived ? { archived: 1 } : {};
+                const { data } = await http.get<Resource<MoneyRule[]>>('/accounting/rules', { params, ...options });
+                return data.data;
+            },
+            async suggestions(options: RequestOptions = {}): Promise<MoneyRuleSuggestion[]> {
+                const { data } = await http.get<Resource<MoneyRuleSuggestion[]>>(
+                    '/accounting/rules/suggestions',
+                    options,
+                );
+                return data.data;
+            },
+            async create(input: MoneyRuleInput): Promise<MoneyRule> {
+                const { data } = await http.post<Resource<MoneyRule>>('/accounting/rules', input);
+                return data.data;
+            },
+            async update(id: number, input: MoneyRuleInput): Promise<MoneyRule> {
+                const { data } = await http.patch<Resource<MoneyRule>>(`/accounting/rules/${id}`, input);
+                return data.data;
+            },
+            async order(ids: number[]): Promise<void> {
+                await http.put('/accounting/rules/order', { ids });
+            },
+            async remove(id: number): Promise<void> {
+                await http.delete(`/accounting/rules/${id}`);
             },
         },
         recurring: {
