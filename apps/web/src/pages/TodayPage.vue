@@ -162,10 +162,8 @@ const plannable = computed<Task[]>(() => {
                                     }}</Badge>
                                 </div>
                                 <ul class="-mx-2 flex flex-col">
-                                    <TaskRow
-                                        v-for="task in group.tasks"
-                                        :key="task.id"
-                                        :task="task"
+                                    <TaskFolderList
+                                        :tasks="group.tasks"
                                         @toggle="actions.toggleComplete"
                                         @star="actions.toggleHighlight"
                                     />
@@ -197,14 +195,12 @@ const plannable = computed<Task[]>(() => {
                             >
                         </CardHeader>
                         <ul v-if="overdue.length" class="-mx-2 flex flex-col">
-                            <TaskRow
-                                v-for="task in overdue"
-                                :key="task.id"
-                                :task="task"
+                            <TaskFolderList
+                                :tasks="overdue"
                                 @toggle="actions.toggleComplete"
                                 @star="actions.toggleHighlight"
                             >
-                                <template #actions>
+                                <template #actions="{ task }">
                                     <IconButton
                                         icon="history"
                                         :label="`Mark “${task.title}” done on an earlier day`"
@@ -220,7 +216,7 @@ const plannable = computed<Task[]>(() => {
                                         @click="actions.moveToToday([task])"
                                     />
                                 </template>
-                            </TaskRow>
+                            </TaskFolderList>
                         </ul>
                         <Text v-else role="label" tone="muted" class="py-4">You’re all caught up.</Text>
                     </Card>

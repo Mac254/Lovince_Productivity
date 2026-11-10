@@ -37,6 +37,8 @@ import IconExitFullscreen from '~icons/solar/minimize-square-linear';
 import IconEye from '~icons/solar/eye-linear';
 import IconFilter from '~icons/solar/filter-linear';
 import IconFlame from '~icons/solar/fire-linear';
+import IconFolder from '~icons/solar/folder-linear';
+import IconFolderOpen from '~icons/solar/folder-open-linear';
 import IconForbidden from '~icons/solar/forbidden-circle-linear';
 import IconFullscreen from '~icons/solar/maximize-square-linear';
 import IconHistory from '~icons/solar/history-linear';
@@ -126,6 +128,8 @@ export const icons = {
     eye: IconEye,
     filter: IconFilter,
     flame: IconFlame,
+    folder: IconFolder,
+    'folder-open': IconFolderOpen,
     forbidden: IconForbidden,
     fullscreen: IconFullscreen,
     history: IconHistory,

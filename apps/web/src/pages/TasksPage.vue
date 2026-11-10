@@ -15,6 +15,7 @@ import {
 } from '@focus/types';
 import type { LocationQuery } from 'vue-router';
 import { groupByDue } from '@/features/tasks/dueGroups';
+import { groupByTitle } from '@/features/tasks/folders/titleGroups';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { allFacet, withoutAll } from '@/lib/facets';
 import { taskPriorityOptions } from '@/lib/labels';
@@ -190,14 +191,22 @@ const sections = computed(() => {
                     ? !['completed', 'cancelled'].includes(task.status)
                     : task.status === filters.status)),
     );
-    if (filters.sort) return [{ key: 'all', title: '', icon: 'tasks' as const, tasks }];
-    return groupByDue(tasks);
+    const titled = groupByTitle(tasks);
+    const byLead = new Map(titled.map((group) => [group.lead.id, group]));
+    const sorted = filters.sort
+        ? [{ key: 'all', title: '', icon: 'tasks' as const, tasks: titled.map((group) => group.lead) }]
+        : groupByDue(titled.map((group) => group.lead));
+    return sorted.map((section) => ({
+        ...section,
+        groups: section.tasks.map((lead) => byLead.get(lead.id)!),
+        count: section.tasks.reduce((sum, lead) => sum + byLead.get(lead.id)!.tasks.length, 0),
+    }));
 });
 
 const total = computed(
     () =>
         (data.value?.meta.total ?? 0) +
-        sections.value.reduce((sum, section) => sum + section.tasks.length, 0) -
+        sections.value.reduce((sum, section) => sum + section.count, 0) -
         (data.value?.data.length ?? 0),
 );
 
@@ -270,7 +279,7 @@ onMounted(() => {
 
         <template v-else-if="data">
             <div
-                v-if="sections.some((section) => section.tasks.length)"
+                v-if="sections.some((section) => section.count)"
                 :class="['flex flex-col gap-8 transition-opacity duration-(--duration-fast)', loading && 'opacity-60']"
             >
                 <section
@@ -286,29 +295,46 @@ onMounted(() => {
                             :class="section.key === 'overdue' ? 'text-danger-fg' : 'text-fg-muted'"
                         />
                         <Text :id="`group-${section.key}`" as="h2" role="label" weight="bold">{{ section.title }}</Text>
-                        <Text as="span" role="caption" tone="muted" tabular>{{ section.tasks.length }}</Text>
+                        <Text as="span" role="caption" tone="muted" tabular>{{ section.count }}</Text>
                     </header>
                     <div v-if="view === 'cards'" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <TaskCard
-                            v-for="task in section.tasks"
-                            :key="task.id"
-                            :task="task"
-                            @edit="edit"
-                            @toggle="actions.toggleComplete"
-                            @star="actions.toggleHighlight"
-                            @set-status="actions.setStatus"
-                            @delete="askDelete"
-                        />
+                        <template v-for="group in section.groups" :key="group.key">
+                            <TaskCard
+                                v-if="group.tasks.length === 1"
+                                :task="group.lead"
+                                @edit="edit"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                                @set-status="actions.setStatus"
+                                @delete="askDelete"
+                            />
+                            <Card v-else as="div" padding="none" class="self-start p-2">
+                                <ul class="flex flex-col">
+                                    <TaskFolder
+                                        :group="group"
+                                        @toggle="actions.toggleComplete"
+                                        @star="actions.toggleHighlight"
+                                    />
+                                </ul>
+                            </Card>
+                        </template>
                     </div>
                     <Card v-else as="div" padding="none" class="p-2">
                         <ul class="flex flex-col">
-                            <TaskRow
-                                v-for="task in section.tasks"
-                                :key="task.id"
-                                :task="task"
-                                @toggle="actions.toggleComplete"
-                                @star="actions.toggleHighlight"
-                            />
+                            <template v-for="group in section.groups" :key="group.key">
+                                <TaskRow
+                                    v-if="group.tasks.length === 1"
+                                    :task="group.lead"
+                                    @toggle="actions.toggleComplete"
+                                    @star="actions.toggleHighlight"
+                                />
+                                <TaskFolder
+                                    v-else
+                                    :group="group"
+                                    @toggle="actions.toggleComplete"
+                                    @star="actions.toggleHighlight"
+                                />
+                            </template>
                         </ul>
                     </Card>
                 </section>

@@ -9,6 +9,12 @@ export { default as MorphIcon, type MorphIconName } from './primitives/MorphIcon
 export { default as VisuallyHidden } from './primitives/VisuallyHidden/VisuallyHidden.vue';
 /** Bare Lovince controls for custom-shaped UI (calendar days, list rows, the journal editor); style them with tokens. */
 export { LvButton as Pressable, LvTextarea as PlainTextarea } from '@lovince/ui-vue';
+/** Headless show/hide: the trigger carries aria-expanded and aria-controls, the content hides itself when closed. */
+export {
+    LvDisclosureRoot as Disclosure,
+    LvDisclosureTrigger as DisclosureTrigger,
+    LvDisclosureContent as DisclosureContent,
+} from '@lovince/ui-vue';
 
 // Icons — one set, addressed by meaning
 export { icons, type IconName } from './icons/registry';
