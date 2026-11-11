@@ -1,5 +1,6 @@
 import './styles/app.css';
 import { onUnauthorized } from '@focus/api-client';
+import { preloadKinetic } from '@focus/motion';
 import App from './App.vue';
 import { router } from './app/router';
 
@@ -22,6 +23,7 @@ onUnauthorized(() => {
     }
 });
 
+preloadKinetic();
 app.mount('#app');
 
 // Installed-app support in production builds only; the dev server always serves fresh code.

@@ -4,6 +4,13 @@ import { motionConfig, prefersReducedMotion } from '../presets/motion';
 
 export type { KineticEffect };
 
+const loadKinetic = () => import('@lovince/motion/primitives/kinetic').catch(() => null);
+
+/** Starts downloading the title effect while the app boots, so the first title never waits on it. */
+export function preloadKinetic(): void {
+    if (!prefersReducedMotion()) void loadKinetic();
+}
+
 const reveal = (el: HTMLElement | null) => el?.setAttribute('data-kinetic-ready', '');
 
 /**
@@ -20,7 +27,7 @@ export function useKinetic(root: Readonly<Ref<HTMLElement | null>>, effect: () =
         stop = null;
         const el = root.value;
         if (!el || !effect() || prefersReducedMotion()) return reveal(el);
-        const effects = await import('@lovince/motion/primitives/kinetic').catch(() => null);
+        const effects = await loadKinetic();
         if (current !== run) return;
         if (effects && root.value === el) stop = effects.kinetic(el, { config: motionConfig });
         reveal(el);
