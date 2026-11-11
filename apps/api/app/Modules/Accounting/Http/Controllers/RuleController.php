@@ -7,6 +7,7 @@ use App\Modules\Accounting\Http\Resources\RuleResource;
 use App\Modules\Accounting\Models\MoneyRule;
 use App\Modules\Accounting\Services\RuleSuggestions;
 use App\Shared\Http\Controllers\Controller;
+use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -67,7 +68,7 @@ class RuleController extends Controller
     {
         $user = $request->user();
         $ids = $request->validate([
-            'ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ids' => ['required', 'array', 'min:1', 'max:'.Contract::REORDER_MAX],
             'ids.*' => ['integer', 'distinct', Rule::exists('accounting_rules', 'id')->where('user_id', $user->id)],
         ])['ids'];
 

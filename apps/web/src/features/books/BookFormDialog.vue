@@ -30,7 +30,10 @@ const started = computed(() => form.status === 'reading' || form.status === 'fin
 
 const ratingOptions = [
     { value: '' as const, label: 'Not rated' },
-    ...[5, 4, 3, 2, 1].map((value) => ({ value, label: `${value} of 5` })),
+    ...Array.from({ length: LIMITS.book.rating }, (_, i) => LIMITS.book.rating - i).map((value) => ({
+        value,
+        label: `${value} of ${LIMITS.book.rating}`,
+    })),
 ];
 const goalOptions = computed(() => [
     { value: '' as const, label: 'Not linked to a goal' },

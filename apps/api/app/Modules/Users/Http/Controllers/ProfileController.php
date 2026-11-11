@@ -24,7 +24,7 @@ class ProfileController extends Controller
     public function update(Request $request): UserResource
     {
         $validated = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'min:1', 'max:120'],
+            'name' => ['sometimes', 'required', 'string', 'min:1', 'max:'.Contract::PROFILE_NAME_MAX],
             'timezone' => ['sometimes', 'required', 'string', 'timezone:all_with_bc'],
         ]);
 

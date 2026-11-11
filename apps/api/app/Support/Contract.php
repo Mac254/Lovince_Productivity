@@ -39,6 +39,14 @@ final class Contract
 
     public const SEARCH_MAX = 100;
 
+    /** Global search waits for this many characters. */
+    public const SEARCH_MIN = 2;
+
+    public const PROFILE_NAME_MAX = 120;
+
+    /** The most records one reorder request can place. */
+    public const REORDER_MAX = 500;
+
     public const BACKUP_MAX_KB = 20480;
 
     public const BACKUP_RECORDS_MAX = 50000;
@@ -109,6 +117,8 @@ final class Contract
 
     public const BOOK_READING_NOTE_MAX = 1000;
 
+    public const BOOK_RATING_MAX = 5;
+
     public const ROADMAP_TITLE_MAX = 160;
 
     public const ROADMAP_AREA_MAX = 40;
@@ -128,6 +138,9 @@ final class Contract
     public const ACCOUNTING_RULE_TITLE_MAX = 120;
 
     public const ACCOUNTING_RULE_REASON_MAX = 500;
+
+    /** A dismissed rule suggestion's key, such as `merchant-groceries`. */
+    public const ACCOUNTING_RULE_SUGGESTION_MAX = 60;
 
     /** The largest single amount in minor units: just under 10 trillion in a two-decimal currency. */
     public const ACCOUNTING_AMOUNT_MAX = 999_999_999_999_999;
@@ -182,6 +195,8 @@ final class Contract
             'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX],
             'goal' => ['title' => self::GOAL_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'search' => self::SEARCH_MAX,
+            'searchMin' => self::SEARCH_MIN,
+            'profileName' => self::PROFILE_NAME_MAX,
             'backupKb' => self::BACKUP_MAX_KB,
             'perPage' => self::PER_PAGE_MAX,
             'perPageDefault' => self::PER_PAGE_DEFAULT,
@@ -208,6 +223,7 @@ final class Contract
                 'readingChapters' => self::BOOK_READING_CHAPTERS_MAX,
                 'readingMinutes' => self::TASK_NOTE_MINUTES_MAX,
                 'readingNote' => self::BOOK_READING_NOTE_MAX,
+                'rating' => self::BOOK_RATING_MAX,
             ],
             'roadmap' => ['title' => self::ROADMAP_TITLE_MAX, 'area' => self::ROADMAP_AREA_MAX, 'details' => self::DESCRIPTION_MAX],
             'accounting' => [

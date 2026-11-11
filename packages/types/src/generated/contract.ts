@@ -93,6 +93,8 @@ export const LIMITS = {
         description: 5000,
     },
     search: 100,
+    searchMin: 2,
+    profileName: 120,
     backupKb: 20480,
     perPage: 100,
     perPageDefault: 25,
@@ -141,6 +143,7 @@ export const LIMITS = {
         readingChapters: 100,
         readingMinutes: 720,
         readingNote: 1000,
+        rating: 5,
     },
     roadmap: {
         title: 160,

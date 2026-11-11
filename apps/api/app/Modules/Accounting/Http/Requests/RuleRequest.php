@@ -33,7 +33,7 @@ class RuleRequest extends FormRequest
             'title' => [$presence, 'string', 'min:1', 'max:'.Contract::ACCOUNTING_RULE_TITLE_MAX],
             'reason' => ['sometimes', 'nullable', 'string', 'max:'.Contract::ACCOUNTING_RULE_REASON_MAX],
             'pinned' => ['sometimes', 'boolean'],
-            'suggestion' => ['sometimes', 'nullable', 'string', 'max:60', 'regex:/^[a-z0-9-]+$/'],
+            'suggestion' => ['sometimes', 'nullable', 'string', 'max:'.Contract::ACCOUNTING_RULE_SUGGESTION_MAX, 'regex:/^[a-z0-9-]+$/'],
             'archived' => ['sometimes', 'boolean'],
         ];
     }

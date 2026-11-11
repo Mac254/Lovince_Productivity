@@ -37,7 +37,7 @@ class BookRequest extends FormRequest
             'chapters_read' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_CHAPTERS_MAX],
             'started_on' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'finished_on' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
-            'rating' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:5'],
+            'rating' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::BOOK_RATING_MAX],
             'notes' => ['sometimes', 'nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
             'goal_id' => ['sometimes', 'nullable', 'integer', Rule::exists('goals', 'id')->where('user_id', $this->user()->id)],
         ];

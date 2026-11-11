@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import type { Book, BookReading } from '@focus/types';
+import { LIMITS, type Book, type BookReading } from '@focus/types';
 import { chapterSummary } from '@/features/books/progress';
 import { formatDate, formatMinutes } from '@/lib/dates';
 import { bookStatusLabels, bookStatusTones, taskRecurrenceLabels } from '@/lib/labels';
@@ -104,7 +104,7 @@ watch(id, load, { immediate: true });
         >
             <template v-if="book" #eyebrow>
                 <Badge dot :tone="bookStatusTones[book.status]">{{ bookStatusLabels[book.status] }}</Badge>
-                <Badge v-if="book.rating" tone="highlight" icon="star">{{ book.rating }}/5</Badge>
+                <Badge v-if="book.rating" tone="highlight" icon="star">{{ book.rating }}/{{ LIMITS.book.rating }}</Badge>
             </template>
             <template v-if="book?.author" #description>{{ book.author }}</template>
             <template v-if="book" #actions>

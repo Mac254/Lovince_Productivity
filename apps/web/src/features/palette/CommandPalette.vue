@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import type { SearchKind, SearchResult } from '@focus/types';
+import { LIMITS, type SearchKind, type SearchResult } from '@focus/types';
 import type { IconName } from '@focus/ui';
 import type { RouteLocationRaw } from 'vue-router';
 import { navigation } from '@/lib/navigation';
@@ -136,7 +136,7 @@ const foundCommands = computed<Command[]>(() =>
 
 async function search(text: string): Promise<void> {
     pending?.abort();
-    if (text.length < 2) {
+    if (text.length < LIMITS.searchMin) {
         found.value = [];
         return;
     }

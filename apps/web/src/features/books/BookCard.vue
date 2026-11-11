@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Book } from '@focus/types';
+import { LIMITS, type Book } from '@focus/types';
 import type { MenuItem } from '@focus/ui';
 import { formatDate } from '@/lib/dates';
 import { bookStatusLabels, bookStatusTones } from '@/lib/labels';
@@ -30,7 +30,7 @@ const when = computed(() => {
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
                 <Badge dot :tone="bookStatusTones[book.status]">{{ bookStatusLabels[book.status] }}</Badge>
-                <Badge v-if="book.rating" tone="highlight" icon="star">{{ book.rating }}/5</Badge>
+                <Badge v-if="book.rating" tone="highlight" icon="star">{{ book.rating }}/{{ LIMITS.book.rating }}</Badge>
             </div>
             <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" />
         </div>

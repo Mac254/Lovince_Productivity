@@ -636,7 +636,7 @@ onMounted(() => void auth.refresh().catch(() => undefined));
                     v-model="name"
                     label="Name"
                     autocomplete="name"
-                    maxlength="120"
+                    :maxlength="LIMITS.profileName"
                     :error="nameError"
                 />
                 <div class="flex justify-end gap-2">
