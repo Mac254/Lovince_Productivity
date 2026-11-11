@@ -12,10 +12,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('tasks/move-to-today', [TaskController::class, 'moveToToday']);
     Route::apiResource('tasks', TaskController::class);
     Route::get('tasks/{task}/cover', [TaskCoverController::class, 'show'])->whereNumber('task');
-    Route::post('tasks/{task}/cover', [TaskCoverController::class, 'store'])->whereNumber('task')->middleware('throttle:20,1');
+    Route::post('tasks/{task}/cover', [TaskCoverController::class, 'store'])->whereNumber('task')->middleware('throttle:20,1,task-cover');
     Route::delete('tasks/{task}/cover', [TaskCoverController::class, 'destroy'])->whereNumber('task');
     Route::get('tasks/{task}/notes', [TaskNoteController::class, 'index'])->whereNumber('task');
-    Route::post('tasks/{task}/notes', [TaskNoteController::class, 'store'])->whereNumber('task')->middleware('throttle:60,1');
+    Route::post('tasks/{task}/notes', [TaskNoteController::class, 'store'])->whereNumber('task')->middleware('throttle:60,1,task-notes');
     Route::patch('task-notes/{note}', [TaskNoteController::class, 'update'])->whereNumber('note');
     Route::delete('task-notes/{note}', [TaskNoteController::class, 'destroy'])->whereNumber('note');
     Route::get('tasks/{task}/checklist', [ChecklistController::class, 'index'])->whereNumber('task');

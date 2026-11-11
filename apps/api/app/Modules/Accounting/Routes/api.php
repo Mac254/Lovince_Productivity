@@ -26,7 +26,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('accounting')->name(
     Route::put('rules/order', [RuleController::class, 'order']);
     Route::apiResource('rules', RuleController::class)->except('show')->whereNumber('rule');
     Route::apiResource('recurring', RecurringTransactionController::class)->except('show')->parameters(['recurring' => 'recurring'])->whereNumber('recurring');
-    Route::get('transactions/export', [TransactionController::class, 'export'])->middleware('throttle:10,1');
+    Route::get('transactions/export', [TransactionController::class, 'export'])->middleware('throttle:10,1,transactions-export');
     Route::post('transactions/{transaction}/void', [TransactionController::class, 'void'])->whereNumber('transaction');
     Route::post('transactions/{transaction}/reverse', [TransactionController::class, 'reverse'])->whereNumber('transaction');
     Route::apiResource('transactions', TransactionController::class)->except('destroy')->whereNumber('transaction');
