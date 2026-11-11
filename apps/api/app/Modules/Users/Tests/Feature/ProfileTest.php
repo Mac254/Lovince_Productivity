@@ -47,6 +47,7 @@ class ProfileTest extends TestCase
         $this->post('/api/v1/profile/avatar', ['avatar' => UploadedFile::fake()->image('me2.jpg', 200, 200)], ['Accept' => 'application/json'])->assertOk();
         Storage::disk('local')->assertMissing($firstPath);
         Storage::disk('local')->assertExists($user->fresh()->avatar_path);
+        $this->assertStringEndsWith('.webp', $user->fresh()->avatar_path);
 
         $this->get('/api/v1/profile/avatar')->assertOk();
         $this->deleteJson('/api/v1/profile/avatar')->assertJsonPath('data.avatar_url', null);

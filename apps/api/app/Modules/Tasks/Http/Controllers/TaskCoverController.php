@@ -5,6 +5,7 @@ namespace App\Modules\Tasks\Http\Controllers;
 use App\Modules\Tasks\Http\Resources\TaskResource;
 use App\Modules\Tasks\Models\Task;
 use App\Shared\Http\Controllers\Controller;
+use App\Shared\Support\WebpImage;
 use App\Support\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -36,7 +37,7 @@ class TaskCoverController extends Controller
         ]);
 
         $file = $request->file('image');
-        $path = $file->storeAs('task-covers', $task->user_id.'-'.Str::random(32).'.'.$file->extension(), Task::COVER_DISK);
+        $path = WebpImage::store($file, 'task-covers', $task->user_id.'-'.Str::random(32), Task::COVER_DISK, 1600);
         $task->removeUploadedCover();
         $task->forceFill(['cover' => null, 'cover_path' => $path])->save();
 

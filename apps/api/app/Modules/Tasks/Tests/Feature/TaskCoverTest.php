@@ -30,11 +30,14 @@ class TaskCoverTest extends TestCase
             ->assertJsonPath('data.cover', ['type' => 'gallery', 'key' => 'growth-1']);
         $this->patchJson("/api/v1/tasks/{$task->id}", ['cover' => 'nope'])->assertJsonValidationErrors('cover');
 
-        $this->post("/api/v1/tasks/{$task->id}/cover", ['image' => UploadedFile::fake()->image('desk.jpg', 1200, 675)], ['Accept' => 'application/json'])
+        $this->post("/api/v1/tasks/{$task->id}/cover", ['image' => UploadedFile::fake()->image('desk.jpg', 2400, 1350)], ['Accept' => 'application/json'])
             ->assertOk()
             ->assertJsonPath('data.cover.type', 'upload');
         $path = $task->fresh()->cover_path;
         Storage::disk('local')->assertExists($path);
+        $this->assertStringEndsWith('.webp', $path);
+        [$width, $height, $type] = getimagesizefromstring(Storage::disk('local')->get($path));
+        $this->assertSame([1600, 900, IMAGETYPE_WEBP], [$width, $height, $type]);
         $this->get("/api/v1/tasks/{$task->id}/cover")->assertOk();
 
         $this->patchJson("/api/v1/tasks/{$task->id}", ['cover' => 'fun-2'])->assertJsonPath('data.cover.key', 'fun-2');

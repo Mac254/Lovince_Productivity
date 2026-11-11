@@ -5,6 +5,7 @@ namespace App\Modules\Users\Http\Controllers;
 use App\Modules\Users\Http\Resources\UserResource;
 use App\Modules\Users\Services\AccountTimezone;
 use App\Shared\Http\Controllers\Controller;
+use App\Shared\Support\WebpImage;
 use App\Support\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -67,7 +68,7 @@ class ProfileController extends Controller
 
         $user = $request->user();
         $file = $request->file('avatar');
-        $path = $file->storeAs('avatars', $user->id.'-'.Str::random(32).'.'.$file->extension(), self::AVATAR_DISK);
+        $path = WebpImage::store($file, 'avatars', $user->id.'-'.Str::random(32), self::AVATAR_DISK, 512);
 
         $previous = $user->avatar_path;
         $user->forceFill(['avatar_path' => $path])->save();

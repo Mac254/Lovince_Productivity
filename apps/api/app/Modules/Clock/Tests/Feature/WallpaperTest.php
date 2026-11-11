@@ -39,6 +39,7 @@ class WallpaperTest extends TestCase
         $this->get("/api/v1/wallpapers/{$id}/image")->assertOk();
 
         $path = $user->wallpapers()->first()->path;
+        $this->assertStringEndsWith('.webp', $path);
         $this->deleteJson("/api/v1/wallpapers/{$id}")->assertNoContent();
         Storage::disk('local')->assertMissing($path);
         $this->getJson('/api/v1/wallpapers')->assertJsonCount(0, 'data');

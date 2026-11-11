@@ -5,6 +5,7 @@ namespace App\Modules\Clock\Http\Controllers;
 use App\Modules\Clock\Http\Resources\WallpaperResource;
 use App\Modules\Clock\Models\Wallpaper;
 use App\Shared\Http\Controllers\Controller;
+use App\Shared\Support\WebpImage;
 use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,7 +46,7 @@ class WallpaperController extends Controller
         }
 
         $file = $request->file('image');
-        $path = $file->storeAs('wallpapers', $user->id.'-'.Str::random(32).'.'.$file->extension(), self::DISK);
+        $path = WebpImage::store($file, 'wallpapers', $user->id.'-'.Str::random(32), self::DISK, 3840);
         $name = Str::limit(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: 'Wallpaper', 110, '');
 
         $wallpaper = $user->wallpapers()->create(['path' => $path, 'name' => $name]);
