@@ -75,7 +75,7 @@ class AccountRequest extends FormRequest
         $account = $this->route('account');
         $currency = $this->input('currency', $account?->currency);
 
-        if ($account !== null && $currency !== $account->currency && ($account->hasActivity() || $account->hasLinkedGoals())) {
+        if ($account !== null && $currency !== $account->currency && $account->hasActivity()) {
             $validator->errors()->add('currency', 'The currency can’t change once the account has transactions, recurring payments or a goal.');
 
             return;

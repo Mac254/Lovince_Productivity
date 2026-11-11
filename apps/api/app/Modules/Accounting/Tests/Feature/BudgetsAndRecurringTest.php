@@ -214,6 +214,7 @@ class BudgetsAndRecurringTest extends AccountingTestCase
         $this->patchJson("/api/v1/accounting/accounts/{$cash->id}", ['currency' => 'UGX'])->assertJsonValidationErrors('currency');
         $this->patchJson("/api/v1/accounting/accounts/{$saving->id}", ['currency' => 'UGX'])->assertJsonValidationErrors('currency');
         $this->deleteJson("/api/v1/accounting/accounts/{$cash->id}")->assertJsonValidationErrors('account');
+        $this->deleteJson("/api/v1/accounting/accounts/{$saving->id}")->assertJsonValidationErrors('account');
         $this->assertSame(1, RecurringTransaction::count());
     }
 
