@@ -45,7 +45,7 @@ class SuggestionTest extends TestCase
         $user->forceFill(['settings' => ['planner' => ['plan_ahead' => true]]])->save();
         $now = CarbonImmutable::parse('2026-11-02 19:00');
         $task = Task::factory()->for($user)->create(['due_date' => '2026-10-30']);
-        $goal = Goal::factory()->for($user)->create(['title' => 'Get fit', 'created_at' => now()->subWeeks(2)]);
+        $goal = Goal::factory()->for($user)->create(['title' => 'Get fit', 'created_at' => $now->subWeeks(2)]);
         $schedule = $user->schedules()->create(['name' => 'Workday', 'days' => [1, 2, 3, 4, 5]]);
         $schedule->items()->create(['title' => 'Wake up', 'start_minute' => 300, 'minutes' => 15]);
         $engine = $this->app->make(SuggestionEngine::class);
