@@ -96,6 +96,8 @@ class BookTest extends TestCase
 
         $created = $this->postJson("/api/v1/books/{$book->id}/tasks", ['title' => 'Read chapter 6', 'recurrence' => 'daily'])
             ->assertCreated()
+            ->assertJsonPath('data.recurrence', 'daily')
+            ->assertJsonPath('data.goal.id', $goal->id)
             ->json('data.id');
         $task = Task::find($created);
         $this->assertSame($book->id, $task->book_id);
@@ -120,6 +122,8 @@ class BookTest extends TestCase
         $this->getJson("/api/v1/books/{$other->id}")->assertNotFound();
         $this->patchJson("/api/v1/books/{$other->id}", ['title' => 'Mine now'])->assertNotFound();
         $this->postJson("/api/v1/books/{$other->id}/readings", ['read_on' => '2026-11-05', 'chapters' => 1])->assertNotFound();
+        $this->postJson("/api/v1/books/{$other->id}/tasks", ['title' => 'Read it'])->assertNotFound();
+        $this->postJson("/api/v1/books/{$other->id}/tasks", [])->assertNotFound();
         $this->postJson("/api/v1/books/{$mine->id}/tasks", ['task_id' => $foreignTask->id])->assertUnprocessable();
         $this->getJson('/api/v1/books')->assertOk()->assertJsonCount(1, 'data');
     }

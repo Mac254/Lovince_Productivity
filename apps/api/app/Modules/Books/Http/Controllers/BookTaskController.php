@@ -4,6 +4,7 @@ namespace App\Modules\Books\Http\Controllers;
 
 use App\Modules\Books\Http\Requests\BookTaskRequest;
 use App\Modules\Books\Models\Book;
+use App\Modules\Tasks\Http\Resources\TaskResource;
 use App\Modules\Tasks\Models\Task;
 use App\Shared\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,6 @@ class BookTaskController extends Controller
 {
     public function store(BookTaskRequest $request, Book $book): JsonResponse
     {
-        Gate::authorize('update', $book);
-
         if ($request->filled('task_id')) {
             $task = Task::query()->whereBelongsTo($request->user())->findOrFail($request->integer('task_id'));
         } else {
@@ -34,13 +33,9 @@ class BookTaskController extends Controller
 
         $task->forceFill(['book_id' => $book->id])->save();
 
-        return response()->json(['data' => [
-            'id' => $task->id,
-            'title' => $task->title,
-            'status' => $task->status,
-            'due_date' => $task->due_date?->toDateString(),
-            'recurrence' => $task->recurrence,
-        ]], 201);
+        return TaskResource::make($task->load(Task::RELATIONS)->loadSum('notes', 'minutes')->loadChecklistCounts())
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function destroy(Book $book, Task $task): Response

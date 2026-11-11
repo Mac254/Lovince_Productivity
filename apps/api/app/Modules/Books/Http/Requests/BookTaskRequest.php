@@ -5,6 +5,7 @@ namespace App\Modules\Books\Http\Requests;
 use App\Modules\Tasks\Enums\TaskRecurrence;
 use App\Support\Contract;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
@@ -12,6 +13,16 @@ use Illuminate\Validation\Rule;
  */
 class BookTaskRequest extends FormRequest
 {
+    /**
+     * Ownership is checked before validation so foreign records are never probed.
+     */
+    public function authorize(): bool
+    {
+        Gate::authorize('update', $this->route('book'));
+
+        return true;
+    }
+
     /**
      * @return array<string, mixed>
      */
