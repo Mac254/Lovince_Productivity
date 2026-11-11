@@ -7,7 +7,6 @@ use App\Modules\Goals\Models\Goal;
 use App\Modules\Suggestions\Contracts\Suggester;
 use App\Modules\Suggestions\Contracts\SuggestionDraft;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
-use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
 use Carbon\CarbonImmutable;
 
@@ -19,20 +18,12 @@ class QuietGoals implements Suggester
             ->whereBelongsTo($user)
             ->where('status', GoalStatus::Active)
             ->where('created_at', '<', $now->subDays(7))
+            ->whereDoesntHave('tasks', fn ($q) => $q->whereBelongsTo($user)->where('completed_at', '>=', $now->subDays(7)))
             ->orderBy('id')
             ->get(['id', 'title']);
         $week = $now->format('o-\WW');
 
         foreach ($goals as $goal) {
-            $moving = Task::query()
-                ->whereBelongsTo($user)
-                ->where('goal_id', $goal->id)
-                ->where('completed_at', '>=', $now->subDays(7))
-                ->exists();
-            if ($moving) {
-                continue;
-            }
-
             yield new SuggestionDraft(
                 key: "goal:{$goal->id}:{$week}",
                 title: "Give “{$goal->title}” 30 minutes today",

@@ -6,12 +6,14 @@ use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Suggestions\Services\SuggestionEngine;
+use App\Modules\Suggestions\Sources\QuietGoals;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Tasks\Models\TaskNote;
 use App\Modules\Users\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class SuggestionSourcesTest extends TestCase
@@ -21,6 +23,23 @@ class SuggestionSourcesTest extends TestCase
     private function insightKeys(User $user, string $prefix): array
     {
         return Suggestion::whereBelongsTo($user)->where('key', 'like', "{$prefix}%")->pluck('key')->all();
+    }
+
+    public function test_only_goals_without_recent_progress_are_quiet_in_one_query(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-11-05 10:00'));
+        $user = User::factory()->create();
+        $goals = Goal::factory()->for($user)->count(3)->create(['status' => 'active', 'created_at' => now()->subDays(10)]);
+        Task::factory()->for($user)->create(['goal_id' => $goals[0]->id, 'status' => TaskStatus::Completed, 'completed_at' => now()->subDay()]);
+
+        DB::enableQueryLog();
+        $drafts = iterator_to_array((new QuietGoals)->drafts($user, CarbonImmutable::now()), false);
+        $this->assertCount(1, DB::getQueryLog());
+
+        $this->assertEqualsCanonicalizing(
+            [$goals[1]->id, $goals[2]->id],
+            array_map(fn ($draft) => $draft->action['goal_id'], $drafts),
+        );
     }
 
     public function test_a_completed_goal_without_an_achievement_is_worth_celebrating(): void
