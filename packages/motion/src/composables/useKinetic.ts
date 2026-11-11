@@ -1,20 +1,35 @@
-import { kinetic, type KineticEffect } from '@lovince/motion/primitives/kinetic';
+import type { KineticEffect } from '@lovince/motion/primitives/kinetic';
 import { onBeforeUnmount, onMounted, watch, type Ref } from 'vue';
 import { motionConfig, prefersReducedMotion } from '../presets/motion';
 
 export type { KineticEffect };
 
+const reveal = (el: HTMLElement | null) => el?.setAttribute('data-kinetic-ready', '');
+
+/**
+ * The effect and GSAP load on first use, so they stay off the app's first download. Until the
+ * effect starts, the text stays hidden by `[data-kinetic]:not([data-kinetic-ready])` in styles.css.
+ */
 export function useKinetic(root: Readonly<Ref<HTMLElement | null>>, effect: () => KineticEffect | undefined): void {
     let stop: (() => void) | null = null;
+    let run = 0;
 
-    function start(): void {
+    async function start(): Promise<void> {
+        const current = ++run;
         stop?.();
         stop = null;
-        if (!root.value || !effect() || prefersReducedMotion()) return;
-        stop = kinetic(root.value, { config: motionConfig });
+        const el = root.value;
+        if (!el || !effect() || prefersReducedMotion()) return reveal(el);
+        const effects = await import('@lovince/motion/primitives/kinetic').catch(() => null);
+        if (current !== run) return;
+        if (effects && root.value === el) stop = effects.kinetic(el, { config: motionConfig });
+        reveal(el);
     }
 
     onMounted(start);
     watch([() => root.value, effect], start, { flush: 'post' });
-    onBeforeUnmount(() => stop?.());
+    onBeforeUnmount(() => {
+        run++;
+        stop?.();
+    });
 }

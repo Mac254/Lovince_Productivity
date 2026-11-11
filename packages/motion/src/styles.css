@@ -7,3 +7,10 @@
 [data-kinetic='marker'] {
     --kinetic-marker: color-mix(in oklab, var(--color-highlight) 35%, transparent);
 }
+
+/* The kinetic effect loads on first use; keep its text hidden until it starts, so it never flashes. */
+@media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion='reduce']) [data-kinetic]:not([data-kinetic-ready]) {
+        opacity: 0;
+    }
+}
