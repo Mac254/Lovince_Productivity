@@ -28,6 +28,7 @@ test('adds a task and completes it', async ({ page }) => {
     await expect(dialog).toBeHidden();
 
     await page.goto('/tasks');
+    await page.getByRole('button', { name: /^No goal/ }).click();
     await page.getByRole('button', { name: 'Mark “Write the smoke tests” complete' }).click();
     await expect(page.getByText('Completed “Write the smoke tests”')).toBeVisible();
 });
