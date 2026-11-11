@@ -10,6 +10,7 @@ use App\Modules\Tasks\Http\Requests\UpdateTaskRequest;
 use App\Modules\Tasks\Http\Resources\TaskResource;
 use App\Modules\Tasks\Models\Task;
 use App\Shared\Http\Controllers\Controller;
+use App\Shared\Support\Like;
 use App\Support\Contract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -33,9 +34,7 @@ class TaskController extends Controller
             ->withSum('notes', 'minutes')
             ->withChecklistCounts()
             ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->where(
-                fn (Builder $q) => $q
-                    ->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
+                fn (Builder $q) => Like::any($q, ['title', 'description'], Like::pattern($search))
             ))
             ->when($filters['status'] ?? null, fn (Builder $q, string $status) => $status === 'open'
                 ? $q->open()

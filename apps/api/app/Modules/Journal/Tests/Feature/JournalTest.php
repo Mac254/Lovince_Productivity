@@ -70,6 +70,17 @@ class JournalTest extends TestCase
         $this->getJson('/api/v1/journal')->assertJsonCount(0, 'data');
     }
 
+    public function test_search_wildcards_match_only_themselves(): void
+    {
+        $user = User::factory()->create();
+        $user->journalEntries()->create(['date' => today(), 'body' => 'Spent 50% of the day outside']);
+        $user->journalEntries()->create(['date' => today()->subDay(), 'body' => 'A quiet day']);
+
+        $this->actingAs($user)->getJson('/api/v1/journal?search=%25')->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/journal?search=_')->assertJsonCount(0, 'data');
+        $this->getJson('/api/v1/journal?search=QUIET')->assertJsonCount(1, 'data');
+    }
+
     public function test_entries_can_be_listed_for_a_calendar_range(): void
     {
         Carbon::setTestNow('2026-11-05 12:00:00');

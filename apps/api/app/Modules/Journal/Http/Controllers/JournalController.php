@@ -7,6 +7,7 @@ use App\Modules\Journal\Http\Resources\JournalEntryResource;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Journal\Services\DayContext;
 use App\Shared\Http\Controllers\Controller;
+use App\Shared\Support\Like;
 use App\Support\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class JournalController extends Controller
 
         $entries = JournalEntry::query()
             ->whereBelongsTo($request->user())
-            ->when($filters['search'] ?? null, fn ($q, string $search) => $q->where('body', 'like', "%{$search}%"))
+            ->when($filters['search'] ?? null, fn ($q, string $search) => $q->where(fn ($q) => Like::any($q, ['body'], Like::pattern($search))))
             ->when($range, fn ($q) => $q->whereDate('date', '>=', $filters['from'])->whereDate('date', '<=', $filters['to']))
             ->orderByDesc('date')
             // A calendar range (up to 63 days) comes back in one page.

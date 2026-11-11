@@ -152,6 +152,17 @@ class TaskTest extends TestCase
         $this->getJson('/api/v1/tasks?status=bogus')->assertUnprocessable();
     }
 
+    public function test_search_wildcards_match_only_themselves(): void
+    {
+        Task::factory()->for($this->user)->create(['title' => 'Grow savings 10% this year']);
+        Task::factory()->for($this->user)->create(['title' => 'Rename old_file']);
+        Task::factory()->for($this->user)->create(['title' => 'Plain task']);
+
+        $this->getJson('/api/v1/tasks?search=%25')->assertJsonCount(1, 'data')->assertJsonPath('data.0.title', 'Grow savings 10% this year');
+        $this->getJson('/api/v1/tasks?search=_')->assertJsonCount(1, 'data')->assertJsonPath('data.0.title', 'Rename old_file');
+        $this->getJson('/api/v1/tasks?search=PLAIN')->assertJsonCount(1, 'data');
+    }
+
     public function test_tomorrows_planned_tasks_stay_hidden_until_their_day(): void
     {
         $tomorrow = today()->addDay()->toDateString();

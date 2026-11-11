@@ -15,6 +15,7 @@ use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Suggestions\Models\Suggestion;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
+use App\Shared\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
@@ -29,7 +30,7 @@ class SearchService
      */
     public function for(User $user, string $query): array
     {
-        $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $query).'%';
+        $pattern = Like::pattern($query);
         $journal = $this->settings->resolve($user->settings)['journal']['searchable'];
 
         return [
@@ -49,7 +50,7 @@ class SearchService
     private function achievements(User $user, string $pattern, string $query): array
     {
         return Achievement::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['title', 'description'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['title', 'description'], $pattern))
             ->latest('achieved_on')->limit(self::PER_KIND)->get()
             ->map(fn (Achievement $achievement) => $this->result('achievement', $achievement->id, $achievement->title, $achievement->description, $query, $achievement->achieved_on->toDateString(), $achievement->task_id))
             ->all();
@@ -58,7 +59,7 @@ class SearchService
     private function books(User $user, string $pattern, string $query): array
     {
         return Book::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['title', 'author', 'notes'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['title', 'author', 'notes'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
             ->map(fn (Book $book) => $this->result('book', $book->id, $book->title, $book->author ?? $book->notes, $query, $book->finished_on?->toDateString()))
             ->all();
@@ -67,7 +68,7 @@ class SearchService
     private function roadmap(User $user, string $pattern, string $query): array
     {
         return RoadmapItem::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['title', 'details', 'area'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['title', 'details', 'area'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
             ->map(fn (RoadmapItem $item) => $this->result('roadmap', $item->id, $item->title, $item->details ?? $item->area, $query, $item->done_on?->toDateString()))
             ->all();
@@ -77,7 +78,7 @@ class SearchService
     {
         return Suggestion::query()->whereBelongsTo($user)
             ->where('status', '!=', SuggestionStatus::Dismissed)
-            ->where(fn (Builder $q) => $this->like($q, ['title', 'body'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['title', 'body'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
             ->map(fn (Suggestion $suggestion) => $this->result('suggestion', $suggestion->id, $suggestion->title, $suggestion->body, $query, null, $suggestion->task_id))
             ->all();
@@ -86,7 +87,7 @@ class SearchService
     private function reviews(User $user, string $pattern, string $query): array
     {
         return WeeklyReview::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['wins', 'challenges', 'next_focus'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['wins', 'challenges', 'next_focus'], $pattern))
             ->latest('week_start')->limit(self::PER_KIND)->get()
             ->map(fn (WeeklyReview $review) => $this->result(
                 'review',
@@ -102,7 +103,7 @@ class SearchService
     private function schedules(User $user, string $pattern, string $query): array
     {
         return Schedule::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['name'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['name'], $pattern))
             ->orderBy('name')->limit(self::PER_KIND)->get()
             ->map(fn (Schedule $schedule) => $this->result('schedule', $schedule->id, $schedule->name, null, $query, null))
             ->all();
@@ -111,7 +112,7 @@ class SearchService
     private function tasks(User $user, string $pattern, string $query): array
     {
         return Task::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['title', 'description'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['title', 'description'], $pattern))
             ->orderByRaw('completed_at IS NOT NULL')->latest('updated_at')
             ->limit(self::PER_KIND)->get()
             ->map(fn (Task $task) => $this->result('task', $task->id, $task->title, $task->description, $query, $task->due_date?->toDateString(), $task->id))
@@ -121,7 +122,7 @@ class SearchService
     private function goals(User $user, string $pattern, string $query): array
     {
         return Goal::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['title', 'description'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['title', 'description'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
             ->map(fn (Goal $goal) => $this->result('goal', $goal->id, $goal->title, $goal->description, $query, $goal->target_date?->toDateString()))
             ->all();
@@ -130,7 +131,7 @@ class SearchService
     private function blockers(User $user, string $pattern, string $query): array
     {
         return Blocker::query()->whereBelongsTo($user)->with('task:id,title')
-            ->where(fn (Builder $q) => $this->like($q, ['description'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['description'], $pattern))
             ->latest('updated_at')->limit(self::PER_KIND)->get()
             ->map(fn (Blocker $blocker) => $this->result('blocker', $blocker->id, $blocker->task->title ?? 'Blocker', $blocker->description, $query, null, $blocker->task_id))
             ->all();
@@ -139,20 +140,10 @@ class SearchService
     private function journal(User $user, string $pattern, string $query): array
     {
         return JournalEntry::query()->whereBelongsTo($user)
-            ->where(fn (Builder $q) => $this->like($q, ['body'], $pattern))
+            ->where(fn (Builder $q) => Like::any($q, ['body'], $pattern))
             ->latest('date')->limit(self::PER_KIND)->get()
             ->map(fn (JournalEntry $entry) => $this->result('journal', $entry->id, $entry->date->toFormattedDateString(), $entry->body, $query, $entry->date->toDateString()))
             ->all();
-    }
-
-    /**
-     * @param  list<string>  $columns
-     */
-    private function like(Builder $query, array $columns, string $pattern): void
-    {
-        foreach ($columns as $column) {
-            $query->orWhereRaw("lower({$column}) like lower(?) escape '!'", [$pattern]);
-        }
     }
 
     private function result(string $kind, int $id, string $title, ?string $text, string $query, ?string $date, ?int $taskId = null): array
