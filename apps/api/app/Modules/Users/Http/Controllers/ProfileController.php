@@ -68,7 +68,7 @@ class ProfileController extends Controller
 
         $user = $request->user();
         $file = $request->file('avatar');
-        $path = WebpImage::store($file, 'avatars', $user->id.'-'.Str::random(32), self::AVATAR_DISK, 512);
+        $path = WebpImage::store($file, 'avatars', $user->id.'-'.Str::random(32), self::AVATAR_DISK, 512, 'avatar');
 
         $previous = $user->avatar_path;
         $user->forceFill(['avatar_path' => $path])->save();

@@ -46,7 +46,7 @@ class WallpaperController extends Controller
         }
 
         $file = $request->file('image');
-        $path = WebpImage::store($file, 'wallpapers', $user->id.'-'.Str::random(32), self::DISK, 3840);
+        $path = WebpImage::store($file, 'wallpapers', $user->id.'-'.Str::random(32), self::DISK, 3840, 'image');
         $name = Str::limit(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: 'Wallpaper', 110, '');
 
         $wallpaper = $user->wallpapers()->create(['path' => $path, 'name' => $name]);
