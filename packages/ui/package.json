@@ -7,6 +7,9 @@
         ".": "./src/index.ts",
         "./styles.css": "./src/styles/index.css"
     },
+    "sideEffects": [
+        "**/*.css"
+    ],
     "peerDependencies": {
         "unplugin-icons": "^24.0.0",
         "vue": "^3.5.0",
