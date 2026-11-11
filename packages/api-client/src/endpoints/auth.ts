@@ -1,4 +1,4 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { AuthSession, LoginInput, Me, Settings, User } from '@focus/types';
 import { refreshCsrfCookie } from '../client/createHttpClient';
 import type { RequestOptions } from './types';
@@ -10,7 +10,7 @@ interface MeResponse {
 
 const toMe = ({ data, meta }: MeResponse): Me => ({ user: data, session: meta.session, settings: meta.settings });
 
-export function authEndpoints(http: AxiosInstance) {
+export function authEndpoints(http: HttpClient) {
     return {
         /** Signs in with a session cookie; `remember` keeps this device signed in until expiry or sign-out. */
         async login(input: LoginInput): Promise<Me> {

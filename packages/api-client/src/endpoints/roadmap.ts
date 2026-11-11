@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Resource, RoadmapItem, RoadmapItemInput, RoadmapStage } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function roadmapEndpoints(http: AxiosInstance) {
+export function roadmapEndpoints(http: HttpClient) {
     return {
         async list(options: RequestOptions = {}): Promise<RoadmapItem[]> {
             const { data } = await http.get<Resource<RoadmapItem[]>>('/roadmap-items', options);

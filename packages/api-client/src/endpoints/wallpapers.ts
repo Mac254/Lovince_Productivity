@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Resource, Wallpaper } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function wallpaperEndpoints(http: AxiosInstance) {
+export function wallpaperEndpoints(http: HttpClient) {
     return {
         async list(options: RequestOptions = {}): Promise<Wallpaper[]> {
             const { data } = await http.get<Resource<Wallpaper[]>>('/wallpapers', options);

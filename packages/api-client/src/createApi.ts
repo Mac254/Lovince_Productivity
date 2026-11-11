@@ -1,4 +1,4 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from './client/createHttpClient';
 import { accountingEndpoints } from './endpoints/accounting';
 import { achievementEndpoints } from './endpoints/achievements';
 import { bookEndpoints } from './endpoints/books';
@@ -26,7 +26,7 @@ import { scheduleEndpoints } from './endpoints/schedules';
 import { suggestionEndpoints } from './endpoints/suggestions';
 import { timeBlockEndpoints } from './endpoints/timeBlocks';
 
-export function createApi(http: AxiosInstance) {
+export function createApi(http: HttpClient) {
     return {
         auth: authEndpoints(http),
         dashboard: dashboardEndpoints(http),

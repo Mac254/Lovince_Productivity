@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { IsoDate, JournalContext, JournalEntry, Paginated, Resource } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function journalEndpoints(http: AxiosInstance) {
+export function journalEndpoints(http: HttpClient) {
     return {
         /** Newest first. Pass `from` and `to` (at most 63 days apart) to get a calendar range in one page. */
         async list(

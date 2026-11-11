@@ -1,7 +1,7 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Resource, SettingsChanges, SettingsModuleKey, SettingsState } from '@focus/types';
 
-export function settingsEndpoints(http: AxiosInstance) {
+export function settingsEndpoints(http: HttpClient) {
     return {
         async get(): Promise<SettingsState> {
             const { data } = await http.get<Resource<SettingsState>>('/settings');

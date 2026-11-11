@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Resource, TaskNote, TaskNoteInput } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function taskNoteEndpoints(http: AxiosInstance) {
+export function taskNoteEndpoints(http: HttpClient) {
     return {
         /** Newest day first. */
         async list(taskId: number, options: RequestOptions = {}): Promise<TaskNote[]> {

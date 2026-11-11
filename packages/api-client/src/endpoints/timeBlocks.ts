@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { IsoDate, Resource, TimeBlock, TimeBlockInput } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function timeBlockEndpoints(http: AxiosInstance) {
+export function timeBlockEndpoints(http: HttpClient) {
     return {
         async list(date: IsoDate, options: RequestOptions = {}): Promise<TimeBlock[]> {
             const { data } = await http.get<Resource<TimeBlock[]>>('/time-blocks', { ...options, params: { date } });

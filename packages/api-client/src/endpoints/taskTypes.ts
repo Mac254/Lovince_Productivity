@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Resource, TaskType, TaskTypeInput } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function taskTypeEndpoints(http: AxiosInstance) {
+export function taskTypeEndpoints(http: HttpClient) {
     return {
         async list(options: RequestOptions = {}): Promise<TaskType[]> {
             const { data } = await http.get<Resource<TaskType[]>>('/task-types', options);

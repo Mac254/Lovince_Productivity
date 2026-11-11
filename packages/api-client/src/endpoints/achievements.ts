@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Achievement, AchievementFilters, AchievementInput, Resource } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function achievementEndpoints(http: AxiosInstance) {
+export function achievementEndpoints(http: HttpClient) {
     return {
         async list(filters: AchievementFilters = {}, options: RequestOptions = {}): Promise<Achievement[]> {
             const { data } = await http.get<Resource<Achievement[]>>('/achievements', { params: filters, ...options });

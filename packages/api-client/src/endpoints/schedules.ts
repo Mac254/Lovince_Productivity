@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { IsoDate, Resource, Schedule, ScheduleInput, TimeBlock } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function scheduleEndpoints(http: AxiosInstance) {
+export function scheduleEndpoints(http: HttpClient) {
     return {
         async list(options: RequestOptions = {}): Promise<Schedule[]> {
             const { data } = await http.get<Resource<Schedule[]>>('/schedules', options);

@@ -1,4 +1,4 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type {
     FocusHistory,
     FocusSession,
@@ -10,7 +10,7 @@ import type {
 } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function focusSessionEndpoints(http: AxiosInstance) {
+export function focusSessionEndpoints(http: HttpClient) {
     return {
         async list(date?: IsoDate, options: RequestOptions = {}): Promise<FocusHistory> {
             const { data } = await http.get<FocusHistory>('/focus-sessions', { ...options, params: { date } });
@@ -26,7 +26,7 @@ export function focusSessionEndpoints(http: AxiosInstance) {
     };
 }
 
-export function focusTimerEndpoints(http: AxiosInstance) {
+export function focusTimerEndpoints(http: HttpClient) {
     return {
         async get(options: RequestOptions = {}): Promise<FocusTimerSync> {
             const { data } = await http.get<Resource<FocusTimerSync>>('/focus-timer', options);

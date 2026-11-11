@@ -1,4 +1,4 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type {
     AccountInput,
     AccountingCategory,
@@ -30,7 +30,7 @@ import type {
 } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function accountingEndpoints(http: AxiosInstance) {
+export function accountingEndpoints(http: HttpClient) {
     return {
         async dashboard(period: AccountingPeriod = {}, options: RequestOptions = {}): Promise<AccountingDashboard> {
             const { data } = await http.get<Resource<AccountingDashboard>>('/accounting/dashboard', {

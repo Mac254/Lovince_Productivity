@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Paginated, Resource, Task, TaskFilters, TaskInput, TaskUpdateInput } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function taskEndpoints(http: AxiosInstance) {
+export function taskEndpoints(http: HttpClient) {
     return {
         async list(filters: TaskFilters = {}, options: RequestOptions = {}): Promise<Paginated<Task>> {
             const { data } = await http.get<Paginated<Task>>('/tasks', { params: filters, ...options });

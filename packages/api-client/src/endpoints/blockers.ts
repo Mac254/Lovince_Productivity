@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Blocker, BlockerFilters, BlockerInput, Resource } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function blockerEndpoints(http: AxiosInstance) {
+export function blockerEndpoints(http: HttpClient) {
     return {
         async list(filters: BlockerFilters = {}, options: RequestOptions = {}): Promise<Blocker[]> {
             const { data } = await http.get<Resource<Blocker[]>>('/blockers', { params: filters, ...options });

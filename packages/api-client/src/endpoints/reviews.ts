@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { IsoDate, Resource, WeeklyReview, WeeklyReviewInput, WeeklyReviewSummary } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function reviewEndpoints(http: AxiosInstance) {
+export function reviewEndpoints(http: HttpClient) {
     return {
         async list(options: RequestOptions = {}): Promise<WeeklyReviewSummary[]> {
             const { data } = await http.get<Resource<WeeklyReviewSummary[]>>('/reviews', options);

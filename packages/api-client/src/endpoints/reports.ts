@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { DailyReport, DailyReportSummary, IsoDate, Paginated, Resource } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function reportEndpoints(http: AxiosInstance) {
+export function reportEndpoints(http: HttpClient) {
     return {
         async list(page = 1, options: RequestOptions = {}): Promise<Paginated<DailyReportSummary>> {
             const { data } = await http.get<Paginated<DailyReportSummary>>('/reports', {

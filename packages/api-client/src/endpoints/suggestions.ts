@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { IsoDate, Resource, Suggestion, SuggestionInput, SuggestionStatus } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function suggestionEndpoints(http: AxiosInstance) {
+export function suggestionEndpoints(http: HttpClient) {
     return {
         async list(status: SuggestionStatus | 'all' = 'new', options: RequestOptions = {}): Promise<Suggestion[]> {
             const { data } = await http.get<Resource<Suggestion[]>>('/suggestions', { ...options, params: { status } });

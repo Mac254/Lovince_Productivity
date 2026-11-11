@@ -12,6 +12,13 @@ export function onUnauthorized(handler: () => void): void {
 }
 
 export { createApi, type FocusApi } from './createApi';
-export { createHttpClient, refreshCsrfCookie, type HttpClientOptions } from './client/createHttpClient';
+export {
+    createHttpClient,
+    refreshCsrfCookie,
+    type HttpClient,
+    type HttpClientOptions,
+    type HttpResponse,
+    type RequestConfig,
+} from './client/createHttpClient';
 export { ApiError, errorMessage, isApiError, type ApiErrorKind } from './errors/ApiError';
 export type { RequestOptions } from './endpoints/types';

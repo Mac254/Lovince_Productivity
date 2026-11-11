@@ -1,5 +1,5 @@
-import { AxiosError, isAxiosError, isCancel } from 'axios';
 import type { ValidationErrors } from '@focus/types';
+import { HttpError } from './HttpError';
 import { ApiError, type ApiErrorKind } from './ApiError';
 
 interface LaravelErrorBody {
@@ -37,19 +37,20 @@ function kindForStatus(status: number): ApiErrorKind {
 /** Server messages are only surfaced where Laravel writes them for people (validation, throttling). */
 export function normalizeError(error: unknown): ApiError {
     if (error instanceof ApiError) return error;
-    if (isCancel(error)) return new ApiError({ kind: 'cancelled', message: MESSAGES.cancelled });
-    if (!isAxiosError(error)) return new ApiError({ kind: 'unknown', message: MESSAGES.unknown });
-
-    if (!error.response) {
-        const kind =
-            error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT ? 'timeout' : 'network';
-        return new ApiError({ kind, message: MESSAGES[kind] });
+    const name = error instanceof Error || error instanceof DOMException ? error.name : '';
+    if (name === 'TimeoutError') {
+        return new ApiError({ kind: 'timeout', message: MESSAGES.timeout });
     }
+    if (name === 'AbortError') {
+        return new ApiError({ kind: 'cancelled', message: MESSAGES.cancelled });
+    }
+    if (error instanceof TypeError) return new ApiError({ kind: 'network', message: MESSAGES.network });
+    if (!(error instanceof HttpError)) return new ApiError({ kind: 'unknown', message: MESSAGES.unknown });
 
     const { status, data, headers } = error.response;
     const body = (data ?? {}) as LaravelErrorBody;
     const kind = kindForStatus(status);
-    const retryAfter = Number(headers?.['retry-after']) || undefined;
+    const retryAfter = Number(headers.get('retry-after')) || undefined;
     const errors = body.errors ?? {};
     const firstFieldMessage = Object.values(errors)[0]?.[0];
 

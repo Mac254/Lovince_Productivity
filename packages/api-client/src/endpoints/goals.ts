@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { Goal, GoalFilters, GoalInput, Resource } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function goalEndpoints(http: AxiosInstance) {
+export function goalEndpoints(http: HttpClient) {
     return {
         async list(filters: GoalFilters = {}, options: RequestOptions = {}): Promise<Goal[]> {
             const { data } = await http.get<Resource<Goal[]>>('/goals', { params: filters, ...options });

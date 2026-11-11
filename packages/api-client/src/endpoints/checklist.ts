@@ -1,8 +1,8 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { ChecklistItem, ChecklistItemInput, Resource } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function checklistEndpoints(http: AxiosInstance) {
+export function checklistEndpoints(http: HttpClient) {
     return {
         async list(taskId: number, options: RequestOptions = {}): Promise<ChecklistItem[]> {
             const { data } = await http.get<Resource<ChecklistItem[]>>(`/tasks/${taskId}/checklist`, options);

@@ -1,7 +1,7 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { PasswordInput, Resource, User } from '@focus/types';
 
-export function profileEndpoints(http: AxiosInstance) {
+export function profileEndpoints(http: HttpClient) {
     return {
         async update(input: { name?: string; timezone?: string }): Promise<User> {
             const { data } = await http.patch<Resource<User>>('/profile', input);

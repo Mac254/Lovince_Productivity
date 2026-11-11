@@ -1,4 +1,4 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type {
     Book,
     BookFilters,
@@ -11,7 +11,7 @@ import type {
 } from '@focus/types';
 import type { RequestOptions } from './types';
 
-export function bookEndpoints(http: AxiosInstance) {
+export function bookEndpoints(http: HttpClient) {
     return {
         async list(filters: BookFilters = {}, options: RequestOptions = {}): Promise<Book[]> {
             const { data } = await http.get<Resource<Book[]>>('/books', { params: filters, ...options });

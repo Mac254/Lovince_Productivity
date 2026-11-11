@@ -1,7 +1,7 @@
-import type { AxiosInstance } from 'axios';
+import type { HttpClient } from '../client/createHttpClient';
 import type { BackupImportResult, Resource } from '@focus/types';
 
-export function backupEndpoints(http: AxiosInstance) {
+export function backupEndpoints(http: HttpClient) {
     return {
         async export(): Promise<Blob> {
             const { data } = await http.get<Blob>('/backup', { responseType: 'blob', timeout: 60_000 });
