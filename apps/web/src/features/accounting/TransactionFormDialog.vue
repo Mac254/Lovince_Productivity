@@ -257,7 +257,7 @@ async function submit(): Promise<void> {
         payload.status = undefined;
     }
     try {
-        if (props.transaction) await api.accounting.transactions.update(props.transaction.id, payload);
+        if (props.transaction) await api.accounting.transactions.update(props.transaction.id, { ...payload, base_updated_at: props.transaction.updated_at });
         else await api.accounting.transactions.create(payload, submissionKey);
         toast.success(isEdit.value ? 'Transaction updated' : 'Transaction recorded');
         open.value = false;

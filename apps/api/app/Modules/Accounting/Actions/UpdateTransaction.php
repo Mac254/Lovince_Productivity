@@ -7,6 +7,7 @@ use App\Modules\Accounting\Models\Transaction;
 use App\Modules\Accounting\Services\AuditTrail;
 use App\Modules\Accounting\Services\Ledger;
 use App\Modules\Users\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,11 +21,13 @@ final class UpdateTransaction
 
     /**
      * @param  array<string, mixed>  $attributes
+     * @param  Carbon|null  $base  the `updated_at` the edit started from; a newer row is a conflict
      */
-    public function handle(User $user, Transaction $transaction, array $attributes): Transaction
+    public function handle(User $user, Transaction $transaction, array $attributes, ?Carbon $base = null): Transaction
     {
-        return DB::transaction(function () use ($user, $transaction, $attributes) {
+        return DB::transaction(function () use ($user, $transaction, $attributes, $base) {
             $transaction = Transaction::query()->lockForUpdate()->findOrFail($transaction->id);
+            abort_if($base !== null && $transaction->updated_at->gt($base), 409, 'This transaction was changed somewhere else. Reopen it to see the latest.');
             $before = $transaction->status;
 
             if ($before === TransactionStatus::Voided) {

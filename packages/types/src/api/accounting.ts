@@ -41,6 +41,8 @@ export interface TransactionInput {
     description?: string;
     notes?: string | null;
     reference?: string | null;
+    /** On an edit, the `updated_at` the form was opened with; a newer transaction is a 409. */
+    base_updated_at?: string;
 }
 
 export interface BudgetInput {

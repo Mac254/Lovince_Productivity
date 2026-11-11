@@ -48,7 +48,9 @@ class TransactionController extends Controller
 
     public function update(TransactionRequest $request, Transaction $transaction, UpdateTransaction $update): JsonResponse
     {
-        return $this->respond($update->handle($request->user(), $transaction, $request->fields()));
+        $base = $request->validated('base_updated_at');
+
+        return $this->respond($update->handle($request->user(), $transaction, $request->fields(), $base === null ? null : Carbon::parse($base)));
     }
 
     public function void(Request $request, Transaction $transaction, VoidTransaction $void): JsonResponse

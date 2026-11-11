@@ -228,6 +228,21 @@ class LedgerInvariantsTest extends AccountingTestCase
         $this->assertSame(10000, $this->balance($bank));
     }
 
+    public function test_an_edit_from_a_stale_form_is_a_conflict(): void
+    {
+        $bank = $this->account();
+        $created = $this->record(['type' => 'expense', 'account_id' => $bank->id, 'amount' => '100'])->assertCreated();
+        $id = $created->json('data.id');
+        $stale = $created->json('data.updated_at');
+
+        $this->travel(1)->minutes();
+        $this->patchJson("/api/v1/accounting/transactions/{$id}", ['amount' => '120', 'base_updated_at' => $stale])->assertOk();
+        $this->patchJson("/api/v1/accounting/transactions/{$id}", ['amount' => '90', 'base_updated_at' => $stale])->assertConflict();
+
+        $this->assertSame(-12000, $this->balance($bank));
+        $this->assertLedgerBalances();
+    }
+
     public function test_voiding_keeps_the_record_and_cancels_its_entry(): void
     {
         $bank = $this->account();

@@ -48,6 +48,7 @@ class TransactionRequest extends FormRequest
 
         return [
             'idempotency_key' => $creating ? ['required', 'string', 'regex:/^[A-Za-z0-9_-]{8,64}$/'] : ['prohibited'],
+            'base_updated_at' => $creating ? ['prohibited'] : ['sometimes', 'date'],
             'type' => [$presence, Rule::enum(TransactionType::class)],
             'account_id' => [$presence, 'integer', $owned('accounting_accounts')],
             'to_account_id' => ['sometimes', 'nullable', 'integer', $owned('accounting_accounts')],

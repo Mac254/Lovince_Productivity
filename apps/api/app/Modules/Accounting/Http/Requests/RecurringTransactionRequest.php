@@ -24,7 +24,7 @@ class RecurringTransactionRequest extends TransactionRequest
         $presence = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            ...Arr::except(parent::rules(), ['idempotency_key', 'date']),
+            ...Arr::except(parent::rules(), ['idempotency_key', 'base_updated_at', 'date']),
             'type' => [$presence, Rule::in(array_map(fn ($type) => $type->value, RecurringTransaction::TYPES))],
             'status' => ['sometimes', Rule::in([TransactionStatus::Pending->value, TransactionStatus::Posted->value])],
             'frequency' => [$presence, Rule::enum(Frequency::class)],
