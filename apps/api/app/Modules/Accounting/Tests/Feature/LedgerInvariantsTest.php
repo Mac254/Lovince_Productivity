@@ -214,6 +214,20 @@ class LedgerInvariantsTest extends AccountingTestCase
         $this->assertSame(0, $this->balance($sacco));
     }
 
+    public function test_a_reversal_never_touches_an_archived_account(): void
+    {
+        $bank = $this->account(['opening_balance' => 10000]);
+        $sacco = $this->account(['name' => 'Sacco', 'type' => 'sacco']);
+        $id = $this->record(['type' => 'transfer', 'account_id' => $bank->id, 'to_account_id' => $sacco->id, 'amount' => '40'])->json('data.id');
+        $this->record(['type' => 'transfer', 'account_id' => $sacco->id, 'to_account_id' => $bank->id, 'amount' => '40'])->assertCreated();
+        $this->patchJson("/api/v1/accounting/accounts/{$sacco->id}", ['archived' => true])->assertOk();
+
+        $this->postJson("/api/v1/accounting/transactions/{$id}/reverse")
+            ->assertJsonValidationErrors(['transaction' => 'Unarchive Sacco to reverse this.']);
+        $this->assertSame(0, $this->balance($sacco));
+        $this->assertSame(10000, $this->balance($bank));
+    }
+
     public function test_voiding_keeps_the_record_and_cancels_its_entry(): void
     {
         $bank = $this->account();

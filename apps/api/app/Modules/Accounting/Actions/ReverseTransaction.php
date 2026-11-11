@@ -41,6 +41,11 @@ final class ReverseTransaction
                 throw ValidationException::withMessages(['transaction' => 'Only posted transactions can be reversed. Void a pending one instead.']);
             }
 
+            $archived = collect([$original->account, $original->toAccount])->first(fn ($account) => $account?->archived_at !== null);
+            if ($archived !== null) {
+                throw ValidationException::withMessages(['transaction' => "Unarchive {$archived->name} to reverse this."]);
+            }
+
             $transfer = $original->type === TransactionType::Transfer;
             $reversal = new Transaction([
                 'type' => $original->type,
