@@ -75,6 +75,9 @@ class WeeklyReviewTest extends TestCase
 
         $this->getJson('/api/v1/reviews/2026-11-09')->assertNotFound();
         $this->putJson('/api/v1/reviews/2026-02-30', [])->assertNotFound();
+        $this->getJson('/api/v1/reviews/garbage')->assertNotFound();
+        $this->putJson('/api/v1/reviews/2026-1-5', [])->assertNotFound();
+        $this->getJson('/api/v1/reviews/2026-99-99')->assertNotFound();
         $this->getJson('/api/v1/reviews/2026-11-02')->assertOk();
     }
 

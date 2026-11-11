@@ -51,9 +51,9 @@ class WeeklyReviewController extends Controller
 
     private function weekStart(string $week): Carbon
     {
-        $date = Carbon::createFromFormat('!Y-m-d', $week);
-        abort_unless($date && $date->toDateString() === $week, 404);
-        $start = $date->startOfWeek();
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $week);
+        abort_unless($parsed && $parsed->format('Y-m-d') === $week, 404);
+        $start = Carbon::createFromFormat('!Y-m-d', $week)->startOfWeek();
         abort_if($start->isAfter(today()->startOfWeek()), 404);
 
         return $start;
