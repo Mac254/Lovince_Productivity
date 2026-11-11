@@ -56,7 +56,10 @@ const filters = reactive({
     goal_id: (Number(route.query.goal_id) || '') as number | '',
     task_type_id: (Number(route.query.task_type_id) || '') as number | '',
     sort: fromQuery<TaskSort>(route.query, 'sort', TASK_SORTS),
-    group: fromQuery<TaskFolderBy>(route.query, 'group', ['goal', 'type']),
+    /** Goal folders unless the URL says otherwise; `group=none` turns folders off. */
+    group: (route.query.group === 'none'
+        ? ''
+        : fromQuery<TaskFolderBy>(route.query, 'group', ['goal', 'type']) || 'goal') as TaskFolderBy | '',
     page: Number(route.query.page) || 1,
 });
 
@@ -167,9 +170,13 @@ watch(() => outbox.synced, run);
 function syncQuery(): void {
     const urlQuery = Object.fromEntries(
         Object.entries(filters)
+            .map(([key, value]) => [key, key === 'group' && value === '' ? 'none' : value] as const)
             .filter(
                 ([key, value]) =>
-                    value !== '' && !(key === 'page' && value === 1) && !(key === 'status' && value === 'open'),
+                    value !== '' &&
+                    !(key === 'page' && value === 1) &&
+                    !(key === 'status' && value === 'open') &&
+                    !(key === 'group' && value === 'goal'),
             )
             .map(([key, value]) => [key, String(value)]),
     );
