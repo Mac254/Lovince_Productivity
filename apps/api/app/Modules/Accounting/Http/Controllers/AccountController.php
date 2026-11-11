@@ -75,7 +75,7 @@ class AccountController extends Controller
         Gate::authorize('delete', $account);
 
         if ($account->hasActivity()) {
-            throw ValidationException::withMessages(['account' => 'This account has transactions. Archive it instead.']);
+            throw ValidationException::withMessages(['account' => 'This account has transactions or recurring payments. Archive it instead.']);
         }
 
         DB::transaction(function () use ($request, $account) {

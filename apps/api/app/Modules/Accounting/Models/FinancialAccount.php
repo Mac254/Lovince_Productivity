@@ -56,11 +56,18 @@ class FinancialAccount extends Model
         return $this->hasMany(Transaction::class, 'account_id');
     }
 
+    /** Transactions or recurring payments use this account, so it can't be deleted or change currency. */
     public function hasActivity(): bool
     {
-        return Transaction::query()
-            ->where(fn ($q) => $q->where('account_id', $this->id)->orWhere('to_account_id', $this->id))
-            ->exists();
+        $uses = fn ($q) => $q->where('account_id', $this->id)->orWhere('to_account_id', $this->id);
+
+        return Transaction::query()->where($uses)->exists()
+            || RecurringTransaction::query()->where($uses)->exists();
+    }
+
+    public function hasLinkedGoals(): bool
+    {
+        return FinancialGoal::query()->where('account_id', $this->id)->exists();
     }
 
     public function hasReconciled(): bool

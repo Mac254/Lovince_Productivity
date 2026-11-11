@@ -33,6 +33,11 @@ final class PostRecurringTransactions
                 AuditTrail::record($rule->user, 'recurring.paused', $rule, ['reason' => 'account archived']);
                 break;
             }
+            if ($rule->currency !== $rule->account->currency) {
+                $rule->forceFill(['paused_at' => now()])->save();
+                AuditTrail::record($rule->user, 'recurring.paused', $rule, ['reason' => 'currency changed']);
+                break;
+            }
 
             DB::transaction(function () use ($rule) {
                 $date = $rule->next_date->toDateString();

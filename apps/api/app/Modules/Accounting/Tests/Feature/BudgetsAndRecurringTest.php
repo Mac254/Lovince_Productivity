@@ -175,6 +175,36 @@ class BudgetsAndRecurringTest extends AccountingTestCase
         $this->deleteJson("/api/v1/accounting/recurring/{$rule->json('data.id')}")->assertNoContent();
     }
 
+    public function test_an_account_used_by_a_rule_or_goal_keeps_its_currency_and_cant_be_deleted(): void
+    {
+        $cash = $this->account(['name' => 'Cash', 'currency' => 'KES']);
+        $this->postJson('/api/v1/accounting/recurring', [
+            'type' => 'expense', 'account_id' => $cash->id, 'amount' => '100', 'description' => 'Rent', 'frequency' => 'monthly', 'start_date' => '2026-12-01',
+        ])->assertCreated();
+        $saving = $this->account(['name' => 'Saving', 'currency' => 'KES']);
+        $this->postJson('/api/v1/accounting/goals', ['name' => 'Car', 'kind' => 'savings', 'target_amount' => '1000', 'currency' => 'KES', 'account_id' => $saving->id])->assertCreated();
+
+        $this->patchJson("/api/v1/accounting/accounts/{$cash->id}", ['currency' => 'UGX'])->assertJsonValidationErrors('currency');
+        $this->patchJson("/api/v1/accounting/accounts/{$saving->id}", ['currency' => 'UGX'])->assertJsonValidationErrors('currency');
+        $this->deleteJson("/api/v1/accounting/accounts/{$cash->id}")->assertJsonValidationErrors('account');
+        $this->assertSame(1, RecurringTransaction::count());
+    }
+
+    public function test_a_rule_whose_account_changed_currency_is_paused_not_posted(): void
+    {
+        $cash = $this->account(['name' => 'Cash', 'currency' => 'KES']);
+        $this->postJson('/api/v1/accounting/recurring', [
+            'type' => 'expense', 'account_id' => $cash->id, 'amount' => '100', 'description' => 'Rent', 'frequency' => 'monthly', 'start_date' => '2026-12-01',
+        ])->assertCreated();
+        $cash->forceFill(['currency' => 'UGX'])->save();
+
+        Carbon::setTestNow(Carbon::parse('2026-12-02 09:00', 'Africa/Nairobi'));
+        $this->artisan('accounting:post-recurring')->assertSuccessful();
+
+        $this->assertSame(0, Transaction::count());
+        $this->getJson('/api/v1/accounting/recurring')->assertJsonPath('data.0.paused', true);
+    }
+
     public function test_the_dashboard_and_trend_show_budgets_upcoming_payments_and_months(): void
     {
         $food = $this->category('expense', 'Food');
