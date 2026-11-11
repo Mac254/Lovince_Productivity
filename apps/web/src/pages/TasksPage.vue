@@ -106,6 +106,9 @@ const typeFacet = computed<TaskKind | ''>({
 });
 const goalOptions = computed(() => goals.goals.map((goal) => ({ value: goal.id, label: goal.title })));
 
+/** Folders are built from one page, so a grouped page takes the most the API allows to keep folders whole. */
+const perPage = computed(() => (filters.group ? LIMITS.perPage : 24));
+
 const query = computed<TaskFilters>(() => ({
     search: filters.search || undefined,
     status: filters.status === 'all' ? undefined : filters.status,
@@ -118,7 +121,7 @@ const query = computed<TaskFilters>(() => ({
     sort: filters.sort || undefined,
     direction: filters.sort === 'created_at' || filters.sort === 'updated_at' ? 'desc' : undefined,
     page: filters.page,
-    per_page: 24,
+    per_page: perPage.value,
 }));
 
 const outbox = useOutboxStore();
@@ -322,39 +325,41 @@ onMounted(() => {
                         <Text :id="`group-${section.key}`" as="h2" role="label" weight="bold">{{ section.title }}</Text>
                         <Text as="span" role="caption" tone="muted" tabular>{{ section.count }}</Text>
                     </header>
-                    <Card v-if="filters.group" as="div" padding="none" class="p-2">
-                        <ul class="flex flex-col">
-                            <TaskFolder
-                                v-for="group in section.groups"
-                                :key="group.key"
-                                :group="group"
-                                @toggle="actions.toggleComplete"
-                                @star="actions.toggleHighlight"
-                            />
-                        </ul>
-                    </Card>
-                    <div v-else-if="view === 'cards'" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <ul v-if="filters.group" class="grid grid-flow-row-dense gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <TaskFolder
+                            v-for="group in section.groups"
+                            :key="group.key"
+                            :group="group"
+                            variant="card"
+                            @toggle="actions.toggleComplete"
+                            @star="actions.toggleHighlight"
+                        />
+                    </ul>
+                    <ul
+                        v-else-if="view === 'cards'"
+                        class="grid grid-flow-row-dense gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                    >
                         <template v-for="group in section.groups" :key="group.key">
-                            <TaskCard
-                                v-if="group.tasks.length === 1"
-                                :task="group.lead"
-                                @edit="edit"
+                            <li v-if="group.tasks.length === 1" class="flex flex-col">
+                                <TaskCard
+                                    :task="group.lead"
+                                    class="flex-1"
+                                    @edit="edit"
+                                    @toggle="actions.toggleComplete"
+                                    @star="actions.toggleHighlight"
+                                    @set-status="actions.setStatus"
+                                    @delete="askDelete"
+                                />
+                            </li>
+                            <TaskFolder
+                                v-else
+                                :group="group"
+                                variant="card"
                                 @toggle="actions.toggleComplete"
                                 @star="actions.toggleHighlight"
-                                @set-status="actions.setStatus"
-                                @delete="askDelete"
                             />
-                            <Card v-else as="div" padding="none" class="self-start p-2">
-                                <ul class="flex flex-col">
-                                    <TaskFolder
-                                        :group="group"
-                                        @toggle="actions.toggleComplete"
-                                        @star="actions.toggleHighlight"
-                                    />
-                                </ul>
-                            </Card>
                         </template>
-                    </div>
+                    </ul>
                     <Card v-else as="div" padding="none" class="p-2">
                         <ul class="flex flex-col">
                             <template v-for="group in section.groups" :key="group.key">
@@ -389,7 +394,13 @@ onMounted(() => {
                 <Button v-else icon-start="add" @click="create()">Create a task</Button>
             </EmptyState>
 
-            <Pagination v-model:page="filters.page" :last-page="data.meta.last_page" />
+            <Pagination
+                v-model:page="filters.page"
+                :last-page="data.meta.last_page"
+                :total="data.meta.total"
+                :per-page="data.meta.per_page"
+                noun="tasks"
+            />
         </template>
 
         <TaskFormDialog v-model:open="dialogOpen" :task="current" :defaults="defaults" @saved="refresh" />
