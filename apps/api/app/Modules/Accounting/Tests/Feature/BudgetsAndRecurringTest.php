@@ -54,6 +54,33 @@ class BudgetsAndRecurringTest extends AccountingTestCase
         $this->deleteJson("/api/v1/accounting/budgets/{$budget->json('data.id')}")->assertNoContent();
     }
 
+    public function test_a_refund_bigger_than_the_months_spending_leaves_the_budget_untouched(): void
+    {
+        $food = $this->category('expense', 'Food');
+        $this->postJson('/api/v1/accounting/budgets', ['category_id' => $food->id, 'currency' => 'KES', 'amount' => '100'])->assertCreated();
+        $this->spend($food->id, '50', '2026-10-20');
+        $this->record(['type' => 'refund', 'account_id' => $this->bank->id, 'category_id' => $food->id, 'amount' => '50', 'date' => '2026-11-02'])->assertCreated();
+
+        $this->getJson('/api/v1/accounting/budgets?month=2026-11')
+            ->assertJsonPath('data.0.spent', 0)
+            ->assertJsonPath('data.0.remaining', 10000);
+        $this->getJson('/api/v1/accounting/dashboard?currency=KES')->assertJsonPath('data.budgets.spent', 0);
+    }
+
+    public function test_the_dashboard_counts_one_budget_per_month_of_a_longer_period(): void
+    {
+        $food = $this->category('expense', 'Food');
+        $this->postJson('/api/v1/accounting/budgets', ['category_id' => $food->id, 'currency' => 'KES', 'amount' => '100'])->assertCreated();
+        foreach (['2026-09-05', '2026-10-05', '2026-11-05'] as $date) {
+            $this->spend($food->id, '80', $date);
+        }
+
+        $this->getJson('/api/v1/accounting/dashboard?from=2026-09-01&to=2026-11-30&currency=KES')
+            ->assertJsonPath('data.budgets.amount', 30000)
+            ->assertJsonPath('data.budgets.spent', 24000)
+            ->assertJsonPath('data.budgets.over', 0);
+    }
+
     public function test_budgets_take_only_your_own_spending_categories(): void
     {
         $salary = $this->category('income', 'Salary');

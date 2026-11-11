@@ -129,12 +129,14 @@ final class Overview
     {
         $budgets = Budget::query()->whereBelongsTo($user)->where('currency', $currency)->with('category:id,name')->get();
         $spending = $budgets->isEmpty() ? [] : $this->statement->spending($user, $from, $to, $currency);
+        // Budgets are monthly: a longer period gets one budget per calendar month it covers.
+        $months = ($to->year - $from->year) * 12 + $to->month - $from->month + 1;
         $items = $budgets
             ->map(fn (Budget $budget) => [
                 'id' => $budget->id,
                 'category' => $budget->category->name,
-                'amount' => $budget->amount,
-                'spent' => $spending[$budget->category_id] ?? 0,
+                'amount' => $budget->amount * $months,
+                'spent' => max(0, $spending[$budget->category_id] ?? 0),
             ])
             ->sortByDesc(fn (array $row) => $row['spent'] / $row['amount'])
             ->values();

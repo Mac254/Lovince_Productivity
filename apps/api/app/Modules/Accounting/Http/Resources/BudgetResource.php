@@ -24,8 +24,8 @@ class BudgetResource extends JsonResource
             'category' => ['id' => $this->category->id, 'name' => $this->category->name, 'archived' => $this->category->archived_at !== null],
             'amount' => $this->amount,
             'currency' => $this->currency,
-            'spent' => (int) $this->spent,
-            'remaining' => $this->amount - (int) $this->spent,
+            'spent' => $spent = max(0, (int) $this->spent),
+            'remaining' => $this->amount - $spent,
         ];
     }
 }
