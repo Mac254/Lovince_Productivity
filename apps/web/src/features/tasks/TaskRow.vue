@@ -10,7 +10,7 @@ const emit = defineEmits<{ toggle: [task: Task]; star: [task: Task] }>();
 
 const done = computed(() => props.task.status === 'completed');
 const local = computed(() => isLocal(props.task));
-const cover = computed(() => taskCoverUrl(props.task.cover));
+const cover = computed(() => taskCoverUrl(props.task.cover, true));
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Suggestion } from '@focus/types';
-import { categoryCover, coverUrl } from '@/features/covers/covers';
+import { categoryCover, coverSrcset, coverUrl } from '@/features/covers/covers';
 import {
     suggestionCategoryIcons,
     suggestionCategoryLabels,
@@ -19,7 +19,7 @@ const { busy, deleting, accept, mark, remove, menu } = useSuggestionActions(() =
     edit: (suggestion) => emit('edit', suggestion),
 });
 
-const cover = computed(() => coverUrl(categoryCover(props.suggestion.category, props.suggestion.id)));
+const coverKey = computed(() => categoryCover(props.suggestion.category, props.suggestion.id));
 const isOpen = computed(() => props.suggestion.status === 'new');
 const primary = computed(() => primaryAction(props.suggestion));
 const items = computed(() => menu(false));
@@ -37,7 +37,9 @@ const items = computed(() => menu(false));
     >
         <div class="aspect-video overflow-hidden rounded-md bg-surface-raised">
             <img
-                :src="cover"
+                :src="coverUrl(coverKey)"
+                :srcset="coverSrcset(coverKey)"
+                sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
                 alt=""
                 loading="lazy"
                 :class="[

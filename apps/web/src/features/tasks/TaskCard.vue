@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Task, TaskStatus } from '@focus/types';
 import type { MenuItem } from '@focus/ui';
-import { taskCoverUrl } from '@/features/covers/covers';
+import { taskCoverSrcset, taskCoverUrl } from '@/features/covers/covers';
 import { dueLabel } from '@/lib/dates';
 import { taskRecurrenceLabels } from '@/lib/labels';
 import { toneBorder } from '@/lib/tones';
@@ -55,6 +55,8 @@ const menu = computed<MenuItem[]>(() => [
         <div v-if="cover" class="relative -mx-4 -mt-4 overflow-hidden rounded-t-lg sm:-mx-6 sm:-mt-6">
             <img
                 :src="cover"
+                :srcset="taskCoverSrcset(task.cover)"
+                sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
                 alt=""
                 loading="lazy"
                 :class="[

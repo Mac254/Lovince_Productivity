@@ -30,19 +30,30 @@ const pexels: Record<Cover, number> = {
 
 const COVERS_PER_CATEGORY = 4;
 
-export const coverUrl = (key: Cover): string => `${import.meta.env.BASE_URL}covers/${key}.jpg`;
+const coverFile = (key: Cover, width: 640 | 1200) =>
+    `${import.meta.env.BASE_URL}covers/${key}${width === 640 ? '-640' : ''}.webp`;
+
+/** The full-width cover; `small` is the 640px copy for cards, rows and thumbnails. */
+export const coverUrl = (key: Cover, small = false): string => coverFile(key, small ? 640 : 1200);
+
+/** Both widths, so the browser picks the smallest that fills the space it is shown in. */
+export const coverSrcset = (key: Cover): string => `${coverFile(key, 640)} 640w, ${coverFile(key, 1200)} 1200w`;
 
 export const coverCredit = (key: Cover): string => `https://www.pexels.com/photo/${pexels[key]}/`;
 
 export const coverOptions = COVERS.map((key) => {
     const [category, index] = key.split('-') as [SuggestionCategory, string];
-    return { key, url: coverUrl(key), label: `${suggestionCategoryLabels[category]} photo ${index}` };
+    return { key, url: coverUrl(key, true), label: `${suggestionCategoryLabels[category]} photo ${index}` };
 });
 
-export function taskCoverUrl(cover: TaskCover | null | undefined): string | null {
+export function taskCoverUrl(cover: TaskCover | null | undefined, small = false): string | null {
     if (!cover) return null;
-    return cover.type === 'upload' ? cover.url : coverUrl(cover.key);
+    return cover.type === 'upload' ? cover.url : coverUrl(cover.key, small);
 }
+
+/** The srcset for a stock cover; uploads have one size, so they get none. */
+export const taskCoverSrcset = (cover: TaskCover | null | undefined): string | undefined =>
+    cover?.type === 'gallery' ? coverSrcset(cover.key) : undefined;
 
 export const categoryCover = (category: SuggestionCategory, seed: number): Cover =>
     `${category}-${(seed % COVERS_PER_CATEGORY) + 1}` as Cover;

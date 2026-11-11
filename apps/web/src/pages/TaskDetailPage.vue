@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { Blocker, Task, TaskStatus } from '@focus/types';
-import { taskCoverUrl } from '@/features/covers/covers';
+import { taskCoverSrcset, taskCoverUrl } from '@/features/covers/covers';
 import { useTaskActions } from '@/features/tasks/useTaskActions';
 import { dueLabel, formatDate } from '@/lib/dates';
 import { taskStatusOptions } from '@/lib/labels';
@@ -153,6 +153,8 @@ watch(id, load, { immediate: true });
             <img
                 v-if="task.cover"
                 :src="taskCoverUrl(task.cover)!"
+                :srcset="taskCoverSrcset(task.cover)"
+                sizes="100vw"
                 alt=""
                 class="h-48 w-full rounded-lg object-cover sm:h-64"
             />
