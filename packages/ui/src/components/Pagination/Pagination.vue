@@ -8,6 +8,8 @@ import {
 } from '@lovince/ui-vue';
 import { computed } from 'vue';
 import { buttonVariants, controlSquares, interactive } from '../Button/variants';
+
+const current = 'border border-border-control bg-surface text-fg';
 import IconButton from '../IconButton/IconButton.vue';
 
 /**
@@ -39,7 +41,13 @@ const format = (value: number) => value.toLocaleString();
         </p>
         <div class="flex items-center gap-1" :class="!range && 'sm:mx-auto'">
             <LvPaginationPrevious as-child>
-                <IconButton icon="chevron-left" label="Previous page" variant="ghost" :disabled="page <= 1" />
+                <IconButton
+                    icon="chevron-left"
+                    label="Previous page"
+                    variant="outline"
+                    size="sm"
+                    :disabled="page <= 1"
+                />
             </LvPaginationPrevious>
             <span class="px-2 text-label font-semibold tabular sm:hidden" :aria-live="range ? undefined : 'polite'"
                 >Page {{ page }} of {{ lastPage }}</span
@@ -51,9 +59,9 @@ const format = (value: number) => value.toLocaleString();
                         class="max-sm:hidden"
                         :class="[
                             interactive,
-                            controlSquares.md,
+                            controlSquares.sm,
                             'text-label tabular',
-                            buttonVariants[entry.page === page ? 'primary' : 'ghost'],
+                            entry.page === page ? current : buttonVariants.ghost,
                         ]"
                     >
                         {{ entry.page }}
@@ -61,11 +69,17 @@ const format = (value: number) => value.toLocaleString();
                 </LvPaginationPage>
                 <LvPaginationEllipsis
                     v-else
-                    class="inline-flex size-(--control-md) items-center justify-center text-fg-muted max-sm:hidden"
+                    class="inline-flex size-(--control-sm) items-center justify-center text-fg-muted max-sm:hidden"
                 />
             </template>
             <LvPaginationNext as-child>
-                <IconButton icon="chevron-right" label="Next page" variant="ghost" :disabled="page >= lastPage" />
+                <IconButton
+                    icon="chevron-right"
+                    label="Next page"
+                    variant="outline"
+                    size="sm"
+                    :disabled="page >= lastPage"
+                />
             </LvPaginationNext>
         </div>
     </LvPaginationRoot>

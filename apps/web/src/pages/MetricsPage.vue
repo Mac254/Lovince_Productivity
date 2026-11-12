@@ -454,7 +454,11 @@ onMounted(run);
                             </li>
                         </ul>
                         <Text v-else role="label" tone="muted">No active goals.</Text>
-                        <Pagination v-model:page="goalPage.page" :last-page="goalPage.lastPage" />
+                        <Pagination
+                            v-model:page="goalPage.page"
+                            :last-page="goalPage.lastPage"
+                            class="border-t border-border pt-4"
+                        />
                     </Card>
                 </template>
             </Tabs>
