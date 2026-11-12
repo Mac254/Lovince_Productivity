@@ -265,7 +265,8 @@ onBeforeUnmount(() => window.clearInterval(clock));
                     :class="[
                         'absolute inset-x-1 flex gap-2 overflow-clip rounded-sm border-l-4 border-highlight bg-surface-raised pl-2 ring-1 ring-border transition-colors hover:bg-surface-overlay',
                         block.minutes < 30 ? 'items-center' : 'items-start py-1',
-                        block.task?.status === 'completed' && 'opacity-60',
+                        (block.task?.status === 'completed' || block.task?.status === 'cancelled') && 'opacity-60',
+                        block.task?.status === 'cancelled' && 'border-border-control',
                     ]"
                     :style="{
                         top: percent(block.start_minute),
@@ -278,24 +279,30 @@ onBeforeUnmount(() => window.clearInterval(clock));
                         :aria-label="
                             block.task.status === 'completed'
                                 ? `Mark “${block.task.title}” as not done`
-                                : `Mark “${block.task.title}” complete`
+                                : block.task.status === 'cancelled'
+                                  ? `“${block.task.title}” is cancelled. Reopen it`
+                                  : `Mark “${block.task.title}” complete`
                         "
                         :aria-pressed="block.task.status === 'completed'"
                         :class="[
                             'group inline-flex size-(--icon-md) shrink-0 items-center justify-center rounded-full border-2 transition-colors focus-visible:outline-2 focus-visible:outline-focus-ring',
                             block.task.status === 'completed'
                                 ? 'border-highlight bg-highlight text-highlight-ink'
-                                : 'border-border-control text-transparent hover:border-highlight-fg hover:text-highlight-fg',
+                                : block.task.status === 'cancelled'
+                                  ? 'border-border-control bg-surface-overlay text-fg-muted hover:text-fg'
+                                  : 'border-border-control text-transparent hover:border-highlight-fg hover:text-highlight-fg',
                             block.minutes >= 120 && 'sticky top-16',
                         ]"
                         @click="
                             actions.setStatus(
                                 block.task,
-                                block.task.status === 'completed' ? 'not_started' : 'completed',
+                                block.task.status === 'completed' || block.task.status === 'cancelled'
+                                    ? 'not_started'
+                                    : 'completed',
                             )
                         "
                     >
-                        <Icon name="check" size="sm" motion="pop" />
+                        <Icon :name="block.task.status === 'cancelled' ? 'close' : 'check'" size="sm" motion="pop" />
                     </Pressable>
                     <Pressable
                         type="button"
@@ -317,9 +324,16 @@ onBeforeUnmount(() => window.clearInterval(clock));
                                 :class="[
                                     'truncate font-semibold',
                                     block.minutes < 30 ? 'text-caption' : 'text-label',
-                                    block.task?.status === 'completed' && 'line-through',
+                                    (block.task?.status === 'completed' || block.task?.status === 'cancelled') &&
+                                        'line-through',
+                                    block.task?.status === 'cancelled' && 'text-fg-muted',
                                 ]"
                                 >{{ block.title ?? 'Untitled' }}</span
+                            >
+                            <span
+                                v-if="block.task?.status === 'cancelled'"
+                                class="shrink-0 text-caption font-semibold text-fg-muted"
+                                >Cancelled</span
                             >
                             <span class="shrink-0 truncate text-caption text-fg-muted tabular"
                                 >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
