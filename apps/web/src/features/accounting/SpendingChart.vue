@@ -5,7 +5,7 @@ import { VueApexCharts } from '@/features/metrics/apexChart';
 import { useChartTheme } from '@/features/metrics/useChartTheme';
 import { decimalsOf, formatMoney } from './money';
 
-/** What was spent each day, as bars. */
+/** What was spent each day, as a smooth curve with a light wash under it. */
 const props = withDefaults(
     defineProps<{ days: AccountingDashboard['daily_spending']; currency: Currency; height?: number }>(),
     { height: 220 },
@@ -21,7 +21,9 @@ const options = computed<ApexOptions>(() => ({
     ...base,
     chart: { ...base.chart, id: 'daily-spending' },
     colors: [colors.series1],
-    plotOptions: { bar: { columnWidth: '60%', borderRadius: 3, borderRadiusApplication: 'end' } },
+    stroke: { width: 2, curve: 'monotoneCubic', lineCap: 'round' },
+    fill: { type: 'solid', opacity: 0.1 },
+    markers: { size: 0, strokeColors: colors.surface, strokeWidth: 2, hover: { size: 5 } },
     xaxis: {
         type: 'datetime',
         labels: { datetimeUTC: false, format: 'd MMM' },
@@ -32,6 +34,7 @@ const options = computed<ApexOptions>(() => ({
     yaxis: { min: 0, forceNiceScale: true, labels: { formatter: (v: number) => compact.format(v) } },
     tooltip: {
         ...base.tooltip,
+        intersect: false,
         x: { format: 'ddd d MMM' },
         y: { formatter: (v: number) => formatMoney(Math.round(v * 10 ** decimalsOf(props.currency)), props.currency) },
     },
@@ -39,5 +42,5 @@ const options = computed<ApexOptions>(() => ({
 </script>
 
 <template>
-    <VueApexCharts type="bar" :height="height" :options="options" :series="series" />
+    <VueApexCharts type="area" :height="height" :options="options" :series="series" />
 </template>
