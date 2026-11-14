@@ -11,7 +11,8 @@ import {
 } from '@/lib/labels';
 import { dayProgress } from '@/lib/progress';
 import { allFacet, withoutAll } from '@/lib/facets';
-import { formatDate } from '@/lib/dates';
+import { formatDate, todayIso } from '@/lib/dates';
+import { formatMoney, monthOf } from '@/features/accounting/money';
 
 const dashboard = useDashboard();
 const goalsStore = useGoalsStore();
@@ -102,6 +103,12 @@ const integration = {
 
 const content = ref<HTMLElement | null>(null);
 useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboard.data });
+
+const money = useAsync((signal) => api.accounting.dashboard(monthOf(todayIso()), { signal }));
+onMounted(money.run);
+const spentThisMonth = computed(() =>
+    money.data.value ? formatMoney(money.data.value.expenses, money.data.value.currency) : '',
+);
 </script>
 
 <template>
@@ -137,10 +144,10 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
             <section aria-label="Key numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     data-stagger
-                    label="Done this week"
+                    label="Tasks done"
                     icon="check-circle"
-                    :value="stats.completed_this_week"
-                    :hint="`+${stats.completed_today} today · ${stats.completed_total} all time`"
+                    :value="stats.completed_total"
+                    :hint="`${stats.completed_this_week} this week · +${stats.completed_today} today`"
                     emphasis
                 />
                 <StatCard
@@ -221,8 +228,28 @@ useStaggerIn(content, { selector: '[data-stagger], article', when: () => dashboa
 
             <section aria-labelledby="overview-heading" class="flex flex-col gap-4">
                 <SectionHeader title="Across everything" title-id="overview-heading" />
+                <Card
+                    v-if="money.data.value?.accounts_count"
+                    as="section"
+                    data-stagger
+                    aria-labelledby="spending-heading"
+                    class="group gap-2"
+                >
+                    <CardHeader
+                        title="Spending this month"
+                        title-id="spending-heading"
+                        icon="metrics"
+                        :subtitle="`${spentThisMonth} so far`"
+                        class="mb-0"
+                    >
+                        <Button variant="ghost" size="sm" :to="{ name: 'financial-reports' }" icon-end="arrow-right"
+                            >Statements</Button
+                        >
+                    </CardHeader>
+                    <SpendingChart :days="money.data.value.daily_spending" :currency="money.data.value.currency" />
+                </Card>
                 <div class="grid gap-6 md:grid-cols-2 2xl:grid-cols-4">
-                    <MoneySnapshot />
+                    <MoneySnapshot :data="money.data.value" :error="money.error.value" />
                     <Card as="section" data-stagger aria-labelledby="streak-heading" class="group gap-4">
                         <CardHeader title="Consistency" title-id="streak-heading" icon="flame" class="mb-0">
                             <Button variant="ghost" size="sm" :to="{ name: 'metrics' }" icon-end="arrow-right"

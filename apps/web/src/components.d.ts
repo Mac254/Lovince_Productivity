@@ -28,6 +28,7 @@ declare module 'vue' {
     BreakdownChart: typeof import('./features/metrics/BreakdownChart.vue')['default']
     BudgetFormDialog: typeof import('./features/accounting/BudgetFormDialog.vue')['default']
     Button: typeof import('@focus/ui')['Button']
+    CancelTaskDialog: typeof import('./features/tasks/CancelTaskDialog.vue')['default']
     Card: typeof import('@focus/ui')['Card']
     CardHeader: typeof import('@focus/ui')['CardHeader']
     CategoryManager: typeof import('./features/accounting/CategoryManager.vue')['default']

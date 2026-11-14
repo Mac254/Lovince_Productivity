@@ -160,6 +160,28 @@ final class Statement
     }
 
     /**
+     * What was spent on each day of the range, net of refunds, with every day present.
+     *
+     * @return list<array{date: string, amount: int}>
+     */
+    public function dailySpending(User $user, Carbon $from, Carbon $to, string $currency): array
+    {
+        $totals = $this->lines($user, $from->copy()->startOfDay(), $to->copy()->startOfDay(), $currency)
+            ->where('l.kind', LineKind::Expense->value)
+            ->groupBy('e.date')
+            ->selectRaw('e.date, SUM(l.debit) - SUM(l.credit) AS amount')
+            ->get()
+            ->mapWithKeys(fn ($row) => [substr((string) $row->date, 0, 10) => (int) $row->amount]);
+
+        $days = [];
+        for ($day = $from->copy()->startOfDay(); $day->lte($to); $day->addDay()) {
+            $days[] = ['date' => $day->toDateString(), 'amount' => $totals[$day->toDateString()] ?? 0];
+        }
+
+        return $days;
+    }
+
+    /**
      * What was spent in each spending category over the range, net of refunds.
      *
      * @return array<int, int> Category id => amount.

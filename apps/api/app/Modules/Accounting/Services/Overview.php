@@ -93,6 +93,7 @@ final class Overview
             'net_cash_flow' => $current['net_cash_flow'],
             'previous_totals' => ['income' => $previous['income'], 'expenses' => $previous['expenses'], 'net_cash_flow' => $previous['net_cash_flow']],
             'top_expenses' => array_slice($current['categories'], 0, 5),
+            'daily_spending' => $this->statement->dailySpending($user, $from, $to->copy()->min(today()), $currency),
             'pending' => ['count' => (int) $pending->count, 'total' => (int) $pending->total],
             'recent' => Transaction::query()
                 ->whereBelongsTo($user)

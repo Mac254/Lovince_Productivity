@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { api } from '@focus/api-client';
-import { todayIso } from '@/lib/dates';
-import { formatMoney, monthOf } from '@/features/accounting/money';
+import type { AccountingDashboard } from '@focus/types';
+import { formatMoney } from '@/features/accounting/money';
 
-/** This month's money at a glance, from the Money overview. */
-const { data, error, run } = useAsync((signal) => api.accounting.dashboard(monthOf(todayIso()), { signal }));
+/** This month's money at a glance, from the Money overview the dashboard loads. */
+const props = defineProps<{ data: AccountingDashboard | null; error: string | null }>();
+const data = toRef(props, 'data');
 const money = (minor: number) => (data.value ? formatMoney(minor, data.value.currency) : '—');
 const budgetShare = computed(() => {
     const budgets = data.value?.budgets;
     return budgets && budgets.amount > 0 ? Math.round((budgets.spent / budgets.amount) * 100) : null;
 });
-
-onMounted(run);
 </script>
 
 <template>

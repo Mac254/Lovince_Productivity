@@ -80,6 +80,7 @@ class AccountingDataFlowTest extends AccountingTestCase
         $this->same('overview spending money leaves savings out', array_sum($balances) - $balances[$savings->id] - 100_000, $overview['spending']['available_balance']);
         $this->same('overview income', $income, $overview['income']);
         $this->same('overview expenses', $expenses, $overview['expenses']);
+        $this->same('overview daily spending adds up to its expenses', $expenses, array_sum(array_column($overview['daily_spending'], 'amount')));
         $this->same('overview net', $income - $expenses, $overview['net_cash_flow']);
         $this->same('overview previous expenses', 900_000, $overview['previous_totals']['expenses']);
         $this->same('overview pending', ['count' => 1, 'total' => 100_000], $overview['pending']);

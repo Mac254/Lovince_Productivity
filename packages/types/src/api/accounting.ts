@@ -189,6 +189,8 @@ export interface AccountingDashboard {
     net_cash_flow: MinorUnits;
     previous_totals: { income: MinorUnits; expenses: MinorUnits; net_cash_flow: MinorUnits };
     top_expenses: CategoryAmount[];
+    /** Spending on each day of the period up to today, net of refunds. */
+    daily_spending: { date: IsoDate; amount: MinorUnits }[];
     pending: { count: number; total: MinorUnits };
     recent: Transaction[];
     /** The six months ending with the period's month. */
