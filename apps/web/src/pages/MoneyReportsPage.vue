@@ -22,6 +22,17 @@ const { data, loading, error, run } = useAsync(async (signal) => {
     return { statement, previous, cash, trend, currencies: [...new Set(accounts.map((a) => a.currency))].sort() };
 });
 
+const movedNote = (row: { transfers_in: number; transfers_out: number; adjustments: number }) => {
+    if (!data.value) return '';
+    const currency = data.value.statement.currency;
+    const transfers = row.transfers_in - row.transfers_out;
+    return [
+        transfers ? `Transfers ${formatMoney(transfers, currency, { signed: true })}` : '',
+        row.adjustments ? `Adjusted ${formatMoney(row.adjustments, currency, { signed: true })}` : '',
+    ]
+        .filter(Boolean)
+        .join(' · ');
+};
 const money = (minor: number) => (data.value ? formatMoney(minor, data.value.statement.currency) : '—');
 const options = computed(() => currencyOptions(data.value?.currencies ?? []));
 const share = (row: CategoryAmount, total: number) =>
@@ -198,24 +209,39 @@ onMounted(run);
                                 <TableHead class="w-full">Account</TableHead>
                                 <TableHead align="end">In</TableHead>
                                 <TableHead align="end">Out</TableHead>
-                                <TableHead align="end">Transfers</TableHead>
-                                <TableHead v-if="data.cash.adjustments" align="end">Adjusted</TableHead>
+                                <TableHead align="end" class="hidden 2xl:table-cell">Transfers</TableHead>
+                                <TableHead v-if="data.cash.adjustments" align="end" class="hidden 2xl:table-cell"
+                                    >Adjusted</TableHead
+                                >
                                 <TableHead align="end">Closing</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-for="row in data.cash.accounts" :key="row.id">
-                                <TableCell class="font-medium">{{ row.name }}</TableCell>
+                                <TableCell class="font-medium">
+                                    {{ row.name }}
+                                    <span
+                                        v-if="movedNote(row)"
+                                        class="block text-caption font-normal text-fg-muted tabular 2xl:hidden"
+                                        >{{ movedNote(row) }}</span
+                                    >
+                                </TableCell>
                                 <TableCell numeric align="end">{{ money(row.inflows) }}</TableCell>
                                 <TableCell numeric align="end">{{ money(row.outflows) }}</TableCell>
-                                <TableCell numeric align="end" class="text-fg-muted">{{
+                                <TableCell numeric align="end" class="hidden text-fg-muted 2xl:table-cell">{{
                                     formatMoney(row.transfers_in - row.transfers_out, data.statement.currency, {
                                         signed: true,
                                     })
                                 }}</TableCell>
-                                <TableCell v-if="data.cash.adjustments" numeric align="end" class="text-fg-muted">{{
-                                    formatMoney(row.adjustments, data.statement.currency, { signed: true })
-                                }}</TableCell>
+                                <TableCell
+                                    v-if="data.cash.adjustments"
+                                    numeric
+                                    align="end"
+                                    class="hidden text-fg-muted 2xl:table-cell"
+                                    >{{
+                                        formatMoney(row.adjustments, data.statement.currency, { signed: true })
+                                    }}</TableCell
+                                >
                                 <TableCell numeric align="end" class="font-semibold">{{
                                     money(row.closing)
                                 }}</TableCell>
