@@ -31,6 +31,7 @@ class WeeklyReviewTest extends TestCase
         $done->forceFill(['completed_at' => '2026-11-03 10:00:00'])->save();
         Task::factory()->for($user)->dueOn('2026-11-04')->create(['title' => 'Late', 'status' => TaskStatus::NotStarted]);
         Task::factory()->for($user)->dueOn('2026-11-10')->create(['title' => 'Next', 'status' => TaskStatus::NotStarted]);
+        Task::factory()->for($user)->dueOn('2026-11-05')->create(['title' => 'Morning run', 'status' => TaskStatus::Cancelled, 'cancel_reason' => 'Rain']);
         TaskNote::factory()->for($done)->create(['user_id' => $user->id, 'logged_on' => '2026-11-03', 'minutes' => 45]);
         FocusSession::factory()->for($user)->create(['started_on' => '2026-11-04', 'started_at' => '2026-11-04 09:00:00', 'focused_seconds' => 1800]);
         $user->journalEntries()->create(['date' => '2026-11-05', 'body' => 'A good week.']);
@@ -48,6 +49,7 @@ class WeeklyReviewTest extends TestCase
             ->assertJsonPath('data.completed.0.title', 'Ship it')
             ->assertJsonPath('data.carry_over.0.title', 'Late')
             ->assertJsonPath('data.next_week.0.title', 'Next')
+            ->assertJsonPath('data.skipped.0.cancel_reason', 'Rain')
             ->assertJsonPath('data.journal.0.excerpt', 'A good week.')
             ->assertJsonPath('data.review', null);
     }

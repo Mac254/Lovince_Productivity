@@ -34,6 +34,7 @@ export interface ReportSummary {
     /** Share of completed tasks that had a due date and met it; `null` without any. */
     on_time_rate: number | null;
     overdue: number;
+    skipped?: number;
     open_blockers: number;
     blockers_raised: number;
     blockers_resolved: number;
@@ -129,6 +130,7 @@ export interface DailyReport extends DailyReportSummary {
     /** Task notes logged this day, oldest first. */
     work_log?: ReportWorkLogEntry[];
     carried_over: ReportTask[];
+    skipped_tasks: (ReportTask & { cancel_reason: string | null })[];
     overdue_tasks: ReportTask[];
     blockers_open: ReportBlocker[];
     blockers_resolved: ReportBlocker[];

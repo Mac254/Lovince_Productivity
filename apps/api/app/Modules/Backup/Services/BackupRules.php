@@ -71,6 +71,7 @@ class BackupRules
             'tasks.*.recurrence' => ['nullable', Rule::enum(TaskRecurrence::class)],
             'tasks.*.is_highlighted' => ['boolean'],
             'tasks.*.cover' => ['nullable', Rule::in(Contract::COVERS)],
+            'tasks.*.cancel_reason' => ['nullable', 'string', 'max:'.Contract::TASK_CANCEL_REASON_MAX],
             'tasks.*.estimate_minutes' => ['nullable', 'integer', 'min:1', 'max:'.Contract::TASK_ESTIMATE_MINUTES_MAX],
             'tasks.*.start_date' => $date,
             'tasks.*.due_date' => $date,

@@ -70,6 +70,9 @@ final class Contract
 
     public const TASK_ESTIMATE_MINUTES_MAX = 6000;
 
+    /** Why a task was skipped, kept short enough to read on a schedule block. */
+    public const TASK_CANCEL_REASON_MAX = 200;
+
     public const TASK_TYPE_NAME_MAX = 40;
 
     public const TASK_TYPE_LIMIT = 30;
@@ -192,7 +195,7 @@ final class Contract
     public static function limits(): array
     {
         return [
-            'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX],
+            'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX, 'cancelReason' => self::TASK_CANCEL_REASON_MAX],
             'goal' => ['title' => self::GOAL_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'search' => self::SEARCH_MAX,
             'searchMin' => self::SEARCH_MIN,

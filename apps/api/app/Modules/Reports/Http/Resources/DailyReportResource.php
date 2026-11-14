@@ -37,6 +37,7 @@ class DailyReportResource extends JsonResource
                 'by_type' => $data['by_type'] ?? [],
                 'work_log' => $data['work_log'] ?? [],
                 'carried_over' => $data['carried_over'] ?? [],
+                'skipped_tasks' => $data['skipped_tasks'] ?? [],
                 'overdue_tasks' => $data['overdue_tasks'] ?? [],
                 'blockers_open' => $data['blockers_open'] ?? [],
                 'blockers_resolved' => $data['blockers_resolved'] ?? [],

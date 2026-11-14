@@ -27,6 +27,7 @@ class ReportAndMetricsTest extends TestCase
 
         Task::factory()->for($user)->dueOn($today)->completed()->create(['priority' => 'high']);
         Task::factory()->for($user)->dueOn($today)->create(['title' => 'Carried over']);
+        Task::factory()->for($user)->dueOn($today)->create(['title' => 'Skipped', 'status' => 'cancelled', 'cancel_reason' => 'Client work ran over']);
         Task::factory()->for($user)->dueOn('2026-10-20')->create();
         Blocker::factory()->for($user)->create();
         $user->journalEntries()->create(['date' => $today, 'body' => 'Good day.']);
@@ -40,6 +41,8 @@ class ReportAndMetricsTest extends TestCase
             ->assertJsonPath('data.summary.overdue', 1)
             ->assertJsonPath('data.summary.open_blockers', 1)
             ->assertJsonPath('data.carried_over.0.title', 'Carried over')
+            ->assertJsonPath('data.summary.skipped', 1)
+            ->assertJsonPath('data.skipped_tasks.0.cancel_reason', 'Client work ran over')
             ->assertJsonPath('data.journal', 'Good day.');
 
         $this->postJson('/api/v1/reports')->assertCreated();

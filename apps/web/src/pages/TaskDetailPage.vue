@@ -113,6 +113,9 @@ watch(id, load, { immediate: true });
                 <TaskTypeBadge :task="task" />
                 <PriorityDots :priority="task.priority" />
                 <Badge v-if="task.is_overdue" tone="danger" icon="alert-circle">Overdue</Badge>
+                <Text v-if="task.status === 'cancelled' && task.cancel_reason" as="span" role="label" tone="muted"
+                    >Skipped: {{ task.cancel_reason }}</Text
+                >
             </template>
             <template v-if="task" #title>
                 <span :class="task.status === 'completed' && 'line-through'">{{ task.title }}</span>

@@ -24,6 +24,7 @@ class TaskResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status,
+            'cancel_reason' => $this->cancel_reason,
             'priority' => $this->priority,
             'category' => $this->category,
             'is_highlighted' => (bool) $this->is_highlighted,

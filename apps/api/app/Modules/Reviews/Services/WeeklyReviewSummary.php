@@ -8,6 +8,7 @@ use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Http\Resources\TaskResource;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Tasks\Models\TaskNote;
@@ -36,6 +37,7 @@ class WeeklyReviewSummary
         $completed = $tasks()->whereBetween('completed_at', [$start, $end])->orderBy('completed_at')->get();
         $carryOver = $tasks()->open()->whereDate('due_date', '<=', $end->toDateString())->orderBy('due_date')->limit(self::LIST_LIMIT)->get();
         $nextWeek = $tasks()->open()->whereDate('due_date', '>=', $nextStart)->whereDate('due_date', '<=', $nextEnd)->orderBy('due_date')->limit(self::LIST_LIMIT)->get();
+        $skipped = $tasks()->where('status', TaskStatus::Cancelled)->whereDate('due_date', '>=', $start)->whereDate('due_date', '<=', $end->toDateString())->orderBy('due_date')->limit(self::LIST_LIMIT)->get();
         $unscheduled = $tasks()->open()->whereNull('due_date')->orderByPriority()->limit(self::LIST_LIMIT)->get();
 
         $notes = TaskNote::query()->whereBelongsTo($user)->whereDate('logged_on', '>=', $start)->whereDate('logged_on', '<=', $end)->get(['logged_on', 'minutes']);
@@ -69,6 +71,7 @@ class WeeklyReviewSummary
             })->all(),
             'completed' => TaskResource::collection($completed)->resolve(),
             'carry_over' => TaskResource::collection($carryOver)->resolve(),
+            'skipped' => TaskResource::collection($skipped)->resolve(),
             'next_week' => TaskResource::collection($nextWeek)->resolve(),
             'unscheduled' => TaskResource::collection($unscheduled)->resolve(),
             'goals' => Goal::query()->whereBelongsTo($user)->where('status', GoalStatus::Active)->withProgress()->orderBy('target_date')->get()

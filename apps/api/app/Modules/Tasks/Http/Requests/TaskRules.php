@@ -21,6 +21,7 @@ trait TaskRules
             'title' => [$presence, 'string', 'min:1', 'max:'.Contract::TASK_TITLE_MAX],
             'description' => ['sometimes', 'nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
             'status' => ['sometimes', Rule::enum(TaskStatus::class)],
+            'cancel_reason' => ['sometimes', 'nullable', 'string', 'max:'.Contract::TASK_CANCEL_REASON_MAX],
             'priority' => ['sometimes', Rule::enum(TaskPriority::class)],
             'category' => ['sometimes', Rule::enum(TaskCategory::class)],
             'is_highlighted' => ['sometimes', 'boolean'],
@@ -48,6 +49,9 @@ trait TaskRules
     {
         if (is_string($this->input('title'))) {
             $this->merge(['title' => trim($this->input('title'))]);
+        }
+        if (is_string($this->input('cancel_reason'))) {
+            $this->merge(['cancel_reason' => trim($this->input('cancel_reason')) ?: null]);
         }
     }
 

@@ -12,7 +12,7 @@ const props = defineProps<{
     tasks: Task[];
 }>();
 const open = defineModel<boolean>('open', { required: true });
-const emit = defineEmits<{ changed: [] }>();
+const emit = defineEmits<{ changed: []; skip: [task: NonNullable<TimeBlock['task']>] }>();
 
 const toast = useToast();
 const uid = useId();
@@ -50,6 +50,11 @@ watch(open, (value) => {
         durations.push({ value: Number(form.minutes), label: formatMinutes(Number(form.minutes)) });
     errors.value = {};
 });
+
+function skip(task: NonNullable<TimeBlock['task']>): void {
+    open.value = false;
+    emit('skip', task);
+}
 
 async function submit(): Promise<void> {
     const start = parseClockTime(form.start);
@@ -139,6 +144,14 @@ async function remove(): Promise<void> {
                 :loading="removing"
                 @click="remove"
                 >Remove</Button
+            >
+            <Button
+                v-if="block?.task && block.task.status !== 'completed' && block.task.status !== 'cancelled'"
+                variant="outline"
+                icon-start="close-circle"
+                :disabled="saving"
+                @click="skip(block.task)"
+                >Skip task</Button
             >
             <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="fid('form')" :loading="saving">{{

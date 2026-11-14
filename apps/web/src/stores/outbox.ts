@@ -136,6 +136,7 @@ function localTask(change: TaskCreate): Task {
     return {
         description: null,
         status: 'not_started',
+        cancel_reason: null,
         priority: 'medium',
         category: 'general',
         is_highlighted: false,

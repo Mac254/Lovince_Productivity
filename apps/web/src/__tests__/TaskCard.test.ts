@@ -10,6 +10,7 @@ const task: Task = {
     title: 'Integrate portal',
     description: '<img src=x onerror=alert(1)>',
     status: 'in_progress',
+    cancel_reason: null,
     priority: 'urgent',
     category: 'integration',
     is_highlighted: false,

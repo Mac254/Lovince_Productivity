@@ -55,6 +55,7 @@ class DailyReportGenerator
 
         $due = $tasks()->with($relations)->whereDate('due_date', $date)->where('status', '!=', TaskStatus::Cancelled)->get();
         $dueCompleted = $due->filter(fn (Task $task) => $task->status === TaskStatus::Completed && $task->completed_at <= $asOf)->count();
+        $skipped = $tasks()->with($relations)->whereDate('due_date', $date)->where('status', TaskStatus::Cancelled)->orderBy('id')->get();
         $carriedOver = $openThen()->with($relations)->whereDate('due_date', $date)->get();
 
         $overdue = $openThen()->with($relations)->whereDate('due_date', '<', $date)->orderBy('due_date')->get();
@@ -110,6 +111,7 @@ class DailyReportGenerator
             'completion_rate' => $due->count() > 0 ? (int) round($dueCompleted / $due->count() * 100) : null,
             'on_time_rate' => $onTimeEligible->count() > 0 ? (int) round($onTime->count() / $onTimeEligible->count() * 100) : null,
             'overdue' => $overdue->count(),
+            'skipped' => $skipped->count(),
             'open_blockers' => $openBlockers->count(),
             'blockers_raised' => $blockersRaised,
             'blockers_resolved' => $blockersResolved->count(),
@@ -134,6 +136,7 @@ class DailyReportGenerator
             'by_type' => TypeBreakdown::rows($user, $completed, collect()),
             'work_log' => $this->workLogList($workLog),
             'carried_over' => $this->taskList($carriedOver),
+            'skipped_tasks' => $this->taskList($skipped, withReason: true),
             'overdue_tasks' => $this->taskList($overdue->take(self::LIST_LIMIT)),
             'blockers_open' => $this->blockerList($openBlockers->take(self::LIST_LIMIT)),
             'blockers_resolved' => $this->blockerList($blockersResolved),
@@ -283,9 +286,10 @@ class DailyReportGenerator
      * @param  Collection<int, Task>  $tasks
      * @return list<array<string, mixed>>
      */
-    private function taskList(Collection $tasks): array
+    private function taskList(Collection $tasks, bool $withReason = false): array
     {
         return $tasks->map(fn (Task $task) => [
+            ...($withReason ? ['cancel_reason' => $task->cancel_reason] : []),
             'id' => $task->id,
             'title' => $task->title,
             'status' => $task->status->value,

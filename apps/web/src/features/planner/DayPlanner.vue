@@ -332,8 +332,12 @@ onBeforeUnmount(() => window.clearInterval(clock));
                             >
                             <span
                                 v-if="block.task?.status === 'cancelled'"
-                                class="shrink-0 text-caption font-semibold text-fg-muted"
-                                >Cancelled</span
+                                class="min-w-0 truncate text-caption text-fg-muted"
+                                :title="block.task.cancel_reason ?? undefined"
+                                ><span class="font-semibold">Skipped</span
+                                ><template v-if="block.task.cancel_reason">
+                                    · {{ block.task.cancel_reason }}</template
+                                ></span
                             >
                             <span class="shrink-0 truncate text-caption text-fg-muted tabular"
                                 >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
@@ -362,6 +366,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
             :minutes="draftMinutes"
             :tasks="tasks"
             @changed="load"
+            @skip="(task) => actions.setStatus(task, 'cancelled')"
         />
         <ConfirmDialog
             :open="!!replacing"

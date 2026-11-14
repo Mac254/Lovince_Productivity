@@ -67,6 +67,7 @@ class BackupExporter
                 'title' => $task->title,
                 'description' => $task->description,
                 'status' => $this->value($task->status),
+                'cancel_reason' => $task->cancel_reason,
                 'priority' => $this->value($task->priority),
                 'category' => $this->value($task->category),
                 'recurrence' => $this->value($task->recurrence),

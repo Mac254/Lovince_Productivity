@@ -71,6 +71,6 @@ class ScheduleController extends Controller
     {
         $blocks = $apply($schedule, $request->validated('date'), $request->boolean('replace'));
 
-        return TimeBlockResource::collection($blocks->each->load('task:id,title,status,priority'));
+        return TimeBlockResource::collection($blocks->each->load('task:id,title,status,cancel_reason,priority'));
     }
 }

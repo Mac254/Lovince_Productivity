@@ -98,6 +98,23 @@ class TaskTest extends TestCase
         $this->assertNull($task->fresh()->completed_at);
     }
 
+    public function test_a_cancelled_task_keeps_its_reason_until_reopened(): void
+    {
+        $task = Task::factory()->for($this->user)->create();
+
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'cancelled', 'cancel_reason' => '  Woke up late  '])
+            ->assertOk()
+            ->assertJsonPath('data.cancel_reason', 'Woke up late');
+
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['cancel_reason' => str_repeat('a', 201)])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('cancel_reason');
+
+        $this->patchJson("/api/v1/tasks/{$task->id}", ['status' => 'not_started'])
+            ->assertOk()
+            ->assertJsonPath('data.cancel_reason', null);
+    }
+
     public function test_a_change_based_on_an_older_copy_is_refused(): void
     {
         $user = User::factory()->create();

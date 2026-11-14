@@ -1,6 +1,7 @@
 import { api, errorMessage } from '@focus/api-client';
 import type { Task, TaskStatus } from '@focus/types';
 import { todayIso } from '@/lib/dates';
+import { askCancelReason } from './useCancelReason';
 
 export function useTaskActions(onChange: () => void) {
     const toast = useToast();
@@ -14,19 +15,28 @@ export function useTaskActions(onChange: () => void) {
         task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'next_occurrence_id' | 'updated_at'>>,
         status: TaskStatus,
     ): Promise<void> {
-        const input = { status, ...(status === 'completed' && { completed_at: todayIso() }) };
+        let cancel_reason: string | null | undefined;
+        if (status === 'cancelled') {
+            cancel_reason = await askCancelReason(task.title);
+            if (cancel_reason === undefined) return;
+        }
+        const input = {
+            status,
+            ...(status === 'completed' && { completed_at: todayIso() }),
+            ...(status === 'cancelled' && { cancel_reason }),
+        };
         if (isLocal(task)) {
             outbox.queueTaskUpdate(task, input);
             return queued(task);
         }
         try {
-            const saved = await api.tasks.update(task.id, { status });
+            const saved = await api.tasks.update(task.id, { status, ...(status === 'cancelled' && { cancel_reason }) });
             const repeats = status === 'completed' && saved.next_occurrence_id && !task.next_occurrence_id;
             toast.success(
                 status === 'completed'
                     ? `Completed “${task.title}”${repeats ? '. The next one is scheduled.' : ''}`
                     : status === 'cancelled'
-                      ? `Cancelled “${task.title}”`
+                      ? `Skipped “${task.title}”`
                       : `Reopened “${task.title}”`,
             );
             onChange();

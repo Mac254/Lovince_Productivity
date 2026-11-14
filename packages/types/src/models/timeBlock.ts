@@ -7,7 +7,13 @@ export interface TimeBlock {
     start_minute: number;
     minutes: number;
     title: string | null;
-    task: { id: number; title: string; status: TaskStatus; priority: TaskPriority } | null;
+    task: {
+        id: number;
+        title: string;
+        status: TaskStatus;
+        cancel_reason: string | null;
+        priority: TaskPriority;
+    } | null;
 }
 
 export interface TimeBlockInput {

@@ -63,6 +63,7 @@ watch(date, load, { immediate: true });
 const completedPage = usePagedList(() => report.value?.completed_tasks ?? [], 8);
 const carriedPage = usePagedList(() => report.value?.carried_over ?? [], 8);
 const overduePage = usePagedList(() => report.value?.overdue_tasks ?? [], 8);
+const skippedPage = usePagedList(() => report.value?.skipped_tasks ?? [], 8);
 const logPage = usePagedList(() => report.value?.work_log ?? [], 10);
 
 const tab = useTabQuery(['tasks', 'log', 'blockers', 'wins', 'goals'] as const, 'tasks');
@@ -198,6 +199,36 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                             </ul>
                             <Text v-else role="label" tone="muted">Nothing carried over.</Text>
                             <Pagination v-model:page="carriedPage.page" :last-page="carriedPage.lastPage" />
+                        </Card>
+                        <Card
+                            v-if="report.skipped_tasks.length"
+                            as="section"
+                            aria-labelledby="skipped-heading"
+                            class="group"
+                        >
+                            <CardHeader
+                                title="Skipped"
+                                title-id="skipped-heading"
+                                icon="close-circle"
+                                :subtitle="plural(report.skipped_tasks.length, 'task')"
+                            />
+                            <ul class="flex flex-col divide-y divide-border">
+                                <li
+                                    v-for="task in skippedPage.visible"
+                                    :key="task.id"
+                                    class="flex flex-col gap-1 py-2"
+                                >
+                                    <RouterLink
+                                        :to="{ name: 'task-detail', params: { id: task.id } }"
+                                        class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
+                                        >{{ task.title }}</RouterLink
+                                    >
+                                    <Text as="span" role="label" tone="muted">{{
+                                        task.cancel_reason ?? 'No reason given'
+                                    }}</Text>
+                                </li>
+                            </ul>
+                            <Pagination v-model:page="skippedPage.page" :last-page="skippedPage.lastPage" />
                         </Card>
 
                         <Card as="section" aria-labelledby="overdue-heading" class="group">

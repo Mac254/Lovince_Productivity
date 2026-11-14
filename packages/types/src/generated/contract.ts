@@ -87,6 +87,7 @@ export const LIMITS = {
         title: 200,
         description: 5000,
         estimateMinutes: 6000,
+        cancelReason: 200,
     },
     goal: {
         title: 160,

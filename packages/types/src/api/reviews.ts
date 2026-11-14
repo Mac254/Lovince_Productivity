@@ -47,6 +47,7 @@ export interface WeeklyReview {
     days: WeeklyReviewDay[];
     completed: Task[];
     carry_over: Task[];
+    skipped: Task[];
     next_week: Task[];
     unscheduled: Task[];
     goals: WeeklyReviewGoal[];

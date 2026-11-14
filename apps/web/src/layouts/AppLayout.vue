@@ -267,6 +267,7 @@ function onQuickTaskSaved(): void {
 
     <FloatingActions />
     <CommandPalette v-model:open="paletteOpen" @new-task="quickTaskOpen = true" @created="onQuickTaskSaved" />
+    <CancelTaskDialog />
     <TaskFormDialog v-model:open="quickTaskOpen" :defaults="{ due_date: todayIso() }" @saved="onQuickTaskSaved" />
     <ConfirmDialog
         v-model:open="signOutOpen"

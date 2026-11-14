@@ -20,6 +20,8 @@ export interface Task {
     title: string;
     description: string | null;
     status: TaskStatus;
+    /** Why the task was skipped; only set while it is cancelled. */
+    cancel_reason: string | null;
     priority: TaskPriority;
     category: TaskCategory;
     is_highlighted: boolean;

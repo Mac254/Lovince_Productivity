@@ -11,6 +11,7 @@ const make = (id: number, overrides: Partial<Task> = {}): Task => ({
     title: 'Move savings on payday',
     description: null,
     status: 'not_started',
+    cancel_reason: null,
     priority: 'medium',
     category: 'general',
     is_highlighted: false,

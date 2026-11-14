@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 #[ObservedBy([ActivityObserver::class, TaskObserver::class])]
-#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover', 'cancel_reason'])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
 {
@@ -54,6 +54,11 @@ class Task extends Model
             if ($task->isDirty('cover') && $task->cover !== null && $task->cover_path !== null) {
                 $task->removeUploadedCover();
                 $task->cover_path = null;
+            }
+
+            // The reason belongs to the cancellation, so reopening or finishing the task clears it.
+            if ($task->status !== TaskStatus::Cancelled) {
+                $task->cancel_reason = null;
             }
 
             if ($task->status === TaskStatus::Completed) {
