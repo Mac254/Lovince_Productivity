@@ -7,6 +7,7 @@ use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
+use App\Modules\Reviews\Enums\ReviewPeriod;
 use App\Modules\Roadmap\Enums\RoadmapStage;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
@@ -105,6 +106,7 @@ class BackupRules
             'focus_sessions.*.completed' => ['boolean'],
 
             'weekly_reviews' => $list,
+            'weekly_reviews.*.period' => ['sometimes', Rule::enum(ReviewPeriod::class)],
             'weekly_reviews.*.week_start' => ['required', 'date_format:Y-m-d'],
             'weekly_reviews.*.wins' => ['nullable', 'string', 'max:'.Contract::REVIEW_MAX],
             'weekly_reviews.*.challenges' => ['nullable', 'string', 'max:'.Contract::REVIEW_MAX],

@@ -133,10 +133,10 @@ class DataFlowSimulationTest extends TestCase
         $review = $this->getJson('/api/v1/reviews/2026-11-23')->assertOk()->json('data');
         $this->same('review completed', $week->where('done', true)->count(), $review['totals']['completed']);
         $this->same('review minutes logged', $week->where('note', true)->count() * 30, $review['totals']['minutes_logged']);
-        $this->same('review minutes on the last day', 30, collect($review['days'])->firstWhere('date', '2026-11-29')['minutes_logged']);
+        $this->same('review minutes on the last day', 30, collect($review['buckets'])->firstWhere('start', '2026-11-29')['minutes_logged']);
         $this->same('review focus', $metrics['focus']['minutes'], $review['totals']['focus_minutes']);
         $this->same('review journal', ['2026-11-29'], array_column($review['journal'], 'date'));
-        $this->same('review next week', ['Next Sunday'], array_column($review['next_week'], 'title'));
+        $this->same('review next week', ['Next Sunday'], array_column($review['next'], 'title'));
         $this->same('review goal progress', $progress, collect($review['goals'])->firstWhere('id', $goal)['progress']);
 
         $report = $this->postJson('/api/v1/reports')->assertCreated()->json('data.summary');

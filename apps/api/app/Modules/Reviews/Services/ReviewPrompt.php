@@ -2,7 +2,8 @@
 
 namespace App\Modules\Reviews\Services;
 
-use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Reviews\Enums\ReviewPeriod;
+use App\Modules\Reviews\Models\Review;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Users\Models\User;
 
@@ -20,7 +21,7 @@ class ReviewPrompt
         $today = today();
         $weekStart = $today->copy()->startOfWeek();
         $day = self::DAYS[$this->settings->resolve($user->settings)['review']['day']] ?? null;
-        $done = WeeklyReview::query()->whereBelongsTo($user)->whereDate('week_start', $weekStart->toDateString())->whereNotNull('completed_at')->exists();
+        $done = Review::query()->whereBelongsTo($user)->for(ReviewPeriod::Week, $weekStart)->whereNotNull('completed_at')->exists();
 
         return [
             'week_start' => $weekStart->toDateString(),

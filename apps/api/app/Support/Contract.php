@@ -15,6 +15,7 @@ use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
 use App\Modules\Goals\Enums\GoalTone;
+use App\Modules\Reviews\Enums\ReviewPeriod;
 use App\Modules\Roadmap\Enums\RoadmapStage;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
 use App\Modules\Suggestions\Enums\SuggestionSource;
@@ -177,6 +178,7 @@ final class Contract
             'AchievementCategory' => $values(SuggestionCategory::cases()),
             'BookStatus' => $values(BookStatus::cases()),
             'RoadmapStage' => $values(RoadmapStage::cases()),
+            'ReviewPeriod' => $values(ReviewPeriod::cases()),
             'FinancialAccountType' => $values(AccountType::cases()),
             'TransactionType' => $values(TransactionType::cases()),
             'TransactionStatus' => $values(TransactionStatus::cases()),

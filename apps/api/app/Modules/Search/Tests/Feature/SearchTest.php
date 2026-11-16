@@ -45,7 +45,7 @@ class SearchTest extends TestCase
         $user->achievements()->create(['title' => 'Ran a marathon', 'achieved_on' => '2026-11-01', 'category' => 'health']);
         $user->suggestions()->create(['source' => 'custom', 'title' => 'Plan the next marathon', 'category' => 'health']);
         $user->suggestions()->create(['source' => 'custom', 'title' => 'Skip the marathon', 'category' => 'health', 'status' => 'dismissed']);
-        $user->weeklyReviews()->create(['week_start' => '2026-10-26', 'wins' => 'Shipped', 'challenges' => 'Marathon training ate my evenings']);
+        $user->reviews()->create(['starts_on' => '2026-10-26', 'wins' => 'Shipped', 'challenges' => 'Marathon training ate my evenings']);
         $user->schedules()->create(['name' => 'Marathon week']);
 
         $this->getJson('/api/v1/search?q=marathon')

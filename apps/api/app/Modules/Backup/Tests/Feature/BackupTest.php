@@ -40,7 +40,8 @@ class BackupTest extends TestCase
         Blocker::factory()->for($owner)->for($task)->create(['description' => 'Need the notes']);
         FocusSession::factory()->for($owner)->create(['task_id' => $task->id]);
         $owner->journalEntries()->create(['date' => '2026-10-30', 'body' => 'Wrote a lot.']);
-        $owner->weeklyReviews()->create(['week_start' => '2026-10-26', 'wins' => 'Chapter one']);
+        $owner->reviews()->create(['starts_on' => '2026-10-26', 'wins' => 'Chapter one']);
+        $owner->reviews()->create(['period' => 'month', 'starts_on' => '2026-10-01', 'wins' => 'A month of drafts']);
         $owner->timeBlocks()->create(['task_id' => $task->id, 'title' => 'Draft chapter one', 'date' => '2026-11-02', 'start_minute' => 540, 'minutes' => 60]);
         $owner->achievements()->create(['title' => 'Finished the book', 'achieved_on' => '2026-11-02', 'category' => 'growth', 'goal_id' => $goal->id, 'task_id' => $task->id]);
 
@@ -62,7 +63,7 @@ class BackupTest extends TestCase
             ->assertJsonPath('data.goals', 1)
             ->assertJsonPath('data.blockers', 1)
             ->assertJsonPath('data.focus_sessions', 1)
-            ->assertJsonPath('data.weekly_reviews', 1)
+            ->assertJsonPath('data.weekly_reviews', 2)
             ->assertJsonPath('data.time_blocks', 1)
             ->assertJsonPath('data.achievements', 1)
             ->assertJsonPath('data.journal', 0)
@@ -82,7 +83,23 @@ class BackupTest extends TestCase
         $this->assertSame($copy->goal_id, $achievement->goal_id);
         $this->assertSame($copy->id, $achievement->task_id);
         $this->assertSame('Mine already.', $other->journalEntries()->sole()->body);
+        $this->assertSame('A month of drafts', $other->reviews()->where('period', 'month')->sole()->wins);
         $this->assertSame(1, $owner->tasks()->count());
+    }
+
+    public function test_reviews_from_before_months_and_years_import_as_weeks(): void
+    {
+        $owner = User::factory()->create();
+        $owner->reviews()->create(['starts_on' => '2026-10-26', 'wins' => 'Chapter one']);
+        $this->actingAs($owner);
+        $backup = $this->getJson('/api/v1/backup')->json();
+        unset($backup['weekly_reviews'][0]['period']);
+
+        $this->actingAs(User::factory()->create());
+        $this->post('/api/v1/backup', ['file' => UploadedFile::fake()->createWithContent('backup.json', json_encode($backup))], ['Accept' => 'application/json'])
+            ->assertOk()
+            ->assertJsonPath('data.weekly_reviews', 1);
+        $this->getJson('/api/v1/reviews/week/2026-10-26')->assertJsonPath('data.review.wins', 'Chapter one');
     }
 
     public function test_importing_a_backup_again_adds_nothing(): void

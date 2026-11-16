@@ -8,7 +8,7 @@ use App\Modules\Books\Models\Book;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Planner\Models\Schedule;
-use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Reviews\Models\Review;
 use App\Modules\Roadmap\Models\RoadmapItem;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
@@ -86,17 +86,20 @@ class SearchService
 
     private function reviews(User $user, string $pattern, string $query): array
     {
-        return WeeklyReview::query()->whereBelongsTo($user)
+        return Review::query()->whereBelongsTo($user)
             ->where(fn (Builder $q) => Like::any($q, ['wins', 'challenges', 'next_focus'], $pattern))
-            ->latest('week_start')->limit(self::PER_KIND)->get()
-            ->map(fn (WeeklyReview $review) => $this->result(
-                'review',
-                $review->id,
-                'Week of '.$review->week_start->toFormattedDateString(),
-                collect([$review->wins, $review->challenges, $review->next_focus])->first(fn (?string $text) => $text !== null && Str::contains($text, $query, true)),
-                $query,
-                $review->week_start->toDateString(),
-            ))
+            ->latest('starts_on')->limit(self::PER_KIND)->get()
+            ->map(fn (Review $review) => [
+                ...$this->result(
+                    'review',
+                    $review->id,
+                    $review->label(),
+                    collect([$review->wins, $review->challenges, $review->next_focus])->first(fn (?string $text) => $text !== null && Str::contains($text, $query, true)),
+                    $query,
+                    $review->starts_on->toDateString(),
+                ),
+                'period' => $review->period->value,
+            ])
             ->all();
     }
 

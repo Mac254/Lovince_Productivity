@@ -166,15 +166,18 @@ class BackupImporter
             $counts['focus_sessions']++;
         }
 
-        $weeks = $user->weeklyReviews()->pluck('week_start')->map->toDateString()->flip();
+        // Kept under `weekly_reviews` with `week_start` so older backups (weeks only, no `period`) still import.
+        $reviews = $user->reviews()->get(['period', 'starts_on'])->mapWithKeys(fn ($review) => [$review->period->value.'|'.$review->starts_on->toDateString() => true])->all();
         foreach ($backup['weekly_reviews'] ?? [] as $row) {
-            if ($weeks->has($row['week_start'])) {
+            $period = $row['period'] ?? 'week';
+            $slot = $period.'|'.$row['week_start'];
+            if (isset($reviews[$slot])) {
                 $counts['skipped']++;
 
                 continue;
             }
-            $user->weeklyReviews()->create($row);
-            $weeks[$row['week_start']] = true;
+            $user->reviews()->create([...$this->except($row, ['week_start']), 'period' => $period, 'starts_on' => $row['week_start']]);
+            $reviews[$slot] = true;
             $counts['weekly_reviews']++;
         }
 

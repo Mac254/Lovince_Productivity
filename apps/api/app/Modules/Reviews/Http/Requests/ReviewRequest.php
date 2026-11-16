@@ -5,7 +5,7 @@ namespace App\Modules\Reviews\Http\Requests;
 use App\Support\Contract;
 use Illuminate\Foundation\Http\FormRequest;
 
-class WeeklyReviewRequest extends FormRequest
+class ReviewRequest extends FormRequest
 {
     /**
      * @return array<string, mixed>

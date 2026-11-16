@@ -12,7 +12,7 @@ use App\Modules\Journal\Models\JournalEntry;
 use App\Modules\Planner\Models\Schedule;
 use App\Modules\Planner\Models\ScheduleItem;
 use App\Modules\Planner\Models\TimeBlock;
-use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Reviews\Models\Review;
 use App\Modules\Roadmap\Models\RoadmapItem;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Suggestions\Enums\SuggestionSource;
@@ -107,8 +107,9 @@ class BackupExporter
                 'focused_seconds' => $session->focused_seconds,
                 'completed' => $session->completed,
             ])->all(),
-            'weekly_reviews' => $user->weeklyReviews()->orderBy('week_start')->get()->map(fn (WeeklyReview $review) => [
-                'week_start' => $review->week_start->toDateString(),
+            'weekly_reviews' => $user->reviews()->orderBy('starts_on')->orderBy('period')->get()->map(fn (Review $review) => [
+                'period' => $review->period->value,
+                'week_start' => $review->starts_on->toDateString(),
                 'wins' => $review->wins,
                 'challenges' => $review->challenges,
                 'next_focus' => $review->next_focus,

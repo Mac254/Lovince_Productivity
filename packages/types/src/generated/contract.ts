@@ -55,6 +55,9 @@ export type BookStatus = (typeof BOOK_STATUSES)[number];
 export const ROADMAP_STAGES = ['now', 'next', 'later', 'done'] as const;
 export type RoadmapStage = (typeof ROADMAP_STAGES)[number];
 
+export const REVIEW_PERIODS = ['week', 'month', 'year'] as const;
+export type ReviewPeriod = (typeof REVIEW_PERIODS)[number];
+
 export const FINANCIAL_ACCOUNT_TYPES = ['cash', 'bank', 'mobile_money', 'savings', 'sacco', 'money_market', 'investment', 'credit', 'other'] as const;
 export type FinancialAccountType = (typeof FINANCIAL_ACCOUNT_TYPES)[number];
 

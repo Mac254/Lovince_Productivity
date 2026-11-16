@@ -104,7 +104,7 @@ class SuggestionSourcesTest extends TestCase
         $engine->refresh($user, CarbonImmutable::parse('2026-11-02 09:00'));
         $this->assertSame(['review:2026-10-26'], $this->insightKeys($user, 'review:'));
 
-        $user->weeklyReviews()->create(['week_start' => '2026-10-26', 'completed_at' => now()]);
+        $user->reviews()->create(['starts_on' => '2026-10-26', 'completed_at' => now()]);
         $engine->refresh($user, CarbonImmutable::parse('2026-11-02 10:00'));
         $this->assertSame([], $this->insightKeys($user, 'review:'));
 

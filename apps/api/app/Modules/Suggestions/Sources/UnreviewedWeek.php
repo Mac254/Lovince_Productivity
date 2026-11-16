@@ -2,7 +2,8 @@
 
 namespace App\Modules\Suggestions\Sources;
 
-use App\Modules\Reviews\Models\WeeklyReview;
+use App\Modules\Reviews\Enums\ReviewPeriod;
+use App\Modules\Reviews\Models\Review;
 use App\Modules\Suggestions\Contracts\Suggester;
 use App\Modules\Suggestions\Contracts\SuggestionDraft;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
@@ -22,8 +23,8 @@ class UnreviewedWeek implements Suggester
         }
 
         $week = $now->startOfWeek()->subWeek();
-        $reviewed = WeeklyReview::query()->whereBelongsTo($user)
-            ->whereDate('week_start', $week->toDateString())
+        $reviewed = Review::query()->whereBelongsTo($user)
+            ->for(ReviewPeriod::Week, $week)
             ->whereNotNull('completed_at')
             ->exists();
         $worked = Task::query()->whereBelongsTo($user)
