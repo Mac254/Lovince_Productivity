@@ -12,6 +12,7 @@ export const componentTokens = {
     'notch-radius': '1.25rem',
     'notch-corner': '1.75rem',
     'sidebar-width': '16rem',
+    'sidebar-collapsed-width': '4.5rem',
     'topbar-height': '4.5rem',
     'dialog-width': 'calc(100% - 2rem)',
     'dialog-max-height': 'calc(100dvh - 2rem)',

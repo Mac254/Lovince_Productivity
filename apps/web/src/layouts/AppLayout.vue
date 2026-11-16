@@ -23,6 +23,23 @@ const streakLabel = computed(() => {
     return streak.value.active_today ? `${days}, active today` : `${days}. Do something today to keep it`;
 });
 
+const SIDEBAR_KEY = 'focus.sidebar-collapsed';
+const sidebarCollapsed = ref(readSidebarCollapsed());
+function readSidebarCollapsed(): boolean {
+    try {
+        return localStorage.getItem(SIDEBAR_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+watch(sidebarCollapsed, (collapsed) => {
+    try {
+        localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0');
+    } catch {
+        /* The sidebar still toggles; it just won't be remembered. */
+    }
+});
+
 const drawerOpen = ref(false);
 const quickTaskOpen = ref(false);
 const paletteOpen = ref(false);
@@ -119,26 +136,62 @@ function onQuickTaskSaved(): void {
     </a>
 
     <aside
-        class="fixed inset-y-0 left-0 z-(--z-nav) hidden w-(--sidebar-width) flex-col gap-8 overflow-y-auto border-r border-chrome-border bg-chrome px-4 py-6 lg:flex"
+        :class="[
+            'fixed inset-y-0 left-0 z-(--z-nav) hidden flex-col gap-8 overflow-x-hidden overflow-y-auto border-r border-chrome-border bg-chrome py-6 lg:flex',
+            sidebarCollapsed ? 'w-(--sidebar-collapsed-width) px-3' : 'w-(--sidebar-width) px-4',
+        ]"
     >
-        <RouterLink :to="{ name: 'dashboard' }" class="group flex items-center gap-3 rounded-md px-2 text-chrome-fg">
+        <RouterLink
+            :to="{ name: 'dashboard' }"
+            :aria-label="sidebarCollapsed ? 'LovinceTracker' : undefined"
+            :class="['group flex items-center gap-3 rounded-md text-chrome-fg', sidebarCollapsed ? 'justify-center' : 'px-2']"
+        >
             <BrandMark />
-            <span class="font-display text-title font-semibold tracking-tight">LovinceTracker</span>
-        </RouterLink>
-        <SidebarNav />
-        <div class="mt-auto flex flex-col gap-3">
-            <RouterLink
-                :to="{ name: 'focus', query: { mode: 'timer' } }"
-                class="group flex items-center gap-3 rounded-md border border-chrome-border px-3 py-2 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover"
+            <span v-if="!sidebarCollapsed" class="font-display text-title font-semibold tracking-tight"
+                >LovinceTracker</span
             >
-                <Icon name="clock" size="md" motion="spin" />
-                Focus timer
-                <span v-if="timer.active" class="ml-auto text-highlight tabular">{{ timer.display }}</span>
-            </RouterLink>
+        </RouterLink>
+        <SidebarNav :collapsed="sidebarCollapsed" />
+        <div class="mt-auto flex flex-col gap-3">
+            <Tooltip
+                :label="timer.active ? `Focus timer, ${timer.display}` : 'Focus timer'"
+                side="right"
+                :disabled="!sidebarCollapsed"
+            >
+                <RouterLink
+                    :to="{ name: 'focus', query: { mode: 'timer' } }"
+                    :aria-label="sidebarCollapsed ? 'Focus timer' : undefined"
+                    :class="[
+                        'group flex items-center gap-3 rounded-md border border-chrome-border px-3 py-2 text-label font-semibold text-chrome-fg transition-colors hover:bg-chrome-hover',
+                        sidebarCollapsed && 'justify-center',
+                    ]"
+                >
+                    <Icon name="clock" size="md" motion="spin" :class="sidebarCollapsed && timer.active && 'text-highlight'" />
+                    <template v-if="!sidebarCollapsed">
+                        Focus timer
+                        <span v-if="timer.active" class="ml-auto text-highlight tabular">{{ timer.display }}</span>
+                    </template>
+                </RouterLink>
+            </Tooltip>
+            <Tooltip :label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'" side="right">
+                <button
+                    type="button"
+                    :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                    :aria-expanded="!sidebarCollapsed"
+                    :class="[
+                        'group flex items-center gap-3 rounded-md px-3 py-2 text-label font-semibold text-chrome-fg-muted transition-colors duration-(--duration-fast) hover:bg-chrome-hover hover:text-chrome-fg',
+                        sidebarCollapsed && 'justify-center',
+                    ]"
+                    @click="sidebarCollapsed = !sidebarCollapsed"
+                >
+                    <Icon :name="sidebarCollapsed ? 'chevron-right' : 'chevron-left'" size="md" />
+                    <span v-if="!sidebarCollapsed">Collapse</span>
+                </button>
+            </Tooltip>
         </div>
     </aside>
 
-    <div class="min-h-dvh lg:pl-(--sidebar-width)">
+    <div :class="['min-h-dvh', sidebarCollapsed ? 'lg:pl-(--sidebar-collapsed-width)' : 'lg:pl-(--sidebar-width)']">
         <header class="sticky top-0 z-(--z-sticky) border-b border-border bg-canvas">
             <div class="flex h-(--topbar-height) w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
                 <IconButton
