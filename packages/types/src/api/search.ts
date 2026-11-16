@@ -1,3 +1,4 @@
+import type { ReviewPeriod } from '../generated/contract';
 import type { IsoDate } from '../models/task';
 
 export type SearchKind =
@@ -10,4 +11,6 @@ export interface SearchResult {
     excerpt: string | null;
     date: IsoDate | null;
     task_id: number | null;
+    /** Only on review results. */
+    period?: ReviewPeriod;
 }

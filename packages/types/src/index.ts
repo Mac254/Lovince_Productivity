@@ -83,13 +83,14 @@ export type {
 export type { SearchKind, SearchResult } from './api/search';
 export type { BackupImportResult } from './api/backup';
 export type {
+    Reflection,
+    Review,
+    ReviewBucket,
+    ReviewGoal,
+    ReviewInput,
     ReviewPrompt,
-    WeeklyReflection,
-    WeeklyReview,
-    WeeklyReviewDay,
-    WeeklyReviewGoal,
-    WeeklyReviewInput,
-    WeeklyReviewSummary,
+    ReviewSummary,
+    ShorterReview,
 } from './api/reviews';
 export type {
     AccountInput,

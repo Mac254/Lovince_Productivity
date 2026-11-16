@@ -50,7 +50,7 @@ export const navigation: { label: string; items: NavItem[] }[] = [
         items: [
             { name: 'metrics', label: 'Metrics', icon: 'metrics', motion: 'lift' },
             { name: 'reports', label: 'Reports', icon: 'report', motion: 'pop' },
-            { name: 'review', label: 'Weekly review', icon: 'calendar-range', motion: 'lift' },
+            { name: 'review', label: 'Reviews', icon: 'calendar-range', motion: 'lift' },
             { name: 'journal', label: 'Journal', icon: 'journal', motion: 'wiggle' },
         ],
     },

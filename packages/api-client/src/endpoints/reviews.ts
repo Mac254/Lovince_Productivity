@@ -1,19 +1,24 @@
 import type { HttpClient } from '../client/createHttpClient';
-import type { IsoDate, Resource, WeeklyReview, WeeklyReviewInput, WeeklyReviewSummary } from '@focus/types';
+import type { IsoDate, Resource, Review, ReviewInput, ReviewPeriod, ReviewSummary } from '@focus/types';
 import type { RequestOptions } from './types';
 
 export function reviewEndpoints(http: HttpClient) {
     return {
-        async list(options: RequestOptions = {}): Promise<WeeklyReviewSummary[]> {
-            const { data } = await http.get<Resource<WeeklyReviewSummary[]>>('/reviews', options);
+        /** Finished reviews, newest first; all periods unless one is given. */
+        async list(period?: ReviewPeriod, options: RequestOptions = {}): Promise<ReviewSummary[]> {
+            const { data } = await http.get<Resource<ReviewSummary[]>>('/reviews', {
+                ...options,
+                params: period ? { period } : undefined,
+            });
             return data.data;
         },
-        async get(week: IsoDate, options: RequestOptions = {}): Promise<WeeklyReview> {
-            const { data } = await http.get<Resource<WeeklyReview>>(`/reviews/${week}`, options);
+        /** The review of the week, month or year that contains `date`. */
+        async get(period: ReviewPeriod, date: IsoDate, options: RequestOptions = {}): Promise<Review> {
+            const { data } = await http.get<Resource<Review>>(`/reviews/${period}/${date}`, options);
             return data.data;
         },
-        async save(week: IsoDate, input: WeeklyReviewInput): Promise<WeeklyReview> {
-            const { data } = await http.put<Resource<WeeklyReview>>(`/reviews/${week}`, input);
+        async save(period: ReviewPeriod, date: IsoDate, input: ReviewInput): Promise<Review> {
+            const { data } = await http.put<Resource<Review>>(`/reviews/${period}/${date}`, input);
             return data.data;
         },
     };

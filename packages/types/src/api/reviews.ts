@@ -1,24 +1,26 @@
-import type { GoalTone } from '../generated/contract';
+import type { GoalTone, ReviewPeriod } from '../generated/contract';
 import type { IsoDate, IsoDateTime, Task } from '../models/task';
 
-export interface WeeklyReviewDay {
-    date: IsoDate;
+/** One bar on the review chart: a day for a week or month, a month for a year. */
+export interface ReviewBucket {
+    start: IsoDate;
+    end: IsoDate;
     completed: number;
     minutes_logged: number;
     focus_minutes: number;
 }
 
-export interface WeeklyReviewGoal {
+export interface ReviewGoal {
     id: number;
     title: string;
     tone: GoalTone;
     progress: number;
     completed: number;
     total: number;
-    completed_this_week: number;
+    completed_in_period: number;
 }
 
-export interface WeeklyReflection {
+export interface Reflection {
     wins: string | null;
     challenges: string | null;
     next_focus: string | null;
@@ -26,15 +28,22 @@ export interface WeeklyReflection {
     updated_at: IsoDateTime | null;
 }
 
-export interface WeeklyReviewInput {
+/** A week's review inside a month, or a month's inside a year. */
+export interface ShorterReview extends Reflection {
+    period: ReviewPeriod;
+    start: IsoDate;
+    label: string;
+}
+
+export interface ReviewInput {
     wins?: string | null;
     challenges?: string | null;
     next_focus?: string | null;
     completed?: boolean;
 }
 
-export interface WeeklyReview {
-    week: { start: IsoDate; end: IsoDate; next_start: IsoDate; next_end: IsoDate };
+export interface Review {
+    period: { kind: ReviewPeriod; label: string; start: IsoDate; end: IsoDate; next_start: IsoDate; next_end: IsoDate };
     totals: {
         completed: number;
         minutes_logged: number;
@@ -44,19 +53,23 @@ export interface WeeklyReview {
         blockers_resolved: number;
         blockers_open: number;
     };
-    days: WeeklyReviewDay[];
+    buckets: ReviewBucket[];
+    /** Every task for a week; the latest 100 for a month or year (`totals.completed` counts them all). */
     completed: Task[];
     carry_over: Task[];
     skipped: Task[];
-    next_week: Task[];
+    next: Task[];
     unscheduled: Task[];
-    goals: WeeklyReviewGoal[];
+    goals: ReviewGoal[];
     journal: { date: IsoDate; excerpt: string }[];
-    review: WeeklyReflection | null;
+    review: Reflection | null;
+    shorter: ShorterReview[];
 }
 
-export interface WeeklyReviewSummary {
-    week_start: IsoDate;
+export interface ReviewSummary {
+    period: ReviewPeriod;
+    start: IsoDate;
+    label: string;
     completed_at: IsoDateTime;
 }
 

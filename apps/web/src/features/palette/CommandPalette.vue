@@ -59,7 +59,7 @@ const kindLabels: Record<SearchKind, string> = {
     book: 'Book',
     roadmap: 'Roadmap',
     suggestion: 'Suggestion',
-    review: 'Weekly review',
+    review: 'Review',
     schedule: 'Schedule',
 };
 
@@ -107,7 +107,13 @@ const staticCommands = computed<Command[]>(() => [
 function target(result: SearchResult): RouteLocationRaw {
     if (result.kind === 'goal') return { name: 'goal-detail', params: { id: result.id } };
     if (result.kind === 'journal') return { name: 'journal', query: { date: result.date } };
-    if (result.kind === 'review') return { name: 'review', params: { week: result.date } };
+    if (result.kind === 'review') {
+        const start = result.date ?? undefined;
+        return {
+            name: 'review',
+            params: result.period && result.period !== 'week' ? { period: result.period, start } : { start },
+        };
+    }
     if (result.kind === 'schedule') return { name: 'schedules' };
     if (result.kind === 'suggestion') return { name: 'suggestions' };
     if (result.kind === 'achievement') return { name: 'achievements' };

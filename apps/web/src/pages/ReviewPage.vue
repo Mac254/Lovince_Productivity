@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
-import { LIMITS, type Task, type WeeklyReview, type WeeklyReviewSummary } from '@focus/types';
+import { LIMITS, type Review, type ReviewPeriod, type ReviewSummary, type Task } from '@focus/types';
 import type { TabItem } from '@focus/ui';
-import { weekLabel, weekStartIso } from '@/features/reviews/week';
-import { shiftDate } from '@/lib/calendar';
+import { PERIOD_NAMES, periodLabel, periodStart, shiftPeriod } from '@/features/reviews/period';
 import { formatDate, formatMinutes, todayIso } from '@/lib/dates';
 import { toneDot } from '@/lib/tones';
+
+type Section = 'days' | 'tasks' | 'plan' | 'shorter' | 'journal' | 'past';
 
 const route = useRoute();
 const router = useRouter();
@@ -13,37 +14,71 @@ const toast = useToast();
 const outbox = useOutboxStore();
 const dashboard = useDashboardStore();
 
-const review = ref<WeeklyReview | null>(null);
+const review = ref<Review | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const saving = ref(false);
 const moving = ref<number | null>(null);
 const movingAll = ref(false);
 const draft = reactive({ wins: '', challenges: '', next_focus: '' });
-const past = ref<WeeklyReviewSummary[]>([]);
+const past = ref<ReviewSummary[]>([]);
 const reflecting = ref(false);
-const tab = useTabQuery(['days', 'tasks', 'plan', 'journal', 'past'] as const, 'days');
-const tabs = computed<TabItem<'days' | 'tasks' | 'plan' | 'journal' | 'past'>[]>(() => [
-    { value: 'days', label: 'Days', icon: 'calendar-range' },
+
+const periodOptions = [
+    { value: 'week' as const, label: 'Week' },
+    { value: 'month' as const, label: 'Month' },
+    { value: 'year' as const, label: 'Year' },
+];
+const period = computed<ReviewPeriod>(() =>
+    route.params.period === 'month' || route.params.period === 'year' ? route.params.period : 'week',
+);
+const name = computed(() => PERIOD_NAMES[period.value]);
+const shorterName = computed(() => (period.value === 'year' ? 'month' : 'week'));
+const start = computed(() =>
+    periodStart(
+        period.value,
+        typeof route.params.start === 'string' && route.params.start ? route.params.start : todayIso(),
+    ),
+);
+const current = computed(() => periodStart(period.value));
+const isCurrent = computed(() => start.value === current.value);
+
+const tab = useTabQuery(['days', 'tasks', 'plan', 'shorter', 'journal', 'past'] as const, 'days');
+const tabs = computed<TabItem<Section>[]>(() => [
+    { value: 'days', label: period.value === 'year' ? 'Months' : 'Days', icon: 'calendar-range' },
     { value: 'tasks', label: 'Tasks', icon: 'check-circle', count: review.value?.carry_over.length },
-    { value: 'plan', label: 'Goals & next week', icon: 'target' },
+    { value: 'plan', label: `Goals & next ${name.value}`, icon: 'target' },
+    ...(period.value === 'week'
+        ? []
+        : [
+              {
+                  value: 'shorter' as const,
+                  label: `${shorterName.value === 'week' ? 'Weekly' : 'Monthly'} reviews`,
+                  icon: 'history' as const,
+                  count: review.value?.shorter.length,
+              },
+          ]),
     { value: 'journal', label: 'Journal', icon: 'journal', count: review.value?.journal.length },
     { value: 'past', label: 'Past reviews', icon: 'history' },
 ]);
+watch(period, (kind) => {
+    if (kind === 'week' && tab.value === 'shorter') tab.value = 'days';
+});
+
 const completedPage = usePagedList(() => review.value?.completed ?? []);
 const carryPage = usePagedList(() => review.value?.carry_over ?? []);
 const skippedPage = usePagedList(() => review.value?.skipped ?? []);
 const goalsPage = usePagedList(() => review.value?.goals ?? [], 6);
-const nextPage = usePagedList(() => review.value?.next_week ?? []);
+const nextPage = usePagedList(() => review.value?.next ?? []);
 const unscheduledPage = usePagedList(() => review.value?.unscheduled ?? [], 5);
+const shorterPage = usePagedList(() => review.value?.shorter ?? [], 4);
 const pastPage = usePagedList(past, 24);
 
-const thisWeek = weekStartIso();
-const week = computed(() =>
-    weekStartIso(typeof route.params.week === 'string' && route.params.week ? route.params.week : todayIso()),
-);
-const isThisWeek = computed(() => week.value === thisWeek);
 const done = computed(() => !!review.value?.review?.completed_at);
+const written = computed(() => {
+    const saved = review.value?.review;
+    return !!(saved?.wins || saved?.challenges || saved?.next_focus);
+});
 const dirty = computed(() => {
     const saved = review.value?.review;
     return (
@@ -53,10 +88,16 @@ const dirty = computed(() => {
     );
 });
 const peak = computed(() =>
-    Math.max(1, ...(review.value?.days ?? []).map((day) => day.focus_minutes + day.minutes_logged)),
+    Math.max(1, ...(review.value?.buckets ?? []).map((bucket) => bucket.focus_minutes + bucket.minutes_logged)),
 );
+const completedSubtitle = computed(() => {
+    if (!review.value) return '';
+    const total = review.value.totals.completed;
+    const shown = review.value.completed.length;
+    return shown < total ? `Latest ${shown} of ${plural(total, 'task')}` : plural(total, 'task');
+});
 
-function fill(data: WeeklyReview): void {
+function fill(data: Review): void {
     review.value = data;
     draft.wins = data.review?.wins ?? '';
     draft.challenges = data.review?.challenges ?? '';
@@ -67,9 +108,9 @@ async function load(): Promise<void> {
     loading.value = true;
     error.value = null;
     try {
-        fill(await api.reviews.get(week.value));
+        fill(await api.reviews.get(period.value, start.value));
     } catch (e) {
-        error.value = errorMessage(e, 'Could not load this week.');
+        error.value = errorMessage(e, `Could not load this ${name.value}.`);
     } finally {
         loading.value = false;
     }
@@ -77,7 +118,7 @@ async function load(): Promise<void> {
 
 async function loadPast(): Promise<void> {
     try {
-        past.value = await api.reviews.list();
+        past.value = await api.reviews.list(period.value);
     } catch {
         past.value = [];
     }
@@ -86,9 +127,18 @@ async function loadPast(): Promise<void> {
 async function save(completed?: boolean): Promise<void> {
     saving.value = true;
     try {
-        fill(await api.reviews.save(week.value, { ...draft, ...(completed === undefined ? {} : { completed }) }));
+        fill(
+            await api.reviews.save(period.value, start.value, {
+                ...draft,
+                ...(completed === undefined ? {} : { completed }),
+            }),
+        );
         toast.success(
-            completed ? 'Review done. Have a good week.' : completed === false ? 'Review reopened' : 'Review saved',
+            completed
+                ? `Review done. Have a good ${name.value}.`
+                : completed === false
+                  ? 'Review reopened'
+                  : 'Review saved',
         );
         if (completed !== undefined) {
             reflecting.value = false;
@@ -102,15 +152,16 @@ async function save(completed?: boolean): Promise<void> {
     }
 }
 
-async function moveToNextWeek(task: Task): Promise<void> {
+async function moveToNext(task: Task): Promise<void> {
     if (!review.value) return;
     moving.value = task.id;
+    const next = review.value.period.next_start;
     try {
-        await api.tasks.update(task.id, { due_date: review.value.week.next_start });
+        await api.tasks.update(task.id, { due_date: next });
         await load();
     } catch (e) {
         if (isOffline(e)) {
-            outbox.queueTaskUpdate(task, { due_date: review.value.week.next_start });
+            outbox.queueTaskUpdate(task, { due_date: next });
             toast.info(`You’re offline. “${task.title}” will move when you’re back.`);
             return;
         }
@@ -123,10 +174,10 @@ async function moveToNextWeek(task: Task): Promise<void> {
 async function moveAll(): Promise<void> {
     if (!review.value) return;
     movingAll.value = true;
-    const next = review.value.week.next_start;
+    const next = review.value.period.next_start;
     try {
         await Promise.all(review.value.carry_over.map((task) => api.tasks.update(task.id, { due_date: next })));
-        toast.success('Moved to next week');
+        toast.success(`Moved to next ${name.value}`);
         await load();
     } catch (e) {
         if (isOffline(e)) {
@@ -141,12 +192,27 @@ async function moveAll(): Promise<void> {
     }
 }
 
-function go(start: string): void {
-    void router.replace({ name: 'review', params: start === thisWeek ? {} : { week: start } });
+function go(kind: ReviewPeriod, date: string): void {
+    const first = periodStart(kind, date);
+    const params: Record<string, string> = {};
+    if (kind !== 'week') params.period = kind;
+    if (first !== periodStart(kind)) params.start = first;
+    void router.replace({ name: 'review', params, query: route.query });
 }
 
-watch(week, load, { immediate: true });
-void loadPast();
+const choosePeriod = computed({
+    get: () => period.value,
+    set: (kind: ReviewPeriod) => go(kind, start.value),
+});
+
+function bucketCaption(index: number, date: string): string {
+    if (period.value === 'year') return formatDate(date, { month: 'short' });
+    if (period.value === 'week') return formatDate(date, { weekday: 'short' });
+    return index % 7 === 0 ? formatDate(date, { day: 'numeric' }) : '';
+}
+
+watch([period, start], load, { immediate: true });
+watch(period, loadPast, { immediate: true });
 
 const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
 </script>
@@ -154,33 +220,34 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
 <template>
     <div class="flex flex-col gap-6">
         <PageHeader
-            title="Weekly review"
+            title="Review"
             title-id="page-title"
-            :description="review ? weekLabel(review.week.start, review.week.end) : undefined"
+            :description="review ? periodLabel(period, review.period.start, review.period.end) : undefined"
         >
             <template #actions>
+                <SegmentedControl v-model="choosePeriod" label="Review period" :options="periodOptions" size="sm" />
                 <IconButton
                     icon="chevron-left"
-                    label="Previous week"
+                    :label="`Previous ${name}`"
                     variant="outline"
                     motion="nudge-back"
-                    @click="go(shiftDate(week, -7))"
+                    @click="go(period, shiftPeriod(period, start, -1))"
                 />
                 <IconButton
                     icon="chevron-right"
-                    label="Next week"
+                    :label="`Next ${name}`"
                     variant="outline"
                     motion="nudge"
-                    :disabled="isThisWeek"
-                    @click="go(shiftDate(week, 7))"
+                    :disabled="isCurrent"
+                    @click="go(period, shiftPeriod(period, start, 1))"
                 />
-                <Button v-if="!isThisWeek" variant="ghost" @click="go(thisWeek)">This week</Button>
+                <Button v-if="!isCurrent" variant="ghost" @click="go(period, current)">This {{ name }}</Button>
                 <Button
                     v-if="review"
                     :variant="done ? 'outline' : 'primary'"
-                    :icon-start="done ? 'check' : 'edit'"
+                    icon-start="edit"
                     @click="reflecting = true"
-                    >{{ done ? 'Reflection' : 'Reflect' }}</Button
+                    >{{ written ? 'Edit reflection' : 'Reflect' }}</Button
                 >
             </template>
         </PageHeader>
@@ -189,7 +256,10 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
         <Skeleton v-else-if="loading && !review" class="h-96" />
 
         <template v-else-if="review">
-            <section aria-label="Week in numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section
+                :aria-label="`${name.charAt(0).toUpperCase()}${name.slice(1)} in numbers`"
+                class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            >
                 <StatCard
                     label="Completed"
                     icon="check-circle"
@@ -220,31 +290,71 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                 />
             </section>
 
-            <Tabs v-model="tab" label="Week sections" :tabs="tabs">
+            <Card as="section" aria-labelledby="reflection-heading" class="group">
+                <CardHeader
+                    title="Your reflection"
+                    title-id="reflection-heading"
+                    icon="journal"
+                    :subtitle="
+                        done
+                            ? `Finished ${formatDate(review.review!.completed_at!, { dateStyle: 'medium' })}`
+                            : written
+                              ? 'Draft, not finished yet'
+                              : `How did the ${name} go?`
+                    "
+                >
+                    <Button variant="ghost" size="sm" icon-start="edit" @click="reflecting = true">{{
+                        written ? 'Edit' : 'Write'
+                    }}</Button>
+                </CardHeader>
+                <div v-if="written" class="grid gap-6 lg:grid-cols-3">
+                    <section aria-labelledby="wins-heading" class="flex flex-col gap-3">
+                        <Text id="wins-heading" as="h3" role="label" weight="semibold">What went well</Text>
+                        <ReflectionText :text="review.review?.wins ?? null" />
+                    </section>
+                    <section aria-labelledby="challenges-heading" class="flex flex-col gap-3">
+                        <Text id="challenges-heading" as="h3" role="label" weight="semibold">What got in the way</Text>
+                        <ReflectionText :text="review.review?.challenges ?? null" />
+                    </section>
+                    <section aria-labelledby="focus-heading" class="flex flex-col gap-3">
+                        <Text id="focus-heading" as="h3" role="label" weight="semibold">Next {{ name }}’s focus</Text>
+                        <ReflectionText :text="review.review?.next_focus ?? null" />
+                    </section>
+                </div>
+                <Text v-else role="label" tone="muted"
+                    >Nothing written for this {{ name }} yet. A few lines is enough.</Text
+                >
+            </Card>
+
+            <Tabs v-model="tab" :label="`${name} sections`" :tabs="tabs">
                 <template #days>
                     <Card as="section" aria-labelledby="days-heading" class="group">
                         <CardHeader
-                            title="Day by day"
+                            :title="period === 'year' ? 'Month by month' : 'Day by day'"
                             title-id="days-heading"
                             icon="calendar-range"
                             subtitle="Focus and logged time"
                         />
-                        <ol class="grid grid-cols-7 gap-2">
-                            <li v-for="day in review.days" :key="day.date" class="flex flex-col items-center gap-2">
+                        <ol :class="['flex', period === 'month' ? 'gap-1' : 'gap-2']">
+                            <li
+                                v-for="(bucket, index) in review.buckets"
+                                :key="bucket.start"
+                                class="flex min-w-0 flex-1 flex-col items-center gap-2"
+                            >
                                 <div class="flex h-24 w-full items-end justify-center rounded-md bg-surface-raised p-1">
                                     <div
                                         class="w-full rounded-sm bg-accent"
                                         :style="{
-                                            height: `${((day.focus_minutes + day.minutes_logged) / peak) * 100}%`,
+                                            height: `${((bucket.focus_minutes + bucket.minutes_logged) / peak) * 100}%`,
                                         }"
-                                        :title="`${formatMinutes(day.focus_minutes) || '0m'} focus · ${formatMinutes(day.minutes_logged) || '0m'} logged`"
+                                        :title="`${formatDate(bucket.start, period === 'year' ? { month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' })}: ${formatMinutes(bucket.focus_minutes) || '0m'} focus · ${formatMinutes(bucket.minutes_logged) || '0m'} logged · ${bucket.completed} done`"
                                     />
                                 </div>
-                                <Text role="caption" weight="semibold">{{
-                                    formatDate(day.date, { weekday: 'short' })
+                                <Text role="caption" weight="semibold" class="h-4 truncate">{{
+                                    bucketCaption(index, bucket.start)
                                 }}</Text>
-                                <Text role="caption" tone="muted" tabular>{{
-                                    plural(day.completed, 'done', 'done')
+                                <Text v-if="period !== 'month'" role="caption" tone="muted" tabular>{{
+                                    plural(bucket.completed, 'done', 'done')
                                 }}</Text>
                             </li>
                         </ol>
@@ -258,9 +368,12 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                 title="Completed"
                                 title-id="done-heading"
                                 icon="check-circle"
-                                :subtitle="plural(review.completed.length, 'task')"
+                                :subtitle="completedSubtitle"
                             />
-                            <ReviewTaskList :tasks="completedPage.visible" empty="Nothing was completed this week." />
+                            <ReviewTaskList
+                                :tasks="completedPage.visible"
+                                :empty="`Nothing was completed this ${name}.`"
+                            />
                             <Pagination v-model:page="completedPage.page" :last-page="completedPage.lastPage" />
                         </Card>
 
@@ -269,7 +382,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                 title="Carry over"
                                 title-id="carry-heading"
                                 icon="history"
-                                subtitle="Due by the week’s end, still open"
+                                :subtitle="`Due by the ${name}’s end, still open`"
                             >
                                 <Button
                                     v-if="review.carry_over.length > 1"
@@ -277,15 +390,15 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                     size="sm"
                                     :loading="movingAll"
                                     @click="moveAll"
-                                    >Move all to next week</Button
+                                    >Move all to next {{ name }}</Button
                                 >
                             </CardHeader>
                             <ReviewTaskList
                                 :tasks="carryPage.visible"
                                 empty="Nothing carries over."
-                                action="Next week"
+                                :action="`Next ${name}`"
                                 :busy="moving"
-                                @act="moveToNextWeek"
+                                @act="moveToNext"
                             />
                             <Pagination v-model:page="carryPage.page" :last-page="carryPage.lastPage" />
                         </Card>
@@ -297,11 +410,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                 :subtitle="plural(review.skipped.length, 'task')"
                             />
                             <ul class="flex flex-col divide-y divide-border">
-                                <li
-                                    v-for="task in skippedPage.visible"
-                                    :key="task.id"
-                                    class="flex flex-col gap-1 py-2"
-                                >
+                                <li v-for="task in skippedPage.visible" :key="task.id" class="flex flex-col gap-1 py-2">
                                     <RouterLink
                                         :to="{ name: 'task-detail', params: { id: task.id } }"
                                         class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
@@ -335,9 +444,9 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                         <Text as="span" role="caption" tone="muted" tabular
                                             >{{ goal.completed }}/{{ goal.total }} ·
                                             {{
-                                                goal.completed_this_week
-                                                    ? `+${goal.completed_this_week} this week`
-                                                    : 'no progress this week'
+                                                goal.completed_in_period
+                                                    ? `+${goal.completed_in_period} this ${name}`
+                                                    : `no progress this ${name}`
                                             }}</Text
                                         >
                                     </span>
@@ -354,14 +463,14 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
 
                         <Card as="section" aria-labelledby="next-heading" class="group">
                             <CardHeader
-                                title="Next week"
+                                :title="`Next ${name}`"
                                 title-id="next-heading"
                                 icon="calendar-check"
-                                :subtitle="weekLabel(review.week.next_start, review.week.next_end)"
+                                :subtitle="periodLabel(period, review.period.next_start, review.period.next_end)"
                             />
                             <ReviewTaskList
                                 :tasks="nextPage.visible"
-                                empty="Nothing is due next week yet."
+                                :empty="`Nothing is due next ${name} yet.`"
                                 :today="todayIso()"
                             />
                             <Pagination v-model:page="nextPage.page" :last-page="nextPage.lastPage" />
@@ -372,7 +481,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                     empty=""
                                     action="Plan"
                                     :busy="moving"
-                                    @act="moveToNextWeek"
+                                    @act="moveToNext"
                                 />
                                 <Pagination v-model:page="unscheduledPage.page" :last-page="unscheduledPage.lastPage" />
                             </template>
@@ -380,9 +489,69 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                     </div>
                 </template>
 
+                <template #shorter>
+                    <div class="flex flex-col gap-6">
+                        <Card
+                            v-for="item in shorterPage.visible"
+                            :key="item.start"
+                            as="section"
+                            :aria-labelledby="`shorter-${item.start}`"
+                            class="group"
+                        >
+                            <CardHeader
+                                :title="item.label"
+                                :title-id="`shorter-${item.start}`"
+                                icon="history"
+                                :subtitle="item.completed_at ? 'Finished' : 'Draft'"
+                            >
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-end="arrow-right"
+                                    :to="{
+                                        name: 'review',
+                                        params:
+                                            item.period === 'week'
+                                                ? { start: item.start }
+                                                : { period: item.period, start: item.start },
+                                    }"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <div class="grid gap-6 lg:grid-cols-3">
+                                <div class="flex flex-col gap-2">
+                                    <Text as="h4" role="caption" tone="muted" weight="semibold">What went well</Text>
+                                    <ReflectionText :text="item.wins" empty="—" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <Text as="h4" role="caption" tone="muted" weight="semibold"
+                                        >What got in the way</Text
+                                    >
+                                    <ReflectionText :text="item.challenges" empty="—" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <Text as="h4" role="caption" tone="muted" weight="semibold">Focus after</Text>
+                                    <ReflectionText :text="item.next_focus" empty="—" />
+                                </div>
+                            </div>
+                        </Card>
+                        <Card v-if="!review.shorter.length" as="section" class="group">
+                            <Text role="label" tone="muted"
+                                >No {{ shorterName }}ly reviews written in this {{ name }} yet.</Text
+                            >
+                        </Card>
+                        <Pagination v-model:page="shorterPage.page" :last-page="shorterPage.lastPage" />
+                    </div>
+                </template>
+
                 <template #journal>
                     <Card as="section" aria-labelledby="journal-heading" class="group">
-                        <CardHeader title="From your journal" title-id="journal-heading" icon="journal" />
+                        <CardHeader
+                            title="From your journal"
+                            title-id="journal-heading"
+                            icon="journal"
+                            :subtitle="period === 'week' ? undefined : 'Latest entries'"
+                        />
                         <ul v-if="review.journal.length" class="flex flex-col divide-y divide-border">
                             <li v-for="entry in review.journal" :key="entry.date" class="flex flex-col gap-1 py-2">
                                 <RouterLink
@@ -395,7 +564,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                 <Text role="label" tone="muted" class="break-words">{{ entry.excerpt }}</Text>
                             </li>
                         </ul>
-                        <Text v-else role="label" tone="muted">No journal entries this week.</Text>
+                        <Text v-else role="label" tone="muted">No journal entries this {{ name }}.</Text>
                     </Card>
                 </template>
 
@@ -405,17 +574,23 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                             title="Past reviews"
                             title-id="past-heading"
                             icon="history"
-                            subtitle="Weeks you finished"
+                            :subtitle="`${name.charAt(0).toUpperCase()}${name.slice(1)}s you finished`"
                         />
                         <ul v-if="past.length" class="flex flex-wrap gap-2">
-                            <li v-for="item in pastPage.visible" :key="item.week_start">
+                            <li v-for="item in pastPage.visible" :key="item.start">
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    :to="{ name: 'review', params: { week: item.week_start } }"
-                                    :aria-current="item.week_start === week ? 'page' : undefined"
+                                    :to="{
+                                        name: 'review',
+                                        params:
+                                            item.period === 'week'
+                                                ? { start: item.start }
+                                                : { period: item.period, start: item.start },
+                                    }"
+                                    :aria-current="item.start === start ? 'page' : undefined"
                                 >
-                                    {{ weekLabel(item.week_start, shiftDate(item.week_start, 6)) }}
+                                    {{ item.label }}
                                 </Button>
                             </li>
                         </ul>
@@ -430,11 +605,11 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
     <Dialog
         v-if="review"
         v-model:open="reflecting"
-        title="Reflect"
+        :title="`Reflect on the ${name}`"
         :description="
             done
                 ? `Done ${formatDate(review.review!.completed_at!, { dateStyle: 'medium' })}`
-                : 'A few lines is enough.'
+                : 'A few lines is enough. Start a line with - or 1. to make a list.'
         "
         initial-focus="review-wins"
     >
@@ -456,7 +631,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
             <Textarea
                 id="review-next"
                 v-model="draft.next_focus"
-                label="Next week’s focus"
+                :label="`Next ${name}’s focus`"
                 optional
                 :maxlength="LIMITS.review"
             />
