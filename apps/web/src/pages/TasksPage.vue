@@ -15,8 +15,10 @@ import {
 } from '@focus/types';
 import type { LocationQuery } from 'vue-router';
 import { groupByDue } from '@/features/tasks/dueGroups';
-import { groupByTitle, groupInto, type TaskFolderBy } from '@/features/tasks/folders/taskGroups';
+import { groupByTitle, groupInto, normaliseTitle, type TaskFolderBy } from '@/features/tasks/folders/taskGroups';
+import { buildRoutines, routineKeys } from '@/features/tasks/routines';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
+import { todayIso } from '@/lib/dates';
 import { allFacet, withoutAll } from '@/lib/facets';
 import { taskPriorityOptions } from '@/lib/labels';
 import { fromKind, kindOptions, type TaskKind } from '@/lib/taskKind';
@@ -168,7 +170,13 @@ watch(
     },
 );
 watch(view, syncQuery);
-watch(() => outbox.synced, run);
+watch(
+    () => outbox.synced,
+    () => {
+        void run();
+        void closedRecently.run();
+    },
+);
 
 function syncQuery(): void {
     const urlQuery = Object.fromEntries(
@@ -196,8 +204,8 @@ const onlyStatus = computed(
         !filters.task_type_id &&
         filters.page === 1,
 );
-const sections = computed(() => {
-    const tasks = outbox.withPending(
+const tasks = computed(() =>
+    outbox.withPending(
         data.value?.data ?? [],
         (task) =>
             onlyStatus.value &&
@@ -205,20 +213,22 @@ const sections = computed(() => {
                 (filters.status === 'open'
                     ? !['completed', 'cancelled'].includes(task.status)
                     : task.status === filters.status)),
-    );
+    ),
+);
+const sections = computed(() => {
     if (filters.group) {
         return [
             {
                 key: 'all',
                 title: '',
                 icon: 'tasks' as const,
-                tasks,
-                groups: groupInto(tasks, filters.group),
-                count: tasks.length,
+                tasks: tasks.value,
+                groups: groupInto(tasks.value, filters.group),
+                count: tasks.value.length,
             },
         ];
     }
-    const titled = groupByTitle(tasks);
+    const titled = groupByTitle(tasks.value);
     const byLead = new Map(titled.map((group) => [group.lead.id, group]));
     const sorted = filters.sort
         ? [{ key: 'all', title: '', icon: 'tasks' as const, tasks: titled.map((group) => group.lead) }]
@@ -230,6 +240,39 @@ const sections = computed(() => {
     }));
 });
 
+/** With folders on and only the default Open filter, the page leads with today: routines, then what's due. */
+const focusMode = computed(() => !!filters.group && filters.status === 'open' && onlyStatus.value);
+const closedRecently = useAsync((signal) =>
+    api.tasks.list(
+        { status: 'completed', sort: 'updated_at', direction: 'desc', per_page: LIMITS.perPage },
+        { signal },
+    ),
+);
+const isOpen = (task: { status: TaskStatus }) => task.status !== 'completed' && task.status !== 'cancelled';
+const routines = computed(() =>
+    focusMode.value ? buildRoutines(tasks.value.filter(isOpen), closedRecently.data.value?.data ?? []) : [],
+);
+const dueNow = computed(() => {
+    const today = todayIso();
+    const repeated = routineKeys(tasks.value.filter(isOpen));
+    return tasks.value
+        .filter((task) => isOpen(task) && task.due_date && task.due_date <= today)
+        .filter((task) => !repeated.has(normaliseTitle(task.title)))
+        .sort((a, b) => a.due_date!.localeCompare(b.due_date!));
+});
+const tally = computed(() => {
+    const today = todayIso();
+    const open = tasks.value.filter((task) => isOpen(task) && task.due_date);
+    return {
+        today: open.filter((task) => task.due_date === today).length,
+        overdue: open.filter((task) => task.due_date! < today).length,
+    };
+});
+const shownAbove = computed(
+    () => new Set([...dueNow.value, ...routines.value.map((routine) => routine.task)].map((task) => task.id)),
+);
+const folderNoun = computed(() => (filters.group === 'type' ? 'type' : 'goal'));
+
 const total = computed(
     () =>
         (data.value?.meta.total ?? 0) +
@@ -237,7 +280,25 @@ const total = computed(
         (data.value?.data.length ?? 0),
 );
 
+const summary = computed(() => {
+    if (!data.value) return loading.value ? 'Loading…' : 'Everything you’ve planned, in one place.';
+    const count = `${total.value} ${total.value === 1 ? 'task' : 'tasks'}`;
+    if (!focusMode.value) return `${count} match these filters.`;
+    const parts = [`${tally.value.today} due today`];
+    if (tally.value.overdue) parts.push(`${tally.value.overdue} overdue`);
+    parts.push(`${total.value} open`);
+    return parts.join(' · ');
+});
+
+const moreFilters = computed(
+    () =>
+        [filters.priority, filters.category || filters.task_type_id, filters.due, filters.goal_id].filter(Boolean)
+            .length,
+);
+const showMore = ref(moreFilters.value > 0);
+
 const refresh = async () => {
+    void closedRecently.run();
     goals.reset();
     void goals.load().catch(() => undefined);
     void taskTypes.load(true).catch(() => undefined);
@@ -249,18 +310,15 @@ const { actions, dialogOpen, current, defaults, deleting, deletingBusy, create, 
 
 onMounted(() => {
     void run();
+    void closedRecently.run();
     goals.load().catch(() => undefined);
     taskTypes.load().catch(() => undefined);
 });
 </script>
 
 <template>
-    <div class="flex flex-col gap-8">
-        <PageHeader
-            title="Tasks"
-            title-id="page-title"
-            description="Everything you’ve planned, grouped by when it’s due."
-        >
+    <div class="flex flex-col gap-6">
+        <PageHeader title="Tasks" title-id="page-title" :description="summary">
             <template #actions>
                 <Button variant="outline" icon-start="tag" :to="{ name: 'types' }">Types</Button>
                 <Button icon-start="add" @click="create(filters.goal_id ? { goal_id: filters.goal_id } : {})"
@@ -269,7 +327,7 @@ onMounted(() => {
             </template>
         </PageHeader>
 
-        <section aria-label="Filters" class="flex flex-col gap-4 border-b border-border pb-6">
+        <section aria-label="Filters" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center gap-2">
                 <SearchField
                     id="task-search"
@@ -277,30 +335,39 @@ onMounted(() => {
                     label="Search tasks"
                     placeholder="Search tasks"
                     :maxlength="LIMITS.search"
-                    class="w-full sm:w-96"
+                    class="w-full sm:w-80"
                 />
                 <FacetFilter v-model="statusFacet" label="Status" :options="statusOptions" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    icon-start="filter"
+                    :aria-expanded="showMore"
+                    aria-controls="task-more-filters"
+                    @click="showMore = !showMore"
+                    >{{ moreFilters ? `Filters · ${moreFilters}` : 'More filters' }}</Button
+                >
+                <Button v-if="hasFilters" variant="ghost" size="sm" icon-start="close" @click="clearFilters"
+                    >Clear</Button
+                >
+            </div>
+            <div v-show="showMore" id="task-more-filters" class="flex flex-wrap items-center gap-2">
                 <FacetFilter v-model="filters.priority" label="Priority" :options="taskPriorityOptions" />
                 <FacetFilter v-model="typeFacet" label="Type" :options="typeOptions" />
                 <FacetFilter v-model="filters.due" label="Due" :options="dueOptions" />
                 <FacetFilter v-model="filters.goal_id" label="Goal" :options="goalOptions" />
-                <Button v-if="hasFilters" variant="ghost" size="sm" icon-start="close" @click="clearFilters"
-                    >Clear</Button
-                >
-                <div class="ml-auto flex items-center gap-3">
-                    <Text role="label" tone="muted" tabular aria-live="polite">
-                        <template v-if="data && !loading">{{ total }} {{ total === 1 ? 'task' : 'tasks' }}</template>
-                        <template v-else-if="loading">Loading…</template>
-                    </Text>
-                    <FacetFilter v-model="filters.group" label="Group" :options="groupOptions" />
-                    <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
-                    <ChipGroup v-model="view" label="View" :options="viewOptions" />
-                </div>
+                <span class="mx-1 hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
+                <FacetFilter v-model="filters.group" label="Group" :options="groupOptions" />
+                <FacetFilter v-model="filters.sort" label="Sort" :options="sortOptions" />
+                <ChipGroup v-if="!filters.group" v-model="view" label="View" :options="viewOptions" />
             </div>
         </section>
 
         <ErrorState v-if="error" :message="error" @retry="run" />
 
+        <div v-else-if="loading && !data && filters.group" class="flex flex-col gap-2" aria-hidden="true">
+            <Skeleton v-for="n in 6" :key="n" class="h-12" />
+        </div>
         <div v-else-if="loading && !data" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
             <Skeleton v-for="n in 6" :key="n" class="h-52" />
         </div>
@@ -310,14 +377,40 @@ onMounted(() => {
                 v-if="sections.some((section) => section.count)"
                 :class="['flex flex-col gap-8 transition-opacity duration-(--duration-fast)', loading && 'opacity-60']"
             >
+                <template v-if="focusMode">
+                    <RoutineStrip v-if="routines.length" :routines="routines" @toggle="actions.toggleComplete" />
+                    <section v-if="dueNow.length" aria-labelledby="due-now-title" class="flex flex-col gap-3">
+                        <header class="flex items-center gap-2">
+                            <Icon name="calendar" class="text-fg-muted" />
+                            <Text id="due-now-title" as="h2" role="label" weight="bold">Today</Text>
+                            <Text as="span" role="caption" tone="muted" tabular>{{ dueNow.length }}</Text>
+                        </header>
+                        <Card as="div" padding="none" class="p-1">
+                            <ul class="flex flex-col">
+                                <TaskRow
+                                    v-for="task in dueNow"
+                                    :key="task.id"
+                                    :task="task"
+                                    @toggle="actions.toggleComplete"
+                                    @star="actions.toggleHighlight"
+                                />
+                            </ul>
+                        </Card>
+                    </section>
+                </template>
                 <section
                     v-for="section in sections"
                     :key="section.key"
-                    :aria-labelledby="section.title ? `group-${section.key}` : undefined"
-                    :aria-label="section.title ? undefined : 'Tasks'"
+                    :aria-labelledby="filters.group ? 'group-all' : section.title ? `group-${section.key}` : undefined"
+                    :aria-label="filters.group || section.title ? undefined : 'Tasks'"
                     class="flex flex-col gap-3"
                 >
-                    <header v-if="section.title" class="flex items-center gap-2">
+                    <header v-if="filters.group" class="flex items-center gap-2">
+                        <Icon name="folder" class="text-fg-muted" />
+                        <Text id="group-all" as="h2" role="label" weight="bold">By {{ folderNoun }}</Text>
+                        <Text as="span" role="caption" tone="muted" tabular>{{ section.groups.length }}</Text>
+                    </header>
+                    <header v-else-if="section.title" class="flex items-center gap-2">
                         <Icon
                             :name="section.icon"
                             :class="section.key === 'overdue' ? 'text-danger-fg' : 'text-fg-muted'"
@@ -325,16 +418,18 @@ onMounted(() => {
                         <Text :id="`group-${section.key}`" as="h2" role="label" weight="bold">{{ section.title }}</Text>
                         <Text as="span" role="caption" tone="muted" tabular>{{ section.count }}</Text>
                     </header>
-                    <ul v-if="filters.group" class="grid grid-flow-row-dense gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <TaskFolder
-                            v-for="group in section.groups"
-                            :key="group.key"
-                            :group="group"
-                            variant="card"
-                            @toggle="actions.toggleComplete"
-                            @star="actions.toggleHighlight"
-                        />
-                    </ul>
+                    <Card v-if="filters.group" as="div" padding="none" class="p-1">
+                        <ul class="flex flex-col divide-y divide-border">
+                            <TaskShelf
+                                v-for="group in section.groups"
+                                :key="group.key"
+                                :group="group"
+                                :shown-above="focusMode ? shownAbove : undefined"
+                                @toggle="actions.toggleComplete"
+                                @star="actions.toggleHighlight"
+                            />
+                        </ul>
+                    </Card>
                     <ul
                         v-else-if="view === 'cards'"
                         class="grid grid-flow-row-dense gap-4 sm:grid-cols-2 xl:grid-cols-3"

@@ -83,7 +83,7 @@ const recurrence = computed(() =>
                     <Icon
                         :name="open ? 'folder-open' : 'folder'"
                         size="lg"
-                        :class="group.missed ? 'text-danger-fg' : 'text-highlight-fg'"
+                        :class="group.missed ? 'text-warning-fg' : 'text-fg-muted'"
                     />
                     <span class="min-w-0 flex-1 truncate text-body font-semibold">{{ group.title }}</span>
                     <Icon

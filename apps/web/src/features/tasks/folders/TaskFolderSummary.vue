@@ -11,7 +11,7 @@ const logged = computed(() => formatMinutes(props.group.loggedMinutes));
 <template>
     <div class="flex flex-col gap-2">
         <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-fg-muted">
-            <span class="tabular">{{ group.done }}/{{ group.total }} done</span>
+            <span class="tabular">{{ group.done ? `${group.done}/${group.total} done` : `${group.total} open` }}</span>
             <template v-if="logged">
                 <span aria-hidden="true">·</span>
                 <span class="inline-flex items-center gap-1 tabular"><Icon name="clock" />{{ logged }} logged</span>
@@ -24,6 +24,7 @@ const logged = computed(() => formatMinutes(props.group.loggedMinutes));
             <Badge v-if="group.unlogged" tone="warning" icon="hourglass">{{ group.unlogged }} no time logged</Badge>
         </p>
         <ProgressBar
+            v-if="group.done"
             :value="percent"
             :label="`${group.title}: ${group.done} of ${group.total} done`"
             :tone="group.missed ? 'warning' : 'accent'"

@@ -56,7 +56,9 @@ const cover = computed(() => taskCoverUrl(props.task.cover, true));
             </p>
         </div>
         <slot name="actions" :task="task" />
-        <span class="hidden shrink-0 @md:inline-flex"><PriorityDots :priority="task.priority" /></span>
+        <span v-if="task.priority === 'high' || task.priority === 'urgent'" class="hidden shrink-0 @md:inline-flex"
+            ><PriorityDots :priority="task.priority"
+        /></span>
         <Pressable
             type="button"
             :aria-label="task.is_highlighted ? `Remove “${task.title}” from highlights` : `Highlight “${task.title}”`"
