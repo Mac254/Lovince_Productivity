@@ -312,11 +312,9 @@ function onQuickTaskSaved(): void {
         </main>
     </div>
 
-    <Dialog v-model:open="drawerOpen" title="LovinceTracker" size="sm">
-        <div class="-mx-2 rounded-md bg-chrome p-4">
-            <SidebarNav @navigate="drawerOpen = false" />
-        </div>
-    </Dialog>
+    <Sheet v-model:open="drawerOpen" title="LovinceTracker" tone="chrome" side="left" size="nav">
+        <SidebarNav @navigate="drawerOpen = false" />
+    </Sheet>
 
     <FloatingActions />
     <CommandPalette v-model:open="paletteOpen" @new-task="quickTaskOpen = true" @created="onQuickTaskSaved" />
