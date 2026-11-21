@@ -12,9 +12,11 @@ import {
     taskPriorityLabels,
     taskPriorityTones,
 } from '@/lib/labels';
+import JournalPreview from '@/features/journal/JournalPreview.vue';
 
 const route = useRoute();
 const settings = useSettingsStore();
+const preferences = usePreferencesStore();
 const toast = useToast();
 const report = ref<DailyReport | null>(null);
 const loading = ref(true);
@@ -213,11 +215,7 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                 :subtitle="plural(report.skipped_tasks.length, 'task')"
                             />
                             <ul class="flex flex-col divide-y divide-border">
-                                <li
-                                    v-for="task in skippedPage.visible"
-                                    :key="task.id"
-                                    class="flex flex-col gap-1 py-2"
-                                >
+                                <li v-for="task in skippedPage.visible" :key="task.id" class="flex flex-col gap-1 py-2">
                                     <RouterLink
                                         :to="{ name: 'task-detail', params: { id: task.id } }"
                                         class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
@@ -507,10 +505,11 @@ const plural = (count: number, one: string, many = `${one}s`) => `${count} ${cou
                                     >Open</Button
                                 >
                             </CardHeader>
-                            <Text v-if="report.journal" class="break-words whitespace-pre-line">{{
-                                report.journal
-                            }}</Text>
-                            <Text v-else role="label" tone="muted">No journal entry for this day.</Text>
+                            <JournalPreview :source="report.journal ?? ''" :font="preferences.prefs.journalFont">
+                                <template #empty>
+                                    <Text role="label" tone="muted">No journal entry for this day.</Text>
+                                </template>
+                            </JournalPreview>
                         </Card>
                     </div>
                 </template>
