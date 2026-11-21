@@ -40,7 +40,6 @@ const taskOptions = computed(() => {
         options.unshift({ value: current.id, label: current.title });
     return [{ value: '' as const, label: 'No task' }, ...options];
 });
-const selectedTitle = computed(() => taskOptions.value.find((option) => option.value === form.task)?.label);
 
 watch(open, (value) => {
     if (!value) return;
@@ -116,17 +115,15 @@ async function remove(): Promise<void> {
 <template>
     <Dialog v-model:open="open" :title="block ? 'Edit block' : 'Block out time'" size="sm" :busy="saving">
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
-            <Alert v-if="openTask?.fallback" tone="info" icon="clock">
-                <span class="flex flex-col items-start gap-3">
-                    <span
-                        ><strong>Short on time?</strong> Do the short version instead of skipping it:
-                        {{ openTask.fallback }}.</span
-                    >
-                    <Button size="sm" variant="outline" icon-start="check" :disabled="saving" @click="doShort(openTask)"
-                        >Did the short version</Button
-                    >
-                </span>
-            </Alert>
+            <div v-if="openTask?.fallback" class="flex items-center gap-3 rounded-md bg-surface px-4 py-3 text-label">
+                <Icon name="clock" class="shrink-0 text-fg-muted" />
+                <p class="min-w-0 flex-1 text-fg-muted">
+                    <span class="font-semibold text-fg">Short on time?</span> {{ openTask.fallback }}
+                </p>
+                <Button size="sm" variant="ghost" icon-start="check" :disabled="saving" @click="doShort(openTask)"
+                    >Did it</Button
+                >
+            </div>
             <Combobox
                 :id="fid('task')"
                 v-model="form.task"
@@ -139,7 +136,7 @@ async function remove(): Promise<void> {
                 v-model="form.title"
                 label="Title"
                 :optional="!!form.task"
-                :placeholder="selectedTitle && form.task ? selectedTitle : 'e.g. Deep work, Lunch, Inbox'"
+                :placeholder="form.task ? 'Uses the task name' : 'e.g. Deep work, Lunch, Inbox'"
                 :maxlength="LIMITS.timeBlock.title"
                 :error="errors.title"
             />
@@ -161,23 +158,24 @@ async function remove(): Promise<void> {
             </div>
         </form>
         <template #footer>
-            <Button
-                v-if="block"
-                variant="ghost"
-                icon-start="trash"
-                class="sm:mr-auto"
-                :loading="removing"
-                @click="remove"
-                >Remove</Button
-            >
-            <Button
-                v-if="openTask"
-                variant="outline"
-                icon-start="close-circle"
-                :disabled="saving"
-                @click="skip(openTask)"
-                >Skip task</Button
-            >
+            <div v-if="block || openTask" class="flex gap-2 sm:mr-auto">
+                <IconButton
+                    v-if="block"
+                    icon="trash"
+                    label="Remove block"
+                    variant="ghost"
+                    :disabled="removing || saving"
+                    @click="remove"
+                />
+                <IconButton
+                    v-if="openTask"
+                    icon="close-circle"
+                    label="Skip task"
+                    variant="ghost"
+                    :disabled="saving"
+                    @click="skip(openTask)"
+                />
+            </div>
             <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" :form="fid('form')" :loading="saving">{{
                 block ? 'Save changes' : 'Add block'

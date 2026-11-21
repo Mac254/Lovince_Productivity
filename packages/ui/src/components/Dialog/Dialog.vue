@@ -53,7 +53,11 @@ const edges = ref({ top: false, bottom: false });
                     ]"
                 >
                     <div class="flex flex-col gap-1">
-                        <LvDialogTitle class="font-display text-heading font-medium tracking-tight text-balance">
+                        <LvDialogTitle
+                            tabindex="-1"
+                            data-autofocus
+                            class="font-display text-heading font-medium tracking-tight text-balance focus:outline-none"
+                        >
                             {{ title }}
                         </LvDialogTitle>
                         <LvDialogDescription v-if="description" class="text-label text-fg-muted">
@@ -74,7 +78,7 @@ const edges = ref({ top: false, bottom: false });
                 <footer
                     v-if="$slots.footer"
                     :class="[
-                        'flex shrink-0 flex-col-reverse gap-3 border-t px-6 py-4 transition-colors duration-(--duration-fast) sm:flex-row sm:justify-end sm:px-8',
+                        'flex shrink-0 flex-col-reverse gap-3 border-t px-6 py-4 transition-colors duration-(--duration-fast) sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:px-8',
                         edges.bottom ? 'border-border' : 'border-transparent',
                     ]"
                 >

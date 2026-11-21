@@ -72,7 +72,11 @@ const sides = {
                     ]"
                 >
                     <div class="flex flex-col gap-1">
-                        <LvSheetTitle class="font-display text-heading font-medium tracking-tight text-balance">
+                        <LvSheetTitle
+                            tabindex="-1"
+                            data-autofocus
+                            class="font-display text-heading font-medium tracking-tight text-balance focus:outline-none"
+                        >
                             {{ title }}
                         </LvSheetTitle>
                         <LvSheetDescription
