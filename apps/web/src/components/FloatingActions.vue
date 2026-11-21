@@ -90,7 +90,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
             >
                 <RouterLink
                     :to="action.to"
-                    class="group flex items-center gap-3 rounded-full rounded-br-sm border border-border bg-surface-raised py-2 pr-2 pl-4 text-label font-semibold text-fg shadow-floating transition-colors duration-(--duration-fast) hover:bg-surface-overlay focus-visible:outline-2 focus-visible:outline-focus-ring"
+                    class="group flex items-center gap-3 rounded-full rounded-br-sm border border-border bg-surface-raised py-2 pr-2 pl-4 text-label font-semibold text-fg shadow-floating transition-colors duration-(--duration-fast) press hover:bg-surface-overlay focus-visible:outline-2 focus-visible:outline-focus-ring"
                 >
                     {{ action.label }}
                     <span
@@ -106,10 +106,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
             :aria-expanded="notesOpen"
             :aria-controls="notesId"
             :aria-label="notesOpen ? 'Close your notes' : 'Open your notes'"
-            class="group inline-flex size-(--control-md) items-center justify-center rounded-full border border-border bg-surface-raised text-fg shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            class="group inline-flex size-(--control-md) items-center justify-center rounded-full border border-border bg-surface-raised text-fg shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             @click="toggleNotes"
         >
-            <Icon :name="notesOpen ? 'close' : 'edit'" motion="pop" />
+            <Icon
+                :key="String(notesOpen)"
+                :name="notesOpen ? 'close' : 'edit'"
+                :motion="notesOpen ? 'spin' : 'wiggle'"
+                class="motion-enter"
+            />
         </button>
         <button
             v-if="showPlan"
@@ -117,17 +122,22 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
             :aria-expanded="planOpen"
             :aria-controls="planId"
             :aria-label="planOpen ? 'Close the day plan' : 'Open today’s day plan'"
-            class="group inline-flex size-(--control-md) items-center justify-center rounded-full border border-border bg-surface-raised text-fg shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            class="group inline-flex size-(--control-md) items-center justify-center rounded-full border border-border bg-surface-raised text-fg shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             @click="togglePlan"
         >
-            <Icon :name="planOpen ? 'close' : 'calendar-clock'" motion="pop" />
+            <Icon
+                :key="String(planOpen)"
+                :name="planOpen ? 'close' : 'calendar-clock'"
+                :motion="planOpen ? 'spin' : 'wiggle'"
+                class="motion-enter"
+            />
         </button>
         <button
             type="button"
             :aria-expanded="open"
             :aria-controls="menuId"
             :aria-label="open ? 'Close quick actions' : 'Open quick actions'"
-            class="group inline-flex size-(--control-lg) items-center justify-center rounded-full bg-highlight text-highlight-ink shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            class="group inline-flex size-(--control-lg) items-center justify-center rounded-full bg-highlight text-highlight-ink shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             @click="open = !open"
         >
             <AnimatedIcon kind="add" :active="open" size="md" />

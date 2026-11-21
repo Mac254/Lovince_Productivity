@@ -2,6 +2,13 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* Press feedback: a control gives a little under the finger, so a tap answers as clearly as a hover does. */
+@utility press {
+    &:active:not(:disabled, [aria-disabled='true']) {
+        scale: 0.96;
+    }
+}
+
 /*
  * Icon motion: small and quick so it reads as feedback, not decoration. An icon reacts when its interactive parent (marked `group`) is hovered or
  * keyboard-focused. Transform only, token durations; the base layer disables it under reduced motion.
@@ -11,7 +18,8 @@
     .motion-nudge,
     .motion-nudge-back,
     .motion-lift,
-    .motion-spin {
+    .motion-spin,
+    .motion-wiggle {
         transition: transform var(--duration-fast) var(--ease-out);
     }
 
@@ -45,7 +53,26 @@
         animation: icon-wiggle var(--duration-slow) var(--ease-in-out);
     }
 
-    /* One-off entrance for icons in freshly rendered stat cards. */
+    /* Touch screens keep :hover after a tap, so there the icon reacts to focus and press only. */
+    @media (hover: none) {
+        .group:hover:not(:focus-visible, :active)
+            :is(.motion-pop, .motion-nudge, .motion-nudge-back, .motion-lift, .motion-spin) {
+            transform: none;
+        }
+
+        .group:hover:not(:focus-visible, :active) .motion-wiggle {
+            animation: none;
+        }
+    }
+
+    /* Pressing squeezes the icon, on every device. */
+    .group:active:not(:disabled, [aria-disabled='true'])
+        :is(.motion-pop, .motion-nudge, .motion-nudge-back, .motion-lift, .motion-spin, .motion-wiggle) {
+        transform: scale(0.85);
+        transition-duration: var(--duration-instant);
+    }
+
+    /* One-off entrance for icons in freshly rendered stat cards, and for an icon swapped in by `:key`. */
     .motion-enter {
         animation: icon-enter var(--duration-slower) var(--ease-out) both;
     }
