@@ -511,11 +511,11 @@ importers:
         specifier: ^1.2.13
         version: 1.2.13
       '@lovince/icons':
-        specifier: ^1.6.0
-        version: 1.6.0(vue@3.5.44(typescript@6.0.3))
+        specifier: ^1.7.0
+        version: 1.7.0(vue@3.5.44(typescript@6.0.3))
       '@lovince/ui-vue':
-        specifier: ^1.0.1
-        version: 1.0.1(@lovince/icons@1.6.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))
+        specifier: ^1.1.0
+        version: 1.1.0(@lovince/icons@1.7.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))
       unplugin-icons:
         specifier: ^24.0.0
         version: 24.0.0(@vue/compiler-sfc@3.5.44)(rolldown@1.2.15)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0))
@@ -898,8 +898,8 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@lovince/icons@1.6.0':
-    resolution: {integrity: sha1-i8y820KM00drkNwnj+j17JQ8n+s=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/icons/-/@lovince/icons-1.6.0.tgz}
+  '@lovince/icons@1.7.0':
+    resolution: {integrity: sha1-b3JRpg60gwGizoClLZcaHrxzKoo=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/icons/-/@lovince/icons-1.7.0.tgz}
     engines: {node: '>=18'}
     peerDependencies:
       vue: ^3.3.0
@@ -917,16 +917,16 @@ packages:
     resolution: {integrity: sha1-VPQS1swFKUYmsv5wj5EMs8T2p9I=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/tokens/-/@lovince/tokens-1.0.0.tgz}
     engines: {node: '>=18'}
 
-  '@lovince/ui-dom@1.0.0':
-    resolution: {integrity: sha1-BaiNgM/JUFg4hT823QADP+9lQpc=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-dom/-/@lovince/ui-dom-1.0.0.tgz}
+  '@lovince/ui-dom@1.1.0':
+    resolution: {integrity: sha1-9o9fXpZ999FmXJGNDwPB6fg1db8=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-dom/-/@lovince/ui-dom-1.1.0.tgz}
     engines: {node: '>=18'}
 
-  '@lovince/ui-headless@1.0.0':
-    resolution: {integrity: sha1-Qh44Gl9V/VvlUlkvD7R1FCeyT+A=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-headless/-/@lovince/ui-headless-1.0.0.tgz}
+  '@lovince/ui-headless@1.1.0':
+    resolution: {integrity: sha1-BiAdaoQUuVenC1cNHahQRU56rNw=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-headless/-/@lovince/ui-headless-1.1.0.tgz}
     engines: {node: '>=18'}
 
-  '@lovince/ui-vue@1.0.1':
-    resolution: {integrity: sha1-nq6DCpTnVOzgs8gr/fNhed7c0ic=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-vue/-/@lovince/ui-vue-1.0.1.tgz}
+  '@lovince/ui-vue@1.1.0':
+    resolution: {integrity: sha1-uyQL85t/nrJ7+ZUlS2Jghb0/3cQ=, tarball: https://gitlab.com/api/v4/projects/88383934/packages/npm/@lovince/ui-vue/-/@lovince/ui-vue-1.1.0.tgz}
     engines: {node: '>=18'}
     peerDependencies:
       '@lovince/icons': ^1.0.0
@@ -2881,7 +2881,7 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@lovince/icons@1.6.0(vue@3.5.44(typescript@6.0.3))':
+  '@lovince/icons@1.7.0(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       vue: 3.5.44(typescript@6.0.3)
 
@@ -2895,17 +2895,17 @@ snapshots:
 
   '@lovince/tokens@1.0.0': {}
 
-  '@lovince/ui-dom@1.0.0':
+  '@lovince/ui-dom@1.1.0':
     dependencies:
-      '@lovince/ui-headless': 1.0.0
+      '@lovince/ui-headless': 1.1.0
 
-  '@lovince/ui-headless@1.0.0': {}
+  '@lovince/ui-headless@1.1.0': {}
 
-  '@lovince/ui-vue@1.0.1(@lovince/icons@1.6.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))':
+  '@lovince/ui-vue@1.1.0(@lovince/icons@1.7.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))':
     dependencies:
-      '@lovince/icons': 1.6.0(vue@3.5.44(typescript@6.0.3))
-      '@lovince/ui-dom': 1.0.0
-      '@lovince/ui-headless': 1.0.0
+      '@lovince/icons': 1.7.0(vue@3.5.44(typescript@6.0.3))
+      '@lovince/ui-dom': 1.1.0
+      '@lovince/ui-headless': 1.1.0
       vue: 3.5.44(typescript@6.0.3)
 
   '@nodelib/fs.scandir@2.1.5':

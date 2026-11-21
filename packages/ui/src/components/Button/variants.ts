@@ -32,6 +32,6 @@ export const controlSquares: Record<ButtonSize, string> = {
 };
 
 export const interactive =
-    'group inline-flex shrink-0 items-center justify-center rounded-full font-semibold whitespace-nowrap select-none ' +
+    'group relative inline-flex shrink-0 items-center justify-center rounded-full font-semibold whitespace-nowrap select-none ' +
     'transition duration-(--duration-instant) ease-out press ' +
     'disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50';

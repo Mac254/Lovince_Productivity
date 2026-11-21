@@ -40,6 +40,7 @@ defineExpose({ focus: () => button.value?.$el.focus() });
             :as="to ? RouterLink : 'button'"
             :to="to"
             size="icon"
+            ripple
             :variant="lovinceVariants[variant]"
             :disabled="to ? undefined : disabled"
             :aria-label="label"

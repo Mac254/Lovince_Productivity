@@ -45,6 +45,7 @@ const classes = computed(() => [
         :variant="lovinceVariants[variant]"
         :size="size"
         :loading="loading"
+        ripple
         :disabled="disabled"
         :class="classes"
     >
