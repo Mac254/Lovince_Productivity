@@ -3,6 +3,7 @@ import { api } from '@focus/api-client';
 import type { Task } from '@focus/types';
 import type { IconName } from '@focus/ui';
 import type { RouteLocationRaw } from 'vue-router';
+import NotesPanel from '@/features/notes/NotesPanel.vue';
 import { todayIso } from '@/lib/dates';
 
 const route = useRoute();
@@ -10,6 +11,8 @@ const settings = useSettingsStore();
 const open = ref(false);
 const planOpen = ref(false);
 const planId = useId();
+const notesOpen = ref(false);
+const notesId = useId();
 const today = ref(todayIso());
 const tasks = ref<Task[]>([]);
 const showPlan = computed(() => settings.values.planner.enabled && route.name !== 'today');
@@ -36,8 +39,16 @@ function togglePlan(): void {
     planOpen.value = !planOpen.value;
     if (!planOpen.value) return;
     open.value = false;
+    notesOpen.value = false;
     today.value = todayIso();
     void loadTasks();
+}
+
+function toggleNotes(): void {
+    notesOpen.value = !notesOpen.value;
+    if (!notesOpen.value) return;
+    open.value = false;
+    planOpen.value = false;
 }
 
 watch(
@@ -62,6 +73,14 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
         >
             <DayPlanner :date="today" :tasks="tasks" focus-now @changed="loadTasks" />
         </section>
+        <section
+            v-if="notesOpen"
+            :id="notesId"
+            aria-label="Your notes"
+            class="bubble max-h-(--floating-panel-max-height) w-(--floating-panel-width) overflow-y-auto rounded-lg rounded-br-sm border border-border bg-surface-raised shadow-floating"
+        >
+            <NotesPanel />
+        </section>
         <ul v-show="open" :id="menuId" class="flex flex-col items-end gap-2">
             <li
                 v-for="(action, index) in actions"
@@ -82,6 +101,16 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside));
                 </RouterLink>
             </li>
         </ul>
+        <button
+            type="button"
+            :aria-expanded="notesOpen"
+            :aria-controls="notesId"
+            :aria-label="notesOpen ? 'Close your notes' : 'Open your notes'"
+            class="group inline-flex size-(--control-md) items-center justify-center rounded-full border border-border bg-surface-raised text-fg shadow-floating transition-transform duration-(--duration-fast) hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            @click="toggleNotes"
+        >
+            <Icon :name="notesOpen ? 'close' : 'edit'" motion="pop" />
+        </button>
         <button
             v-if="showPlan"
             type="button"

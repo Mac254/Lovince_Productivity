@@ -15,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
  * (`tasks`, `goals`, `wallpapers`…) from its service provider, so Users depends on no other module.
  */
 #[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token', 'avatar_path', 'settings'])]
+#[Hidden(['password', 'remember_token', 'avatar_path', 'settings', 'notes'])]
 #[UseFactory(UserFactory::class)]
 class User extends Authenticatable
 {
@@ -34,6 +34,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'notes_updated_at' => 'datetime',
             'password' => 'hashed',
             'settings' => 'array',
         ];

@@ -104,6 +104,7 @@ export const LIMITS = {
     perPage: 100,
     perPageDefault: 25,
     journal: 20000,
+    notes: 20000,
     blocker: 1000,
     taskNote: {
         body: 5000,

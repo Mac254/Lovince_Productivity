@@ -3,10 +3,12 @@
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Users\Http\Resources\UserResource;
+use App\Modules\Users\Models\User;
 use App\Modules\Users\Services\AccountTimezone;
 use App\Shared\Http\Controllers\Controller;
 use App\Shared\Support\WebpImage;
 use App\Support\Contract;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
@@ -35,6 +37,34 @@ class ProfileController extends Controller
         $user->update(Arr::except($validated, 'timezone'));
 
         return UserResource::make($user);
+    }
+
+    public function notes(Request $request): JsonResponse
+    {
+        // The signed-in user may be a copy loaded before the notes existed, so read them fresh.
+        return $this->notesResponse($request->user()->refresh());
+    }
+
+    /** Saves the whole page; an empty page is stored as no notes. */
+    public function saveNotes(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'notes' => ['present', 'nullable', 'string', 'max:'.Contract::NOTES_MAX],
+        ]);
+
+        $user = $request->user();
+        $notes = is_string($validated['notes']) && trim($validated['notes']) !== '' ? rtrim($validated['notes']) : null;
+        $user->forceFill(['notes' => $notes, 'notes_updated_at' => now()])->save();
+
+        return $this->notesResponse($user);
+    }
+
+    private function notesResponse(User $user): JsonResponse
+    {
+        return response()->json(['data' => [
+            'notes' => $user->notes ?? '',
+            'updated_at' => $user->notes_updated_at?->toIso8601String(),
+        ]]);
     }
 
     public function password(Request $request): Response

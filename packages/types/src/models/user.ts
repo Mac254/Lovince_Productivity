@@ -27,3 +27,9 @@ export interface Me {
     session: AuthSession;
     settings: Settings;
 }
+
+/** The personal notes page kept in the floating buttons, as Markdown. */
+export interface Notes {
+    notes: string;
+    updated_at: string | null;
+}

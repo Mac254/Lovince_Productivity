@@ -13,6 +13,27 @@ class ProfileTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_notes_are_kept_privately_and_cleared_when_empty(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $this->getJson('/api/v1/profile/notes')->assertOk()->assertJsonPath('data.notes', '')->assertJsonPath('data.updated_at', null);
+
+        $this->putJson('/api/v1/profile/notes', ['notes' => "## Work on\n- Sleep by 10:30\n\n"])
+            ->assertOk()
+            ->assertJsonPath('data.notes', "## Work on\n- Sleep by 10:30");
+        $this->getJson('/api/v1/profile/notes')->assertJsonPath('data.notes', "## Work on\n- Sleep by 10:30");
+        $this->assertArrayNotHasKey('notes', $this->getJson('/api/v1/auth/me')->json('data') ?? []);
+
+        $this->putJson('/api/v1/profile/notes', ['notes' => str_repeat('a', 20001)])->assertUnprocessable()->assertJsonValidationErrors('notes');
+        $this->putJson('/api/v1/profile/notes', ['notes' => '   '])->assertOk()->assertJsonPath('data.notes', '');
+        $this->assertNull($user->fresh()->notes);
+
+        $this->actingAs(User::factory()->create());
+        $this->getJson('/api/v1/profile/notes')->assertJsonPath('data.notes', '');
+    }
+
     public function test_password_change_requires_the_current_password_and_the_policy(): void
     {
         $user = User::factory()->create(['password' => 'Old-Password-123']);

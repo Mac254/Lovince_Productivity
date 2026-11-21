@@ -58,6 +58,9 @@ final class Contract
 
     public const JOURNAL_MAX = 20000;
 
+    /** The personal notes page kept in the floating buttons. */
+    public const NOTES_MAX = 20000;
+
     public const BLOCKER_MAX = 1000;
 
     public const METRIC_RANGES = [7, 30, 90];
@@ -209,6 +212,7 @@ final class Contract
             'perPage' => self::PER_PAGE_MAX,
             'perPageDefault' => self::PER_PAGE_DEFAULT,
             'journal' => self::JOURNAL_MAX,
+            'notes' => self::NOTES_MAX,
             'blocker' => self::BLOCKER_MAX,
             'taskNote' => ['body' => self::TASK_NOTE_MAX, 'minutes' => self::TASK_NOTE_MINUTES_MAX],
             'taskType' => ['name' => self::TASK_TYPE_NAME_MAX, 'max' => self::TASK_TYPE_LIMIT],
