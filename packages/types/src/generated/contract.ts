@@ -91,6 +91,7 @@ export const LIMITS = {
         description: 5000,
         estimateMinutes: 6000,
         cancelReason: 200,
+        fallback: 120,
     },
     goal: {
         title: 160,
@@ -130,6 +131,7 @@ export const LIMITS = {
     schedule: {
         name: 80,
         items: 40,
+        fallback: 120,
     },
     suggestion: {
         title: 160,

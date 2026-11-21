@@ -113,6 +113,12 @@ watch(id, load, { immediate: true });
                 <TaskTypeBadge :task="task" />
                 <PriorityDots :priority="task.priority" />
                 <Badge v-if="task.is_overdue" tone="danger" icon="alert-circle">Overdue</Badge>
+                <Text v-if="task.status === 'completed' && task.fallback_done" as="span" role="label" tone="muted"
+                    >Short version: {{ task.fallback }}</Text
+                >
+                <Text v-else-if="task.fallback && task.status !== 'cancelled'" as="span" role="label" tone="muted"
+                    >If late: {{ task.fallback }}</Text
+                >
                 <Text v-if="task.status === 'cancelled' && task.cancel_reason" as="span" role="label" tone="muted"
                     >Skipped: {{ task.cancel_reason }}</Text
                 >

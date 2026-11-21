@@ -339,6 +339,23 @@ onBeforeUnmount(() => window.clearInterval(clock));
                                     · {{ block.task.cancel_reason }}</template
                                 ></span
                             >
+                            <span
+                                v-if="block.task?.status === 'completed' && block.task.fallback_done"
+                                class="min-w-0 truncate text-caption text-fg-muted"
+                                :title="block.task.fallback ?? undefined"
+                                ><span class="font-semibold">Short version</span> · {{ block.task.fallback }}</span
+                            >
+                            <span
+                                v-else-if="
+                                    block.task?.fallback &&
+                                    block.task.status !== 'completed' &&
+                                    block.task.status !== 'cancelled' &&
+                                    block.minutes >= 30
+                                "
+                                class="min-w-0 truncate text-caption text-fg-muted"
+                                :title="`Short version: ${block.task.fallback}`"
+                                >If late: {{ block.task.fallback }}</span
+                            >
                             <span class="shrink-0 truncate text-caption text-fg-muted tabular"
                                 >{{ clockTime(block.start_minute) }}–{{ clockTime(block.start_minute + block.minutes)
                                 }}<template v-if="block.minutes >= 120">
@@ -367,6 +384,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
             :tasks="tasks"
             @changed="load"
             @skip="(task) => actions.setStatus(task, 'cancelled')"
+            @short="(task) => actions.completeShort(task)"
         />
         <ConfirmDialog
             :open="!!replacing"

@@ -37,11 +37,26 @@ class ScheduleRequest extends FormRequest
             'days.*' => ['integer', 'distinct', 'between:1,7'],
             'items' => [$required, 'array', 'max:'.Contract::SCHEDULE_ITEM_LIMIT],
             'items.*.title' => ['required', 'string', 'max:'.Contract::TIME_BLOCK_TITLE_MAX],
+            'items.*.fallback' => ['sometimes', 'nullable', 'string', 'max:'.Contract::FALLBACK_MAX],
             'items.*.task_type_id' => ['sometimes', 'nullable', 'integer', $owned('task_types')],
             'items.*.goal_id' => ['sometimes', 'nullable', 'integer', $owned('goals')],
             'items.*.start_minute' => ['required', 'integer', 'min:0', 'max:'.(self::DAY_MINUTES - 1)],
             'items.*.minutes' => ['required', 'integer', 'min:'.Contract::TIME_BLOCK_MINUTES_MIN, 'max:'.Contract::TIME_BLOCK_MINUTES_MAX],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (! is_array($this->input('items'))) {
+            return;
+        }
+
+        $this->merge(['items' => array_map(
+            fn ($item) => is_array($item) && is_string($item['fallback'] ?? null)
+                ? [...$item, 'fallback' => trim($item['fallback']) ?: null]
+                : $item,
+            $this->input('items'),
+        )]);
     }
 
     /**

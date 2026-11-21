@@ -18,6 +18,7 @@ const fid = (name: string) => `${uid}-${name}`;
 interface Row {
     key: number;
     title: string;
+    fallback: string;
     start: string;
     minutes: number | '' | null;
     type: number | '' | null;
@@ -67,6 +68,7 @@ const goalOptions = computed(() => [
 const toRow = (item: ScheduleItem): Row => ({
     key: nextKey++,
     title: item.title,
+    fallback: item.fallback ?? '',
     start: clockTime(item.start_minute),
     minutes: item.minutes,
     type: item.task_type_id ?? '',
@@ -82,6 +84,7 @@ function addRow(): void {
     rows.value.push({
         key: nextKey++,
         title: '',
+        fallback: '',
         start: clockTime(start),
         minutes: 30,
         type: '',
@@ -124,6 +127,7 @@ async function submit(): Promise<void> {
         }
         items.push({
             title: row.title.trim(),
+            fallback: row.fallback.trim() || null,
             start_minute: start,
             minutes: Number(row.minutes),
             task_type_id: row.type === '' || row.type === null ? null : row.type,
@@ -260,6 +264,16 @@ async function submit(): Promise<void> {
                                 />
                             </div>
                         </div>
+                        <Input
+                            :id="fid(`fallback-${row.key}`)"
+                            v-model="row.fallback"
+                            label="Short version"
+                            optional
+                            hint="What to do instead on a late day, so the habit isn't skipped."
+                            placeholder="e.g. 10-minute walk"
+                            :maxlength="LIMITS.schedule.fallback"
+                            :error="errors[`items.${index}.fallback`]"
+                        />
                         <div class="flex flex-wrap items-end gap-3">
                             <div class="min-w-48 flex-1">
                                 <Select

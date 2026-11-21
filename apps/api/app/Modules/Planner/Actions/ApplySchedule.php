@@ -16,7 +16,7 @@ class ApplySchedule
 
     /**
      * Lays a schedule onto a day: each item becomes a task due that day (reusing one with the same
-     * title) and a time block. Existing blocks either make it fail on overlap or are replaced.
+     * title) and a time block, carrying the item's short version onto the task. Existing blocks either make it fail on overlap or are replaced.
      *
      * @return Collection<int, TimeBlock>
      */
@@ -52,11 +52,16 @@ class ApplySchedule
                 $task = Task::query()->whereBelongsTo($user)->whereDate('due_date', $date)->where('title', $item->title)->first()
                     ?? $user->tasks()->create([
                         'title' => $item->title,
+                        'fallback' => $item->fallback,
                         'task_type_id' => $item->task_type_id,
                         'goal_id' => $item->goal_id,
                         'due_date' => $date,
                         'estimate_minutes' => $item->minutes,
                     ]);
+
+                if ($item->fallback && ! $task->fallback) {
+                    $task->update(['fallback' => $item->fallback]);
+                }
 
                 return $user->timeBlocks()->create([
                     'task_id' => $task->id,

@@ -22,6 +22,10 @@ export interface Task {
     status: TaskStatus;
     /** Why the task was skipped; only set while it is cancelled. */
     cancel_reason: string | null;
+    /** The short version of a routine habit, done instead of skipping it. */
+    fallback: string | null;
+    /** The task was finished in its short version. */
+    fallback_done: boolean;
     priority: TaskPriority;
     category: TaskCategory;
     is_highlighted: boolean;

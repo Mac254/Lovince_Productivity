@@ -14,6 +14,8 @@ export type TaskInput = Partial<
         | 'description'
         | 'status'
         | 'cancel_reason'
+        | 'fallback'
+        | 'fallback_done'
         | 'priority'
         | 'category'
         | 'is_highlighted'

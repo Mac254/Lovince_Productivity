@@ -27,6 +27,8 @@ class TimeBlockResource extends JsonResource
                 'title' => $this->task->title,
                 'status' => $this->task->status,
                 'cancel_reason' => $this->task->cancel_reason,
+                'fallback' => $this->task->fallback,
+                'fallback_done' => (bool) $this->task->fallback_done,
                 'priority' => $this->task->priority,
             ] : null,
         ];

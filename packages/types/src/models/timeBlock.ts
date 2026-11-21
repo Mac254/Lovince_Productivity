@@ -12,6 +12,8 @@ export interface TimeBlock {
         title: string;
         status: TaskStatus;
         cancel_reason: string | null;
+        fallback: string | null;
+        fallback_done: boolean;
         priority: TaskPriority;
     } | null;
 }

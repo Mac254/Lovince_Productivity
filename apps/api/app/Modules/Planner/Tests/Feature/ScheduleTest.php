@@ -49,6 +49,37 @@ class ScheduleTest extends TestCase
         $this->assertSame(0, Schedule::count());
     }
 
+    public function test_a_habit_carries_its_short_version_onto_the_day(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $id = $this->postJson('/api/v1/schedules', ['name' => 'Morning', 'items' => [
+            ['title' => 'Exercise', 'fallback' => '  10-minute walk  ', 'start_minute' => 315, 'minutes' => 45],
+            ['title' => 'Read', 'start_minute' => 375, 'minutes' => 20],
+        ]])->assertCreated()->assertJsonPath('data.items.0.fallback', '10-minute walk')->json('data.id');
+
+        $blocks = $this->postJson("/api/v1/schedules/{$id}/apply", ['date' => today()->toDateString()])
+            ->assertOk()
+            ->assertJsonPath('data.0.task.fallback', '10-minute walk')
+            ->assertJsonPath('data.0.task.fallback_done', false)
+            ->assertJsonPath('data.1.task.fallback', null)
+            ->json('data');
+
+        $exercise = $blocks[0]['task']['id'];
+        $this->patchJson("/api/v1/tasks/{$exercise}", ['status' => 'completed', 'fallback_done' => true])
+            ->assertOk()
+            ->assertJsonPath('data.fallback_done', true);
+
+        $this->patchJson("/api/v1/tasks/{$blocks[1]['task']['id']}", ['status' => 'completed', 'fallback_done' => true])
+            ->assertOk()
+            ->assertJsonPath('data.fallback_done', false);
+
+        $this->patchJson("/api/v1/tasks/{$exercise}", ['status' => 'not_started'])
+            ->assertOk()
+            ->assertJsonPath('data.fallback_done', false)
+            ->assertJsonPath('data.fallback', '10-minute walk');
+    }
+
     public function test_items_may_not_overlap_or_run_past_midnight(): void
     {
         $this->actingAs(User::factory()->create());

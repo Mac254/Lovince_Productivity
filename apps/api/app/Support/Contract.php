@@ -74,6 +74,9 @@ final class Contract
     /** Why a task was skipped, kept short enough to read on a schedule block. */
     public const TASK_CANCEL_REASON_MAX = 200;
 
+    /** The short version of a routine habit, done instead of skipping it on a late day. */
+    public const FALLBACK_MAX = 120;
+
     public const TASK_TYPE_NAME_MAX = 40;
 
     public const TASK_TYPE_LIMIT = 30;
@@ -197,7 +200,7 @@ final class Contract
     public static function limits(): array
     {
         return [
-            'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX, 'cancelReason' => self::TASK_CANCEL_REASON_MAX],
+            'task' => ['title' => self::TASK_TITLE_MAX, 'description' => self::DESCRIPTION_MAX, 'estimateMinutes' => self::TASK_ESTIMATE_MINUTES_MAX, 'cancelReason' => self::TASK_CANCEL_REASON_MAX, 'fallback' => self::FALLBACK_MAX],
             'goal' => ['title' => self::GOAL_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'search' => self::SEARCH_MAX,
             'searchMin' => self::SEARCH_MIN,
@@ -217,7 +220,7 @@ final class Contract
             'review' => self::REVIEW_MAX,
             'checklist' => ['title' => self::CHECKLIST_ITEM_MAX, 'max' => self::CHECKLIST_LIMIT],
             'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
-            'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT],
+            'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT, 'fallback' => self::FALLBACK_MAX],
             'suggestion' => ['title' => self::SUGGESTION_TITLE_MAX, 'body' => self::SUGGESTION_BODY_MAX],
             'achievement' => ['title' => self::ACHIEVEMENT_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'book' => [

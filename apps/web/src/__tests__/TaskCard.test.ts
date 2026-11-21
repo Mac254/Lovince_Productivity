@@ -11,6 +11,8 @@ const task: Task = {
     description: '<img src=x onerror=alert(1)>',
     status: 'in_progress',
     cancel_reason: null,
+    fallback: null,
+    fallback_done: false,
     priority: 'urgent',
     category: 'integration',
     is_highlighted: false,

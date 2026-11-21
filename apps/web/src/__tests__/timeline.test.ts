@@ -50,7 +50,15 @@ describe('timeline helpers', () => {
     it('finds blocks for tasks left unfinished', () => {
         const withTask = (id: number, status: NonNullable<TimeBlock['task']>['status']): TimeBlock => ({
             ...block(id, 30),
-            task: { id, title: 'Task', status, cancel_reason: null, priority: 'medium' },
+            task: {
+                id,
+                title: 'Task',
+                status,
+                cancel_reason: null,
+                fallback: null,
+                fallback_done: false,
+                priority: 'medium',
+            },
         });
         const blocks = [
             block(0, 30),

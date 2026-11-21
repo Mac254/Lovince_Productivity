@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 #[ObservedBy([ActivityObserver::class, TaskObserver::class])]
-#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover', 'cancel_reason'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover', 'cancel_reason', 'fallback', 'fallback_done'])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
 {
@@ -61,6 +61,11 @@ class Task extends Model
                 $task->cancel_reason = null;
             }
 
+            // Only a finished task can have been done in its short version.
+            if ($task->status !== TaskStatus::Completed || ! $task->fallback) {
+                $task->fallback_done = false;
+            }
+
             if ($task->status === TaskStatus::Completed) {
                 $task->completed_at ??= now();
             } else {
@@ -86,6 +91,7 @@ class Task extends Model
             'priority' => TaskPriority::class,
             'category' => TaskCategory::class,
             'is_highlighted' => 'boolean',
+            'fallback_done' => 'boolean',
             'estimate_minutes' => 'integer',
             'recurrence' => TaskRecurrence::class,
             'next_occurrence_id' => 'integer',

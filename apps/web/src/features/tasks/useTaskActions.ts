@@ -47,6 +47,24 @@ export function useTaskActions(onChange: () => void) {
         }
     }
 
+    /** Finishes a routine habit in its short version instead of skipping it. */
+    async function completeShort(task: Pick<Task, 'id' | 'title'> & Partial<Pick<Task, 'updated_at'>>): Promise<void> {
+        const input = { status: 'completed' as const, fallback_done: true };
+        if (isLocal(task)) {
+            outbox.queueTaskUpdate(task, { ...input, completed_at: todayIso() });
+            return queued(task);
+        }
+        try {
+            await api.tasks.update(task.id, input);
+            toast.success(`Did the short version of “${task.title}”`);
+            onChange();
+        } catch (e) {
+            if (!isOffline(e)) return void toast.error(errorMessage(e, 'Could not update the task.'));
+            outbox.queueTaskUpdate(task, { ...input, completed_at: todayIso() });
+            queued(task);
+        }
+    }
+
     async function moveToToday(tasks: Task[]): Promise<void> {
         if (!tasks.length) return;
         try {
@@ -92,5 +110,5 @@ export function useTaskActions(onChange: () => void) {
 
     const toggleComplete = (task: Task) => setStatus(task, task.status === 'completed' ? 'not_started' : 'completed');
 
-    return { setStatus, toggleComplete, toggleHighlight, moveToToday, remove };
+    return { setStatus, completeShort, toggleComplete, toggleHighlight, moveToToday, remove };
 }

@@ -73,6 +73,8 @@ class BackupRules
             'tasks.*.is_highlighted' => ['boolean'],
             'tasks.*.cover' => ['nullable', Rule::in(Contract::COVERS)],
             'tasks.*.cancel_reason' => ['nullable', 'string', 'max:'.Contract::TASK_CANCEL_REASON_MAX],
+            'tasks.*.fallback' => ['nullable', 'string', 'max:'.Contract::FALLBACK_MAX],
+            'tasks.*.fallback_done' => ['boolean'],
             'tasks.*.estimate_minutes' => ['nullable', 'integer', 'min:1', 'max:'.Contract::TASK_ESTIMATE_MINUTES_MAX],
             'tasks.*.start_date' => $date,
             'tasks.*.due_date' => $date,
@@ -129,6 +131,7 @@ class BackupRules
             'schedules.*.items.*.task_type_ref' => $optionalRef,
             'schedules.*.items.*.goal_ref' => $optionalRef,
             'schedules.*.items.*.title' => ['required', 'string', 'max:'.Contract::TIME_BLOCK_TITLE_MAX],
+            'schedules.*.items.*.fallback' => ['nullable', 'string', 'max:'.Contract::FALLBACK_MAX],
             'schedules.*.items.*.start_minute' => ['required', 'integer', 'min:0', 'max:1439'],
             'schedules.*.items.*.minutes' => ['required', 'integer', 'min:'.Contract::TIME_BLOCK_MINUTES_MIN, 'max:'.Contract::TIME_BLOCK_MINUTES_MAX],
 

@@ -22,6 +22,8 @@ trait TaskRules
             'description' => ['sometimes', 'nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],
             'status' => ['sometimes', Rule::enum(TaskStatus::class)],
             'cancel_reason' => ['sometimes', 'nullable', 'string', 'max:'.Contract::TASK_CANCEL_REASON_MAX],
+            'fallback' => ['sometimes', 'nullable', 'string', 'max:'.Contract::FALLBACK_MAX],
+            'fallback_done' => ['sometimes', 'boolean'],
             'priority' => ['sometimes', Rule::enum(TaskPriority::class)],
             'category' => ['sometimes', Rule::enum(TaskCategory::class)],
             'is_highlighted' => ['sometimes', 'boolean'],
@@ -49,6 +51,9 @@ trait TaskRules
     {
         if (is_string($this->input('title'))) {
             $this->merge(['title' => trim($this->input('title'))]);
+        }
+        if (is_string($this->input('fallback'))) {
+            $this->merge(['fallback' => trim($this->input('fallback')) ?: null]);
         }
         if (is_string($this->input('cancel_reason'))) {
             $this->merge(['cancel_reason' => trim($this->input('cancel_reason')) ?: null]);

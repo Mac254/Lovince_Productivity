@@ -10,6 +10,8 @@ const make = (id: number, overrides: Partial<Task> = {}): Task => ({
     description: null,
     status: 'not_started',
     cancel_reason: null,
+    fallback: null,
+    fallback_done: false,
     priority: 'low',
     category: 'general',
     is_highlighted: false,

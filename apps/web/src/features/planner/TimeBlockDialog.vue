@@ -12,7 +12,11 @@ const props = defineProps<{
     tasks: Task[];
 }>();
 const open = defineModel<boolean>('open', { required: true });
-const emit = defineEmits<{ changed: []; skip: [task: NonNullable<TimeBlock['task']>] }>();
+const emit = defineEmits<{
+    changed: [];
+    skip: [task: NonNullable<TimeBlock['task']>];
+    short: [task: NonNullable<TimeBlock['task']>];
+}>();
 
 const toast = useToast();
 const uid = useId();
@@ -51,9 +55,19 @@ watch(open, (value) => {
     errors.value = {};
 });
 
+const openTask = computed(() => {
+    const task = props.block?.task;
+    return task && task.status !== 'completed' && task.status !== 'cancelled' ? task : null;
+});
+
 function skip(task: NonNullable<TimeBlock['task']>): void {
     open.value = false;
     emit('skip', task);
+}
+
+function doShort(task: NonNullable<TimeBlock['task']>): void {
+    open.value = false;
+    emit('short', task);
 }
 
 async function submit(): Promise<void> {
@@ -102,6 +116,17 @@ async function remove(): Promise<void> {
 <template>
     <Dialog v-model:open="open" :title="block ? 'Edit block' : 'Block out time'" size="sm" :busy="saving">
         <form :id="fid('form')" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
+            <Alert v-if="openTask?.fallback" tone="info" icon="clock">
+                <span class="flex flex-col items-start gap-3">
+                    <span
+                        ><strong>Short on time?</strong> Do the short version instead of skipping it:
+                        {{ openTask.fallback }}.</span
+                    >
+                    <Button size="sm" variant="outline" icon-start="check" :disabled="saving" @click="doShort(openTask)"
+                        >Did the short version</Button
+                    >
+                </span>
+            </Alert>
             <Combobox
                 :id="fid('task')"
                 v-model="form.task"
@@ -146,11 +171,11 @@ async function remove(): Promise<void> {
                 >Remove</Button
             >
             <Button
-                v-if="block?.task && block.task.status !== 'completed' && block.task.status !== 'cancelled'"
+                v-if="openTask"
                 variant="outline"
                 icon-start="close-circle"
                 :disabled="saving"
-                @click="skip(block.task)"
+                @click="skip(openTask)"
                 >Skip task</Button
             >
             <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
