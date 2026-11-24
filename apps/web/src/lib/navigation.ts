@@ -19,6 +19,7 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'dashboard', label: 'Dashboard', icon: 'dashboard', motion: 'pop' },
             { name: 'today', label: 'Today', icon: 'calendar-check', motion: 'lift' },
             { name: 'schedules', label: 'Schedules', icon: 'calendar-clock', motion: 'nudge' },
+            { name: 'time', label: 'Time', icon: 'history', motion: 'spin' },
             { name: 'suggestions', label: 'Suggestions', icon: 'lightbulb', motion: 'pop' },
         ],
     },

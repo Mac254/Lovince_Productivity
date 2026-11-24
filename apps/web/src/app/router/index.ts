@@ -95,6 +95,12 @@ export const router = createRouter({
                     meta: { title: 'Achievements' },
                 },
                 {
+                    path: 'time',
+                    name: 'time',
+                    component: () => import('@/pages/TimePage.vue'),
+                    meta: { title: 'Time' },
+                },
+                {
                     path: 'books',
                     name: 'books',
                     component: () => import('@/pages/BooksPage.vue'),

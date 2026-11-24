@@ -12,6 +12,7 @@ import { focusSessionEndpoints, focusTimerEndpoints } from './endpoints/focusSes
 import { goalEndpoints } from './endpoints/goals';
 import { journalEndpoints } from './endpoints/journal';
 import { metricEndpoints } from './endpoints/metrics';
+import { timeEndpoints } from './endpoints/time';
 import { profileEndpoints } from './endpoints/profile';
 import { quoteEndpoints } from './endpoints/quotes';
 import { reportEndpoints } from './endpoints/reports';
@@ -41,6 +42,7 @@ export function createApi(http: HttpClient) {
         reports: reportEndpoints(http),
         reviews: reviewEndpoints(http),
         metrics: metricEndpoints(http),
+        time: timeEndpoints(http),
         search: searchEndpoints(http),
         backup: backupEndpoints(http),
         profile: profileEndpoints(http),

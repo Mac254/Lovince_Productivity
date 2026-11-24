@@ -115,3 +115,4 @@ export type {
     TransactionFilters,
     TransactionInput,
 } from './api/accounting';
+export type { TimeActivity, TimeBucket, TimeCategory, TimeRange, TimeSummary } from './api/time';
