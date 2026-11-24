@@ -44,6 +44,11 @@ class TaskController extends Controller
             ->when($filters['goal_id'] ?? null, fn (Builder $q, int|string $goalId) => $q->where('goal_id', $goalId))
             ->when($filters['task_type_id'] ?? null, fn (Builder $q, int|string $typeId) => $q->where('task_type_id', $typeId))
             ->when($request->boolean('highlighted'), fn (Builder $q) => $q->where('is_highlighted', true))
+            ->when($filters['habits'] ?? null, fn (Builder $q, string $habits) => match ($habits) {
+                'hide' => $q->whereNull('habit'),
+                'only' => $q->whereNotNull('habit'),
+                'current' => $q->where(fn (Builder $q) => $q->whereNull('habit')->orWhereDate('due_date', '>=', $today)),
+            })
             ->when($request->boolean('hide_planned_ahead'), fn (Builder $q) => $q->where(
                 fn (Builder $q) => $q
                     ->whereNull('due_date')

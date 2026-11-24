@@ -38,6 +38,8 @@ class ScheduleRequest extends FormRequest
             'items' => [$required, 'array', 'max:'.Contract::SCHEDULE_ITEM_LIMIT],
             'items.*.title' => ['required', 'string', 'max:'.Contract::TIME_BLOCK_TITLE_MAX],
             'items.*.fallback' => ['sometimes', 'nullable', 'string', 'max:'.Contract::FALLBACK_MAX],
+            'items.*.alternatives' => ['sometimes', 'nullable', 'array', 'max:'.Contract::SCHEDULE_ALTERNATIVE_LIMIT],
+            'items.*.alternatives.*' => ['string', 'max:'.Contract::TIME_BLOCK_TITLE_MAX],
             'items.*.task_type_id' => ['sometimes', 'nullable', 'integer', $owned('task_types')],
             'items.*.goal_id' => ['sometimes', 'nullable', 'integer', $owned('goals')],
             'items.*.start_minute' => ['required', 'integer', 'min:0', 'max:'.(self::DAY_MINUTES - 1)],
@@ -52,11 +54,28 @@ class ScheduleRequest extends FormRequest
         }
 
         $this->merge(['items' => array_map(
-            fn ($item) => is_array($item) && is_string($item['fallback'] ?? null)
-                ? [...$item, 'fallback' => trim($item['fallback']) ?: null]
-                : $item,
+            fn ($item) => is_array($item) ? $this->tidy($item) : $item,
             $this->input('items'),
         )]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function tidy(array $item): array
+    {
+        if (is_string($item['fallback'] ?? null)) {
+            $item['fallback'] = trim($item['fallback']) ?: null;
+        }
+        if (is_array($item['alternatives'] ?? null)) {
+            $item['alternatives'] = array_values(array_unique(array_filter(
+                array_map(fn ($option) => is_string($option) ? trim($option) : $option, $item['alternatives']),
+                fn ($option) => $option !== '' && $option !== null,
+            ))) ?: null;
+        }
+
+        return $item;
     }
 
     /**

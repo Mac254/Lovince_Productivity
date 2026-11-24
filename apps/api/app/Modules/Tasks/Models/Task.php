@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 #[ObservedBy([ActivityObserver::class, TaskObserver::class])]
-#[Fillable(['goal_id', 'task_type_id', 'title', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover', 'cancel_reason', 'fallback', 'fallback_done'])]
+#[Fillable(['goal_id', 'task_type_id', 'title', 'habit', 'description', 'status', 'priority', 'category', 'is_highlighted', 'start_date', 'due_date', 'estimate_minutes', 'recurrence', 'cover', 'cancel_reason', 'fallback', 'fallback_done'])]
 #[UseFactory(TaskFactory::class)]
 class Task extends Model
 {

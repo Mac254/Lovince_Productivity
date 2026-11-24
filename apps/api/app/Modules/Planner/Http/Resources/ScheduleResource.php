@@ -25,6 +25,7 @@ class ScheduleResource extends JsonResource
                 'id' => $item->id,
                 'title' => $item->title,
                 'fallback' => $item->fallback,
+                'alternatives' => $item->alternatives ?? [],
                 'task_type_id' => $item->task_type_id,
                 'goal_id' => $item->goal_id,
                 'start_minute' => $item->start_minute,

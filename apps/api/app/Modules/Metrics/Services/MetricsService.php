@@ -47,7 +47,7 @@ class MetricsService
         $start = today()->subDays($days - 1)->startOfDay();
         $previousStart = $start->copy()->subDays($days);
 
-        $tasks = Task::query()->whereBelongsTo($user)->get();
+        $tasks = Task::query()->whereBelongsTo($user)->whereNull('habit')->get();
 
         $completedInRange = $tasks->filter(fn (Task $t) => $t->status === TaskStatus::Completed && $t->completed_at?->between($start, $end));
         $createdInRange = $tasks->filter(fn (Task $t) => $t->created_at->between($start, $end));

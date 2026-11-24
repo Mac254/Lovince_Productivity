@@ -112,6 +112,16 @@ async function remove(): Promise<void> {
                         >{{ clockTime(item.start_minute) }}–{{ clockTime(item.start_minute + item.minutes) }}</Text
                     >
                     <Text role="label" class="truncate font-semibold">{{ item.title }}</Text>
+                    <Text
+                        v-if="item.alternatives?.length"
+                        role="caption"
+                        tone="muted"
+                        class="ml-auto flex shrink-0 items-center gap-1"
+                        :title="item.alternatives.join(' · ')"
+                    >
+                        <Icon name="shuffle" size="sm" />{{ item.alternatives.length }}
+                        <span class="sr-only">activities rotate: {{ item.alternatives.join(', ') }}</span>
+                    </Text>
                 </li>
             </ol>
         </div>

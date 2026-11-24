@@ -24,6 +24,8 @@ export interface Task {
     cancel_reason: string | null;
     /** The short version of a routine habit, done instead of skipping it. */
     fallback: string | null;
+    /** The schedule slot this task fills, set on tasks a schedule lays out. */
+    habit: string | null;
     /** The task was finished in its short version. */
     fallback_done: boolean;
     priority: TaskPriority;

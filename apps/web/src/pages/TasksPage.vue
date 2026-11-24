@@ -15,8 +15,8 @@ import {
 } from '@focus/types';
 import type { LocationQuery } from 'vue-router';
 import { groupByDue } from '@/features/tasks/dueGroups';
-import { groupByTitle, groupInto, normaliseTitle, type TaskFolderBy } from '@/features/tasks/folders/taskGroups';
-import { buildRoutines, routineKeys } from '@/features/tasks/routines';
+import { groupByTitle, groupInto, type TaskFolderBy } from '@/features/tasks/folders/taskGroups';
+import { buildRoutines, routineKey, routineKeys } from '@/features/tasks/routines';
 import { useTaskEditing } from '@/features/tasks/useTaskEditing';
 import { todayIso } from '@/lib/dates';
 import { allFacet, withoutAll } from '@/lib/facets';
@@ -118,6 +118,7 @@ const query = computed<TaskFilters>(() => ({
     category: filters.category || undefined,
     due: filters.due || undefined,
     hide_planned_ahead: filters.due === 'upcoming' ? undefined : true,
+    habits: 'current',
     goal_id: filters.goal_id || undefined,
     task_type_id: filters.task_type_id || undefined,
     sort: filters.sort || undefined,
@@ -257,7 +258,7 @@ const dueNow = computed(() => {
     const repeated = routineKeys(tasks.value.filter(isOpen));
     return tasks.value
         .filter((task) => isOpen(task) && task.due_date && task.due_date <= today)
-        .filter((task) => !repeated.has(normaliseTitle(task.title)))
+        .filter((task) => !repeated.has(routineKey(task)))
         .sort((a, b) => a.due_date!.localeCompare(b.due_date!));
 });
 const tally = computed(() => {

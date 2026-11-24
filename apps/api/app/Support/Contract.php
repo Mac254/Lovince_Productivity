@@ -111,6 +111,8 @@ final class Contract
 
     public const SCHEDULE_ITEM_LIMIT = 40;
 
+    public const SCHEDULE_ALTERNATIVE_LIMIT = 6;
+
     public const SUGGESTION_TITLE_MAX = 160;
 
     public const SUGGESTION_BODY_MAX = 1000;
@@ -228,7 +230,7 @@ final class Contract
             'review' => self::REVIEW_MAX,
             'checklist' => ['title' => self::CHECKLIST_ITEM_MAX, 'max' => self::CHECKLIST_LIMIT],
             'timeBlock' => ['title' => self::TIME_BLOCK_TITLE_MAX, 'minutesMin' => self::TIME_BLOCK_MINUTES_MIN, 'minutesMax' => self::TIME_BLOCK_MINUTES_MAX],
-            'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT, 'fallback' => self::FALLBACK_MAX],
+            'schedule' => ['name' => self::SCHEDULE_NAME_MAX, 'items' => self::SCHEDULE_ITEM_LIMIT, 'fallback' => self::FALLBACK_MAX, 'alternatives' => self::SCHEDULE_ALTERNATIVE_LIMIT],
             'suggestion' => ['title' => self::SUGGESTION_TITLE_MAX, 'body' => self::SUGGESTION_BODY_MAX],
             'achievement' => ['title' => self::ACHIEVEMENT_TITLE_MAX, 'description' => self::DESCRIPTION_MAX],
             'book' => [

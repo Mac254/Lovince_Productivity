@@ -138,6 +138,7 @@ function localTask(change: TaskCreate): Task {
         status: 'not_started',
         cancel_reason: null,
         fallback: null,
+        habit: null,
         fallback_done: false,
         priority: 'medium',
         category: 'general',

@@ -22,6 +22,8 @@ export interface TaskFilters {
     task_type_id?: number;
     highlighted?: boolean;
     hide_planned_ahead?: boolean;
+    /** Habit tasks are the copies a schedule lays out each day; `current` drops the past ones. */
+    habits?: 'hide' | 'only' | 'current';
     sort?: TaskSort;
     direction?: 'asc' | 'desc';
     page?: number;

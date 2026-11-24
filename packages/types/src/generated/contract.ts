@@ -136,6 +136,7 @@ export const LIMITS = {
         name: 80,
         items: 40,
         fallback: 120,
+        alternatives: 6,
     },
     suggestion: {
         title: 160,

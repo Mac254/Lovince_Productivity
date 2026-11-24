@@ -29,6 +29,7 @@ class IndexTaskRequest extends FormRequest
             'goal_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'task_type_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'highlighted' => ['sometimes', 'boolean'],
+            'habits' => ['sometimes', Rule::in(['hide', 'only', 'current'])],
             'hide_planned_ahead' => ['sometimes', Rule::in(['true', 'false', '1', '0'])],
             'sort' => ['sometimes', 'nullable', Rule::in(self::SORTS)],
             'direction' => ['sometimes', 'nullable', Rule::in(['asc', 'desc'])],

@@ -115,4 +115,5 @@ export type {
     TransactionFilters,
     TransactionInput,
 } from './api/accounting';
+export type { Habit, HabitDay, HabitDayStatus, HabitSummary, HabitWindow } from './api/habits';
 export type { TimeActivity, TimeBucket, TimeCategory, TimeRange, TimeSummary } from './api/time';

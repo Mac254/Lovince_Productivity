@@ -3,6 +3,8 @@ export interface ScheduleItem {
     title: string;
     /** What to do instead on a late day, e.g. a 10-minute walk. */
     fallback?: string | null;
+    /** Activities the slot rotates through, the one done least recently first. Empty means the title itself. */
+    alternatives?: string[];
     task_type_id: number | null;
     goal_id: number | null;
     start_minute: number;

@@ -1,6 +1,6 @@
 import type { Task } from '@focus/types';
 import { todayIso } from '@/lib/dates';
-import { groupByTitle, normaliseTitle } from './folders/taskGroups';
+import { normaliseTitle } from './folders/taskGroups';
 
 export type RoutineDay = 'done' | 'missed' | 'open' | 'none';
 
@@ -21,12 +21,21 @@ function shiftIso(iso: string, days: number): string {
     return date.toISOString().slice(0, 10);
 }
 
-/** Titles that repeat: a recurring task, or the same title filed more than once. */
+/** A schedule's habit keeps one key whichever activity its slot rotated to; other tasks go by title. */
+export const routineKey = (task: Task) => normaliseTitle(task.habit ?? task.title);
+
+function byRoutine(tasks: Task[]): Map<string, Task[]> {
+    const groups = new Map<string, Task[]>();
+    for (const task of tasks) groups.set(routineKey(task), [...(groups.get(routineKey(task)) ?? []), task]);
+    return groups;
+}
+
+/** What repeats: a schedule habit, a recurring task, or the same title filed more than once. */
 export function routineKeys(open: Task[]): Set<string> {
     return new Set(
-        groupByTitle(open)
-            .filter((group) => group.tasks.length > 1 || group.tasks.some((task) => task.recurrence))
-            .map((group) => group.key),
+        [...byRoutine(open)]
+            .filter(([, tasks]) => tasks.length > 1 || tasks.some((task) => task.recurrence || task.habit))
+            .map(([key]) => key),
     );
 }
 
@@ -40,16 +49,16 @@ export function buildRoutines(open: Task[], closed: Task[], now = new Date()): R
     const week = Array.from({ length: 7 }, (_, index) => shiftIso(today, index - 6));
     const all = [...open, ...closed.filter(isClosed)];
 
-    return groupByTitle(open)
-        .filter((group) => keys.has(group.key))
-        .flatMap((group): Routine[] => {
-            const instances = all.filter((task) => normaliseTitle(task.title) === group.key);
+    return [...byRoutine(open)]
+        .filter(([key]) => keys.has(key))
+        .flatMap(([key, tasks]): Routine[] => {
+            const instances = all.filter((task) => routineKey(task) === key);
             const finishedToday = instances.find(
                 (task) =>
                     task.status === 'completed' &&
                     (task.due_date === today || (!task.due_date && task.completed_at?.slice(0, 10) === today)),
             );
-            const due = group.tasks.filter((task) => !task.due_date || task.due_date <= today);
+            const due = tasks.filter((task) => !task.due_date || task.due_date <= today);
             const pending = due.find((task) => task.due_date === today) ?? due[0] ?? null;
             const task = pending ?? finishedToday;
             if (!task) return [];
@@ -60,6 +69,6 @@ export function buildRoutines(open: Task[], closed: Task[], now = new Date()): R
                 if (!onDay.some((instance) => !isClosed(instance))) return 'none';
                 return day < today ? 'missed' : 'open';
             });
-            return [{ key: group.key, task, done: task.status === 'completed', days }];
+            return [{ key, task, done: task.status === 'completed', days }];
         });
 }

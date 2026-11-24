@@ -12,6 +12,7 @@ const task: Task = {
     status: 'in_progress',
     cancel_reason: null,
     fallback: null,
+    habit: null,
     fallback_done: false,
     priority: 'urgent',
     category: 'integration',

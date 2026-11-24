@@ -26,6 +26,7 @@ class TaskResource extends JsonResource
             'status' => $this->status,
             'cancel_reason' => $this->cancel_reason,
             'fallback' => $this->fallback,
+            'habit' => $this->habit,
             'fallback_done' => (bool) $this->fallback_done,
             'priority' => $this->priority,
             'category' => $this->category,

@@ -2,8 +2,6 @@
 
 namespace App\Modules\Planner\Console\Commands;
 
-use App\Modules\Planner\Models\ScheduleItem;
-use App\Modules\Planner\Models\TimeBlock;
 use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Models\Task;
@@ -34,25 +32,16 @@ class SkipMissedRoutines extends Command
 
     private function skip(User $user): int
     {
-        $titles = ScheduleItem::query()
-            ->whereIn('schedule_id', $user->schedules()->select('id'))
-            ->distinct()
-            ->pluck('title');
-
         $skipped = 0;
         Task::query()
             ->whereBelongsTo($user)
+            ->whereNotNull('habit')
             ->whereIn('status', [TaskStatus::NotStarted, TaskStatus::InProgress])
-            ->whereIn('title', $titles)
             ->whereDate('due_date', '<', today()->toDateString())
             ->lazyById()
-            ->each(function (Task $task) use ($user, &$skipped) {
-                $planned = TimeBlock::query()->whereBelongsTo($user)->where('task_id', $task->id)
-                    ->whereDate('date', $task->due_date->toDateString())->exists();
-                if ($planned) {
-                    $task->update(['status' => TaskStatus::Cancelled, 'cancel_reason' => 'Not done on the day']);
-                    $skipped++;
-                }
+            ->each(function (Task $task) use (&$skipped) {
+                $task->update(['status' => TaskStatus::Cancelled, 'cancel_reason' => 'Not done on the day']);
+                $skipped++;
             });
 
         return $skipped;

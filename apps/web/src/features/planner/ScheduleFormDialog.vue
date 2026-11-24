@@ -20,6 +20,7 @@ interface Row {
     key: number;
     title: string;
     fallback: string;
+    alternatives: string;
     start: string;
     minutes: number | '' | null;
     type: number | '' | null;
@@ -76,6 +77,7 @@ const toRow = (item: ScheduleItem): Row => ({
     key: nextKey++,
     title: item.title,
     fallback: item.fallback ?? '',
+    alternatives: (item.alternatives ?? []).join('\n'),
     start: clockTime(item.start_minute),
     minutes: item.minutes,
     type: item.task_type_id ?? '',
@@ -92,6 +94,7 @@ function addRow(): void {
         key: nextKey++,
         title: '',
         fallback: '',
+        alternatives: '',
         start: clockTime(start),
         minutes: Number(settings.values.schedules.activity_minutes),
         type: '',
@@ -135,6 +138,10 @@ async function submit(): Promise<void> {
         items.push({
             title: row.title.trim(),
             fallback: row.fallback.trim() || null,
+            alternatives: row.alternatives
+                .split('\n')
+                .map((option) => option.trim())
+                .filter(Boolean),
             start_minute: start,
             minutes: Number(row.minutes),
             task_type_id: row.type === '' || row.type === null ? null : row.type,
@@ -272,6 +279,16 @@ async function submit(): Promise<void> {
                                 />
                             </div>
                         </div>
+                        <Textarea
+                            :id="fid(`alternatives-${row.key}`)"
+                            v-model="row.alternatives"
+                            label="Mix it up"
+                            optional
+                            rows="3"
+                            hint="One activity per line. Each day takes the one you did least recently, and the activity name above becomes the habit."
+                            placeholder="Run&#10;Strength and mobility&#10;Yoga"
+                            :error="errors[`items.${index}.alternatives`]"
+                        />
                         <Input
                             :id="fid(`fallback-${row.key}`)"
                             v-model="row.fallback"

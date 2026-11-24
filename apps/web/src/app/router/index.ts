@@ -101,6 +101,12 @@ export const router = createRouter({
                     meta: { title: 'Time' },
                 },
                 {
+                    path: 'habits',
+                    name: 'habits',
+                    component: () => import('@/pages/HabitsPage.vue'),
+                    meta: { title: 'Habits' },
+                },
+                {
                     path: 'books',
                     name: 'books',
                     component: () => import('@/pages/BooksPage.vue'),
