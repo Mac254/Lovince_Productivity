@@ -15,6 +15,7 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const editOpen = ref(false);
 const logOpen = ref(false);
+const editingReading = ref<BookReading | null>(null);
 const taskOpen = ref(false);
 const achievementOpen = ref(false);
 const deleting = ref(false);
@@ -52,6 +53,16 @@ function bookSaved(saved: Book): void {
     const finishedNow = saved.kind === 'book' && saved.status === 'finished' && book.value?.status !== 'finished';
     void load();
     if (finishedNow) achievementOpen.value = true;
+}
+
+function logNew(): void {
+    editingReading.value = null;
+    logOpen.value = true;
+}
+
+function editReading(reading: BookReading): void {
+    editingReading.value = reading;
+    logOpen.value = true;
 }
 
 async function removeReading(reading: BookReading): Promise<void> {
@@ -112,7 +123,6 @@ watch(id, load, { immediate: true });
             "
         >
             <template v-if="book" #eyebrow>
-                <Avatar v-if="podcast" :name="book.title" :src="book.image_url" size="lg" />
                 <Badge dot :tone="bookStatusTones[book.status]">{{ statusLabelsFor(book.kind)[book.status] }}</Badge>
                 <Badge v-if="book.rating" tone="highlight" icon="star"
                     >{{ book.rating }}/{{ LIMITS.book.rating }}</Badge
@@ -122,7 +132,7 @@ watch(id, load, { immediate: true });
             <template v-if="book" #actions>
                 <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
                 <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
-                <Button v-if="book.status !== 'finished'" :icon-start="logIcon" @click="logOpen = true">{{
+                <Button v-if="book.status !== 'finished' && !podcast" :icon-start="logIcon" @click="logNew">{{
                     logLabel
                 }}</Button>
             </template>
@@ -134,7 +144,9 @@ watch(id, load, { immediate: true });
         </div>
 
         <template v-else-if="book">
+            <PodcastProfile v-if="podcast" :book="book" @log="logNew" @edit="editReading" @remove="removeReading" />
             <section
+                v-if="!podcast"
                 :aria-label="podcast ? 'Podcast in numbers' : 'Book in numbers'"
                 :class="['grid gap-4 sm:grid-cols-2', podcast ? 'xl:grid-cols-3' : 'xl:grid-cols-4']"
             >
@@ -168,7 +180,7 @@ watch(id, load, { immediate: true });
                 />
             </section>
 
-            <Card as="div" class="gap-3">
+            <Card v-if="!podcast" as="div" class="gap-3">
                 <div class="flex flex-wrap items-baseline justify-between gap-3">
                     <p class="font-display text-lead font-medium">
                         <RouterLink
@@ -193,13 +205,13 @@ watch(id, load, { immediate: true });
                 <Text v-else-if="!podcast" role="label" tone="muted">Add the number of chapters to see progress.</Text>
             </Card>
 
-            <Card v-if="book.notes" as="div" class="gap-2">
+            <Card v-if="book.notes && !podcast" as="div" class="gap-2">
                 <p class="font-display text-lead font-medium">Notes</p>
                 <Text class="whitespace-pre-line">{{ book.notes }}</Text>
             </Card>
 
             <div class="grid gap-6 lg:grid-cols-2">
-                <section aria-labelledby="book-readings" class="flex flex-col gap-4">
+                <section v-if="!podcast" aria-labelledby="book-readings" class="flex flex-col gap-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h2 id="book-readings" class="font-display text-title font-semibold tracking-tight">
                             {{ podcast ? 'Episodes' : 'Reading log' }}
@@ -208,7 +220,7 @@ watch(id, load, { immediate: true });
                             v-if="book.status !== 'finished'"
                             variant="outline"
                             :icon-start="logIcon"
-                            @click="logOpen = true"
+                            @click="logNew"
                             >{{ logLabel }}</Button
                         >
                     </div>
@@ -256,7 +268,9 @@ watch(id, load, { immediate: true });
                 <section aria-labelledby="book-tasks" class="flex flex-col gap-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h2 id="book-tasks" class="font-display text-title font-semibold tracking-tight">Tasks</h2>
-                        <Button variant="outline" icon-start="add" @click="taskOpen = true">Add reading task</Button>
+                        <Button variant="outline" icon-start="add" @click="taskOpen = true">{{
+                            podcast ? 'Add task' : 'Add reading task'
+                        }}</Button>
                     </div>
                     <Card as="div" class="gap-1">
                         <ul v-if="tasks.length" class="flex flex-col divide-y divide-border">
@@ -299,7 +313,7 @@ watch(id, load, { immediate: true });
         </template>
 
         <BookFormDialog v-model:open="editOpen" :book="book" @saved="bookSaved" />
-        <ReadingLogDialog v-model:open="logOpen" :book="book" @saved="changed" />
+        <ReadingLogDialog v-model:open="logOpen" :book="book" :reading="editingReading" @saved="changed" />
         <BookTaskDialog v-model:open="taskOpen" :book="book" @saved="load" />
         <AchievementFormDialog
             v-model:open="achievementOpen"

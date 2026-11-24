@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { api, errorMessage, isApiError } from '@focus/api-client';
 import { LIMITS, type Book, type BookReading } from '@focus/types';
-import { parseDuration, todayIso } from '@/lib/dates';
+import { formatMinutes, parseDuration, todayIso } from '@/lib/dates';
 import { toCount } from './progress';
 
-const props = defineProps<{ book: Book | null }>();
+const props = defineProps<{ book: Book | null; reading?: BookReading | null }>();
 const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ saved: [reading: BookReading] }>();
 
@@ -21,25 +21,27 @@ const errors = ref<Record<string, string>>({});
 const saving = ref(false);
 
 const podcast = computed(() => props.book?.kind === 'podcast');
+const editing = computed(() => !!props.reading);
 const nextChapter = computed(() => (props.book ? props.book.chapters_read + 1 : 1));
 const description = computed(() => {
     const book = props.book;
     if (!book) return '';
     if (podcast.value)
-        return 'Note what the episode said and how it’s affecting you, so you can see its effect over time.';
+        return 'Note what the episode said and the lesson you’re taking from it, so you can see its effect over time.';
     const total = book.chapters_total ? ` of ${book.chapters_total}` : '';
     return `You’re on chapter ${nextChapter.value}${total}. Log what you read in this sitting.`;
 });
 
 watch(open, (value) => {
     if (!value) return;
+    const r = props.reading;
     Object.assign(form, {
-        read_on: todayIso(),
-        episode: '',
-        chapters: podcast.value ? '0' : '1',
-        minutes: '',
-        note: '',
-        impact: '',
+        read_on: r?.read_on ?? todayIso(),
+        episode: r?.episode ?? '',
+        chapters: r ? String(r.chapters ?? 0) : podcast.value ? '0' : '1',
+        minutes: r?.minutes ? formatMinutes(r.minutes) : '',
+        note: r?.note ?? '',
+        impact: r?.impact ?? '',
     });
     errors.value = {};
 });
@@ -63,20 +65,25 @@ async function submit(): Promise<void> {
 
     saving.value = true;
     try {
-        const saved = await api.books.logReading(props.book.id, {
+        const input = {
             read_on: form.read_on!,
             episode: podcast.value ? form.episode?.trim() || null : null,
             chapters,
             minutes,
             note: form.note?.trim() || null,
             impact: podcast.value ? form.impact?.trim() || null : null,
-        });
+        };
+        const saved = props.reading
+            ? await api.books.updateReading(props.reading.id, input)
+            : await api.books.logReading(props.book.id, input);
         toast.success(
-            podcast.value
-                ? 'Episode logged'
-                : chapters
-                  ? `Logged ${chapters} ${chapters === 1 ? 'chapter' : 'chapters'}`
-                  : 'Reading logged',
+            editing.value
+                ? 'Episode updated'
+                : podcast.value
+                  ? 'Episode logged'
+                  : chapters
+                    ? `Logged ${chapters} ${chapters === 1 ? 'chapter' : 'chapters'}`
+                    : 'Reading logged',
         );
         open.value = false;
         emit('saved', saved);
@@ -92,7 +99,7 @@ async function submit(): Promise<void> {
 <template>
     <Dialog
         v-model:open="open"
-        :title="book ? `${podcast ? 'Log episode' : 'Log reading'} · ${book.title}` : 'Log reading'"
+        :title="book ? `${editing ? 'Edit' : 'Log'} ${podcast ? 'episode' : 'reading'} · ${book.title}` : 'Log reading'"
         :description="description"
         :busy="saving"
     >
@@ -147,9 +154,9 @@ async function submit(): Promise<void> {
                 v-if="podcast"
                 id="reading-impact"
                 v-model="form.impact"
-                label="How it’s affecting me"
+                label="Lesson learnt"
                 optional
-                hint="What you’ll do, think or feel differently because of it"
+                hint="The one thing you’ll do, think or feel differently because of it"
                 :maxlength="LIMITS.book.readingNote"
                 :error="errors.impact"
             />
@@ -157,7 +164,7 @@ async function submit(): Promise<void> {
         <template #footer>
             <Button variant="outline" :disabled="saving" @click="open = false">Cancel</Button>
             <Button type="submit" form="reading-form" :loading="saving" :icon-start="podcast ? 'headphones' : 'book'">{{
-                podcast ? 'Log episode' : 'Log reading'
+                editing ? 'Save' : podcast ? 'Log episode' : 'Log reading'
             }}</Button>
         </template>
     </Dialog>
