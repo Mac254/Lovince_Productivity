@@ -82,6 +82,7 @@ class BookController extends Controller
 
         return $book->loadSum('readings', 'minutes')
             ->loadMax('readings', 'read_on')
+            ->loadCount('readings')
             ->loadCount(['tasks as open_tasks_count' => fn (Builder $q) => $q->whereIn('status', TaskStatus::open())]);
     }
 
@@ -94,6 +95,7 @@ class BookController extends Controller
         return $query->with(Book::RELATIONS)
             ->withSum('readings', 'minutes')
             ->withMax('readings', 'read_on')
+            ->withCount('readings')
             ->withCount(['tasks as open_tasks_count' => fn (Builder $q) => $q->whereIn('status', TaskStatus::open())]);
     }
 }

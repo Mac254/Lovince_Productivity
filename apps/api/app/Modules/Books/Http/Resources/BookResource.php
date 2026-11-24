@@ -40,6 +40,7 @@ class BookResource extends JsonResource
             ] : null),
             'minutes_read' => $this->when(array_key_exists('readings_sum_minutes', $attributes), fn () => (int) $this->readings_sum_minutes),
             'last_read_on' => $this->when(array_key_exists('readings_max_read_on', $attributes), fn () => $this->readings_max_read_on ? substr((string) $this->readings_max_read_on, 0, 10) : null),
+            'sessions' => $this->when(array_key_exists('readings_count', $attributes), fn () => (int) $this->readings_count),
             'open_tasks' => $this->when(array_key_exists('open_tasks_count', $attributes), fn () => (int) $this->open_tasks_count),
             'readings' => BookReadingResource::collection($this->whenLoaded('readings')),
             'tasks' => $this->whenLoaded('tasks', fn () => $this->tasks->map(fn (Task $task) => [

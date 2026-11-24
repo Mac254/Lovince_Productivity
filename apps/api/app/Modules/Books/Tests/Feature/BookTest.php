@@ -190,7 +190,7 @@ class BookTest extends TestCase
             ->assertJsonPath('data.episode', 'Habits that stick')
             ->assertJsonPath('data.impact', 'I set out my clothes the night before.');
 
-        $this->getJson("/api/v1/books/{$id}")->assertOk()->assertJsonPath('data.status', 'reading')->assertJsonPath('data.minutes_read', 45);
+        $this->getJson("/api/v1/books/{$id}")->assertOk()->assertJsonPath('data.status', 'reading')->assertJsonPath('data.minutes_read', 45)->assertJsonPath('data.sessions', 1);
         $this->getJson('/api/v1/books?kind=podcast')->assertOk()->assertJsonCount(1, 'data');
         $this->getJson('/api/v1/books?kind=book')->assertOk()->assertJsonCount(0, 'data');
     }

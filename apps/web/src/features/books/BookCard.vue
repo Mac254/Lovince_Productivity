@@ -22,6 +22,13 @@ const menu = computed<MenuItem[]>(() => [
     { label: `Delete ${noun.value}`, icon: 'trash', destructive: true, onSelect: () => emit('delete', props.book) },
 ]);
 
+const listened = computed(() => {
+    const count = props.book.sessions ?? 0;
+    const parts = [`${count} ${count === 1 ? 'episode' : 'episodes'}`];
+    if (props.book.minutes_read) parts.push(formatMinutes(props.book.minutes_read));
+    return parts.join(' · ');
+});
+
 const when = computed(() => {
     const { status, finished_on: finished, last_read_on: last, started_on: started } = props.book;
     if (status === 'finished' && finished) return `${podcast.value ? 'Stopped' : 'Finished'} ${formatDate(finished)}`;
@@ -33,7 +40,27 @@ const when = computed(() => {
 </script>
 
 <template>
-    <Card interactive class="min-h-56 gap-3">
+    <Card v-if="podcast" interactive class="gap-4">
+        <div class="flex items-start gap-4">
+            <Avatar :name="book.title" size="lg" />
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <Heading :level="3" role="title" class="truncate">
+                    <RouterLink
+                        :to="{ name: 'book-detail', params: { id: book.id } }"
+                        class="underline-offset-4 hover:underline"
+                        >{{ book.title }}</RouterLink
+                    >
+                </Heading>
+                <Text v-if="book.author" role="label" tone="muted" class="truncate">{{ book.author }}</Text>
+            </div>
+            <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" />
+        </div>
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-3">
+            <Text role="label" tone="muted" tabular>{{ when }}</Text>
+            <Text role="label" tone="muted" tabular>{{ listened }}</Text>
+        </div>
+    </Card>
+    <Card v-else interactive class="min-h-56 gap-3">
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
                 <Badge dot :tone="bookStatusTones[book.status]">{{ statusLabelsFor(book.kind)[book.status] }}</Badge>
@@ -63,11 +90,7 @@ const when = computed(() => {
             {{ when }}
         </Text>
 
-        <div v-if="podcast && book.minutes_read" class="mt-auto flex items-baseline gap-2 pt-2">
-            <span class="font-display text-heading font-semibold tabular">{{ formatMinutes(book.minutes_read) }}</span>
-            <Text as="span" role="label" tone="muted">listened</Text>
-        </div>
-        <div v-else-if="!podcast && book.status !== 'to_find'" class="mt-auto flex flex-col gap-2 pt-2">
+        <div v-if="book.status !== 'to_find'" class="mt-auto flex flex-col gap-2 pt-2">
             <div class="flex items-baseline justify-between gap-2">
                 <span v-if="book.progress !== null" class="font-display text-heading font-semibold tabular"
                     >{{ book.progress }}%</span

@@ -41,6 +41,8 @@ export interface Book {
     goal?: GoalRef | null;
     minutes_read?: number;
     last_read_on?: IsoDate | null;
+    /** Readings, or a podcast's episodes, logged. */
+    sessions?: number;
     open_tasks?: number;
     /** Only on a single book. */
     readings?: BookReading[];
