@@ -42,5 +42,17 @@ export interface RoadmapItem {
 }
 
 export type RoadmapItemInput = Partial<
-    Pick<RoadmapItem, 'title' | 'details' | 'area' | 'stage' | 'done_on' | 'goal_id' | 'money_goal_id' | 'target_amount' | 'starts_on' | 'ends_on'>
+    Pick<
+        RoadmapItem,
+        | 'title'
+        | 'details'
+        | 'area'
+        | 'stage'
+        | 'done_on'
+        | 'goal_id'
+        | 'money_goal_id'
+        | 'target_amount'
+        | 'starts_on'
+        | 'ends_on'
+    >
 >;
