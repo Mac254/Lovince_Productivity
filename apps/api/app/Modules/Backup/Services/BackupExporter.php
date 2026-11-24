@@ -163,6 +163,7 @@ class BackupExporter
             'books' => $user->books()->with(['readings', 'tasks:id,book_id'])->orderBy('id')->get()->map(fn (Book $book) => [
                 'goal_ref' => $book->goal_id,
                 'task_refs' => $book->tasks->modelKeys(),
+                'kind' => $this->value($book->kind),
                 'title' => $book->title,
                 'author' => $book->author,
                 'status' => $this->value($book->status),
@@ -174,9 +175,11 @@ class BackupExporter
                 'notes' => $book->notes,
                 'readings' => $book->readings->sortBy('read_on')->values()->map(fn (BookReading $reading) => [
                     'read_on' => $reading->read_on->toDateString(),
+                    'episode' => $reading->episode,
                     'chapters' => $reading->chapters,
                     'minutes' => $reading->minutes,
                     'note' => $reading->note,
+                    'impact' => $reading->impact,
                 ])->all(),
             ])->all(),
             'roadmap' => $user->roadmapItems()->orderBy('stage')->orderBy('position')->get()->map(fn (RoadmapItem $item) => [

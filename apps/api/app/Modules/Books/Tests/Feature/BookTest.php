@@ -172,4 +172,26 @@ class BookTest extends TestCase
         $this->assertSame(1, $imported->readings()->count());
         $this->assertSame(1, $imported->tasks()->count());
     }
+
+    public function test_a_podcast_logs_episodes_with_what_they_changed(): void
+    {
+        $id = $this->postJson('/api/v1/books', ['kind' => 'podcast', 'title' => 'The Diary of a CEO', 'author' => 'Steven Bartlett'])
+            ->assertCreated()
+            ->assertJsonPath('data.kind', 'podcast')
+            ->json('data.id');
+
+        $this->postJson("/api/v1/books/{$id}/readings", [
+            'read_on' => today()->toDateString(),
+            'episode' => 'Habits that stick',
+            'minutes' => 45,
+            'note' => 'Small wins compound.',
+            'impact' => 'I set out my clothes the night before.',
+        ])->assertCreated()
+            ->assertJsonPath('data.episode', 'Habits that stick')
+            ->assertJsonPath('data.impact', 'I set out my clothes the night before.');
+
+        $this->getJson("/api/v1/books/{$id}")->assertOk()->assertJsonPath('data.status', 'reading')->assertJsonPath('data.minutes_read', 45);
+        $this->getJson('/api/v1/books?kind=podcast')->assertOk()->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/books?kind=book')->assertOk()->assertJsonCount(0, 'data');
+    }
 }

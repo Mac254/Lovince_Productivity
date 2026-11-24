@@ -3,7 +3,7 @@ import { api, errorMessage } from '@focus/api-client';
 import { LIMITS, type Book, type BookReading } from '@focus/types';
 import { chapterSummary } from '@/features/books/progress';
 import { formatDate, formatMinutes } from '@/lib/dates';
-import { bookStatusLabels, bookStatusTones, taskRecurrenceLabels } from '@/lib/labels';
+import { bookStatusTones, statusLabelsFor, taskRecurrenceLabels } from '@/lib/labels';
 
 const route = useRoute();
 const router = useRouter();
@@ -22,6 +22,9 @@ const deleteBusy = ref(false);
 
 const id = computed(() => Number(route.params.id));
 const readings = computed(() => book.value?.readings ?? []);
+const podcast = computed(() => book.value?.kind === 'podcast');
+const logLabel = computed(() => (podcast.value ? 'Log episode' : 'Log reading'));
+const logIcon = computed(() => (podcast.value ? 'headphones' : 'book'));
 const tasks = computed(() => book.value?.tasks ?? []);
 const readingPage = usePagedList(() => readings.value, 10);
 
@@ -41,11 +44,12 @@ async function changed(): Promise<void> {
     const before = book.value?.status;
     await load();
     void dashboard.invalidate();
-    if (before && before !== 'finished' && book.value?.status === 'finished') achievementOpen.value = true;
+    if (!podcast.value && before && before !== 'finished' && book.value?.status === 'finished')
+        achievementOpen.value = true;
 }
 
 function bookSaved(saved: Book): void {
-    const finishedNow = saved.status === 'finished' && book.value?.status !== 'finished';
+    const finishedNow = saved.kind === 'book' && saved.status === 'finished' && book.value?.status !== 'finished';
     void load();
     if (finishedNow) achievementOpen.value = true;
 }
@@ -53,7 +57,7 @@ function bookSaved(saved: Book): void {
 async function removeReading(reading: BookReading): Promise<void> {
     try {
         await api.books.removeReading(reading.id);
-        toast.success('Reading removed');
+        toast.success(podcast.value ? 'Episode removed' : 'Reading removed');
         await load();
     } catch (e) {
         toast.error(errorMessage(e, 'Could not remove the reading.'));
@@ -86,6 +90,7 @@ async function confirmDelete(): Promise<void> {
 }
 
 function sitting(reading: BookReading): string {
+    if (podcast.value) return reading.episode || 'Episode';
     const parts = [];
     if (reading.chapters) parts.push(`${reading.chapters} ${reading.chapters === 1 ? 'chapter' : 'chapters'}`);
     if (reading.minutes) parts.push(formatMinutes(reading.minutes));
@@ -103,14 +108,18 @@ watch(id, load, { immediate: true });
             :back="{ to: { name: 'books' }, label: 'Back to all books' }"
         >
             <template v-if="book" #eyebrow>
-                <Badge dot :tone="bookStatusTones[book.status]">{{ bookStatusLabels[book.status] }}</Badge>
-                <Badge v-if="book.rating" tone="highlight" icon="star">{{ book.rating }}/{{ LIMITS.book.rating }}</Badge>
+                <Badge dot :tone="bookStatusTones[book.status]">{{ statusLabelsFor(book.kind)[book.status] }}</Badge>
+                <Badge v-if="book.rating" tone="highlight" icon="star"
+                    >{{ book.rating }}/{{ LIMITS.book.rating }}</Badge
+                >
             </template>
             <template v-if="book?.author" #description>{{ book.author }}</template>
             <template v-if="book" #actions>
                 <Button variant="outline" icon-start="edit" @click="editOpen = true">Edit</Button>
                 <Button variant="outline" icon-start="trash" @click="deleting = true">Delete</Button>
-                <Button v-if="book.status !== 'finished'" icon-start="book" @click="logOpen = true">Log reading</Button>
+                <Button v-if="book.status !== 'finished'" :icon-start="logIcon" @click="logOpen = true">{{
+                    logLabel
+                }}</Button>
             </template>
         </PageHeader>
 
@@ -120,8 +129,12 @@ watch(id, load, { immediate: true });
         </div>
 
         <template v-else-if="book">
-            <section aria-label="Book in numbers" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section
+                :aria-label="podcast ? 'Podcast in numbers' : 'Book in numbers'"
+                :class="['grid gap-4 sm:grid-cols-2', podcast ? 'xl:grid-cols-3' : 'xl:grid-cols-4']"
+            >
                 <StatCard
+                    v-if="!podcast"
                     label="Progress"
                     icon="book"
                     :value="book.progress ?? 0"
@@ -130,19 +143,24 @@ watch(id, load, { immediate: true });
                     emphasis
                 />
                 <StatCard
-                    label="Sittings"
+                    :label="podcast ? 'Episodes' : 'Sittings'"
                     icon="calendar-range"
                     :value="readings.length"
                     :hint="book.last_read_on ? `Last on ${formatDate(book.last_read_on)}` : 'None logged yet'"
                 />
                 <StatCard
-                    label="Time read"
+                    :label="podcast ? 'Time listened' : 'Time read'"
                     icon="clock"
                     :value="Math.round((book.minutes_read ?? 0) / 6) / 10"
                     suffix="h"
-                    hint="From logged sittings"
+                    :hint="podcast ? 'From logged episodes' : 'From logged sittings'"
                 />
-                <StatCard label="Open tasks" icon="tasks" :value="book.open_tasks ?? 0" hint="Reading tasks to do" />
+                <StatCard
+                    label="Open tasks"
+                    icon="tasks"
+                    :value="book.open_tasks ?? 0"
+                    :hint="podcast ? 'Tasks to do' : 'Reading tasks to do'"
+                />
             </section>
 
             <Card as="div" class="gap-3">
@@ -154,7 +172,7 @@ watch(id, load, { immediate: true });
                             class="underline-offset-4 hover:underline"
                             >{{ book.goal.title }}</RouterLink
                         >
-                        <template v-else>Reading</template>
+                        <template v-else>{{ podcast ? 'Listening' : 'Reading' }}</template>
                     </p>
                     <Text role="label" tone="muted" tabular>
                         {{ book.started_on ? formatDate(book.started_on, { dateStyle: 'medium' }) : 'Not started' }} →
@@ -162,12 +180,12 @@ watch(id, load, { immediate: true });
                     </Text>
                 </div>
                 <ProgressBar
-                    v-if="book.progress !== null"
+                    v-if="!podcast && book.progress !== null"
                     :value="book.progress"
                     :label="`${book.title} progress`"
                     :tone="book.progress === 100 ? 'highlight' : 'accent'"
                 />
-                <Text v-else role="label" tone="muted">Add the number of chapters to see progress.</Text>
+                <Text v-else-if="!podcast" role="label" tone="muted">Add the number of chapters to see progress.</Text>
             </Card>
 
             <Card v-if="book.notes" as="div" class="gap-2">
@@ -179,14 +197,14 @@ watch(id, load, { immediate: true });
                 <section aria-labelledby="book-readings" class="flex flex-col gap-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h2 id="book-readings" class="font-display text-title font-semibold tracking-tight">
-                            Reading log
+                            {{ podcast ? 'Episodes' : 'Reading log' }}
                         </h2>
                         <Button
                             v-if="book.status !== 'finished'"
                             variant="outline"
-                            icon-start="book"
+                            :icon-start="logIcon"
                             @click="logOpen = true"
-                            >Log reading</Button
+                            >{{ logLabel }}</Button
                         >
                     </div>
                     <Card as="div" class="gap-1">
@@ -198,25 +216,34 @@ watch(id, load, { immediate: true });
                             >
                                 <div class="flex min-w-0 flex-col gap-1">
                                     <Text role="label" tabular class="font-medium">{{ sitting(reading) }}</Text>
-                                    <Text role="label" tone="muted" tabular>{{
-                                        formatDate(reading.read_on, { dateStyle: 'medium' })
-                                    }}</Text>
+                                    <Text role="label" tone="muted" tabular
+                                        >{{ formatDate(reading.read_on, { dateStyle: 'medium' })
+                                        }}{{
+                                            podcast && reading.minutes ? ` · ${formatMinutes(reading.minutes)}` : ''
+                                        }}</Text
+                                    >
                                     <Text v-if="reading.note" role="label" tone="muted" class="whitespace-pre-line">{{
                                         reading.note
                                     }}</Text>
+                                    <p v-if="reading.impact" class="flex items-start gap-2 text-label text-fg">
+                                        <Icon name="lightbulb" class="shrink-0 text-highlight" />
+                                        <span class="whitespace-pre-line">{{ reading.impact }}</span>
+                                    </p>
                                 </div>
                                 <IconButton
                                     icon="trash"
                                     variant="ghost"
                                     size="sm"
-                                    :label="`Remove the reading on ${formatDate(reading.read_on)}`"
+                                    :label="`Remove the ${podcast ? 'episode' : 'reading'} on ${formatDate(reading.read_on)}`"
                                     @click="removeReading(reading)"
                                 />
                             </li>
                         </ul>
-                        <Text v-else role="label" tone="muted" class="py-2"
-                            >Log each sitting to track chapters and time.</Text
-                        >
+                        <Text v-else role="label" tone="muted" class="py-2">{{
+                            podcast
+                                ? 'Log each episode with what it said and how it’s affecting you.'
+                                : 'Log each sitting to track chapters and time.'
+                        }}</Text>
                         <Pagination v-model:page="readingPage.page" :last-page="readingPage.lastPage" />
                     </Card>
                 </section>
@@ -276,8 +303,8 @@ watch(id, load, { immediate: true });
         />
         <ConfirmDialog
             v-model:open="deleting"
-            title="Delete book?"
-            :message="`“${book?.title}” and its reading log will be deleted. Its tasks are kept and simply unlinked.`"
+            :title="podcast ? 'Delete podcast?' : 'Delete book?'"
+            :message="`“${book?.title}” and its ${podcast ? 'episode' : 'reading'} log will be deleted. Its tasks are kept and simply unlinked.`"
             :loading="deleteBusy"
             @confirm="confirmDelete"
         />

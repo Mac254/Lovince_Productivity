@@ -1,5 +1,6 @@
 import type {
     AchievementCategory,
+    BookKind,
     BookStatus,
     BlockerStatus,
     GoalStatus,
@@ -38,6 +39,7 @@ export interface GoalFilters {
 }
 
 export interface BookFilters {
+    kind?: BookKind;
     status?: BookStatus;
     goal_id?: number;
 }

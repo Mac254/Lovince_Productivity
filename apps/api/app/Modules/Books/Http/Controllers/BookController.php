@@ -2,6 +2,7 @@
 
 namespace App\Modules\Books\Http\Controllers;
 
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Books\Http\Requests\BookRequest;
 use App\Modules\Books\Http\Resources\BookResource;
@@ -23,10 +24,12 @@ class BookController extends Controller
         $filters = $request->validate([
             'status' => ['sometimes', 'nullable', Rule::enum(BookStatus::class)],
             'goal_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'kind' => ['sometimes', 'nullable', Rule::enum(BookKind::class)],
         ]);
 
         $books = $this->withSummary(Book::query()->whereBelongsTo($request->user()))
             ->when($filters['status'] ?? null, fn ($q, string $status) => $q->where('status', $status))
+            ->when($filters['kind'] ?? null, fn ($q, string $kind) => $q->where('kind', $kind))
             ->when($filters['goal_id'] ?? null, fn ($q, int|string $goalId) => $q->where('goal_id', $goalId))
             ->orderByDesc('updated_at')
             ->orderByDesc('id')

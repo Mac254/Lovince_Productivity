@@ -1,27 +1,34 @@
 <script setup lang="ts">
 import { LIMITS, type Book } from '@focus/types';
 import type { MenuItem } from '@focus/ui';
-import { formatDate } from '@/lib/dates';
-import { bookStatusLabels, bookStatusTones } from '@/lib/labels';
+import { formatDate, formatMinutes } from '@/lib/dates';
+import { bookStatusTones, statusLabelsFor } from '@/lib/labels';
 import { chapterSummary } from './progress';
 
 const props = defineProps<{ book: Book }>();
 const emit = defineEmits<{ edit: [book: Book]; log: [book: Book]; delete: [book: Book] }>();
 
+const podcast = computed(() => props.book.kind === 'podcast');
+const noun = computed(() => (podcast.value ? 'podcast' : 'book'));
 const menu = computed<MenuItem[]>(() => [
     ...(props.book.status === 'finished'
         ? []
-        : [{ label: 'Log reading', icon: 'book' as const, onSelect: () => emit('log', props.book) }]),
-    { label: 'Edit book', icon: 'edit', onSelect: () => emit('edit', props.book) },
-    { label: 'Delete book', icon: 'trash', destructive: true, onSelect: () => emit('delete', props.book) },
+        : [
+              podcast.value
+                  ? { label: 'Log episode', icon: 'headphones' as const, onSelect: () => emit('log', props.book) }
+                  : { label: 'Log reading', icon: 'book' as const, onSelect: () => emit('log', props.book) },
+          ]),
+    { label: `Edit ${noun.value}`, icon: 'edit', onSelect: () => emit('edit', props.book) },
+    { label: `Delete ${noun.value}`, icon: 'trash', destructive: true, onSelect: () => emit('delete', props.book) },
 ]);
 
 const when = computed(() => {
     const { status, finished_on: finished, last_read_on: last, started_on: started } = props.book;
-    if (status === 'finished' && finished) return `Finished ${formatDate(finished)}`;
-    if (last) return `Last read ${formatDate(last)}`;
+    if (status === 'finished' && finished) return `${podcast.value ? 'Stopped' : 'Finished'} ${formatDate(finished)}`;
+    if (last) return `Last ${podcast.value ? 'listened' : 'read'} ${formatDate(last)}`;
     if (started) return `Started ${formatDate(started)}`;
-    return status === 'to_find' ? 'Still to find' : 'On the shelf';
+    if (status === 'to_find') return 'Still to find';
+    return podcast.value ? 'Not listened yet' : 'On the shelf';
 });
 </script>
 
@@ -29,8 +36,10 @@ const when = computed(() => {
     <Card interactive class="min-h-56 gap-3">
         <div class="flex items-start justify-between gap-2">
             <div class="flex flex-wrap items-center gap-2">
-                <Badge dot :tone="bookStatusTones[book.status]">{{ bookStatusLabels[book.status] }}</Badge>
-                <Badge v-if="book.rating" tone="highlight" icon="star">{{ book.rating }}/{{ LIMITS.book.rating }}</Badge>
+                <Badge dot :tone="bookStatusTones[book.status]">{{ statusLabelsFor(book.kind)[book.status] }}</Badge>
+                <Badge v-if="book.rating" tone="highlight" icon="star"
+                    >{{ book.rating }}/{{ LIMITS.book.rating }}</Badge
+                >
             </div>
             <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" />
         </div>
@@ -54,7 +63,11 @@ const when = computed(() => {
             {{ when }}
         </Text>
 
-        <div v-if="book.status !== 'to_find'" class="mt-auto flex flex-col gap-2 pt-2">
+        <div v-if="podcast && book.minutes_read" class="mt-auto flex items-baseline gap-2 pt-2">
+            <span class="font-display text-heading font-semibold tabular">{{ formatMinutes(book.minutes_read) }}</span>
+            <Text as="span" role="label" tone="muted">listened</Text>
+        </div>
+        <div v-else-if="!podcast && book.status !== 'to_find'" class="mt-auto flex flex-col gap-2 pt-2">
             <div class="flex items-baseline justify-between gap-2">
                 <span v-if="book.progress !== null" class="font-display text-heading font-semibold tabular"
                     >{{ book.progress }}%</span

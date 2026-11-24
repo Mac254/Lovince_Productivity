@@ -12,6 +12,7 @@ import {
     TASK_RECURRENCES,
     TASK_STATUSES,
     type BlockerStatus,
+    type BookKind,
     type BookStatus,
     type RoadmapStage,
     type GoalStatus,
@@ -67,6 +68,16 @@ export const bookStatusLabels: Record<BookStatus, string> = {
     reading: 'Reading',
     finished: 'Finished',
 };
+
+export const podcastStatusLabels: Record<BookStatus, string> = {
+    to_find: 'To find',
+    to_read: 'Want to try',
+    reading: 'Listening',
+    finished: 'Done',
+};
+
+export const statusLabelsFor = (kind: BookKind): Record<BookStatus, string> =>
+    kind === 'podcast' ? podcastStatusLabels : bookStatusLabels;
 
 export const bookStatusTones: Record<BookStatus, BadgeTone> = {
     to_find: 'warning',
@@ -195,6 +206,7 @@ export const taskRecurrenceOptions = [
 ];
 export const taskCategoryOptions = toOptions(TASK_CATEGORIES, taskCategoryLabels);
 export const bookStatusOptions = toOptions(BOOK_STATUSES, bookStatusLabels);
+export const podcastStatusOptions = toOptions(BOOK_STATUSES, podcastStatusLabels);
 export const roadmapStageOptions = toOptions(ROADMAP_STAGES, roadmapStageLabels);
 export const goalStatusOptions = toOptions(GOAL_STATUSES, goalStatusLabels);
 export const goalTimeframeOptions = toOptions(GOAL_TIMEFRAMES, goalTimeframeLabels);

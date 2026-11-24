@@ -11,6 +11,7 @@ use App\Modules\Accounting\Enums\TransactionStatus;
 use App\Modules\Accounting\Enums\TransactionType;
 use App\Modules\Accounting\Models\RecurringTransaction;
 use App\Modules\Blockers\Enums\BlockerStatus;
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
@@ -183,6 +184,7 @@ final class Contract
             'SuggestionSource' => $values(SuggestionSource::cases()),
             'AchievementCategory' => $values(SuggestionCategory::cases()),
             'BookStatus' => $values(BookStatus::cases()),
+            'BookKind' => $values(BookKind::cases()),
             'RoadmapStage' => $values(RoadmapStage::cases()),
             'ReviewPeriod' => $values(ReviewPeriod::cases()),
             'FinancialAccountType' => $values(AccountType::cases()),

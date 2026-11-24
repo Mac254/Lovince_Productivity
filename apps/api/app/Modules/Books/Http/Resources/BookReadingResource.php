@@ -20,9 +20,11 @@ class BookReadingResource extends JsonResource
             'id' => $this->id,
             'book_id' => $this->book_id,
             'read_on' => $this->read_on->toDateString(),
+            'episode' => $this->episode,
             'chapters' => $this->chapters,
             'minutes' => $this->minutes,
             'note' => $this->note,
+            'impact' => $this->impact,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

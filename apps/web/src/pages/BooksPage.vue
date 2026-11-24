@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { api, errorMessage } from '@focus/api-client';
 import type { TabItem } from '@focus/ui';
-import type { Book, BookStatus } from '@focus/types';
-import { bookStatusLabels } from '@/lib/labels';
+import type { Book, BookKind, BookStatus } from '@focus/types';
+import { statusLabelsFor } from '@/lib/labels';
 
 const toast = useToast();
 const formOpen = ref(false);
@@ -11,6 +11,12 @@ const logOpen = ref(false);
 const logging = ref<Book | null>(null);
 const deleting = ref<Book | null>(null);
 const deleteBusy = ref(false);
+const kind = ref<BookKind>('book');
+const kindOptions: { value: BookKind; label: string; icon: 'book' | 'headphones' }[] = [
+    { value: 'book', label: 'Books', icon: 'book' },
+    { value: 'podcast', label: 'Podcasts', icon: 'headphones' },
+];
+const noun = computed(() => (kind.value === 'podcast' ? 'podcast' : 'book'));
 
 const { data, loading, error, run } = useAsync((signal) => api.books.list({}, { signal }));
 
@@ -18,27 +24,48 @@ const order: BookStatus[] = ['reading', 'to_read', 'to_find', 'finished'];
 const settings = useSettingsStore();
 const tab = useTabQuery(order, settings.values.books.start_tab);
 const groups = computed(() =>
-    order.map((status) => ({ status, items: (data.value ?? []).filter((book) => book.status === status) })),
+    order.map((status) => ({
+        status,
+        items: (data.value ?? []).filter((book) => book.kind === kind.value && book.status === status),
+    })),
 );
 const tabs = computed<TabItem<BookStatus>[]>(() =>
     groups.value.map((group) => ({
         value: group.status,
-        label: bookStatusLabels[group.status],
+        label: statusLabelsFor(kind.value)[group.status],
         count: group.items.length,
     })),
 );
-const emptyTitle: Record<BookStatus, string> = {
-    reading: 'Not reading anything right now',
-    to_read: 'Your shelf is empty',
-    to_find: 'Nothing to look for',
-    finished: 'No finished books yet',
+const emptyTitles: Record<BookKind, Record<BookStatus, string>> = {
+    book: {
+        reading: 'Not reading anything right now',
+        to_read: 'Your shelf is empty',
+        to_find: 'Nothing to look for',
+        finished: 'No finished books yet',
+    },
+    podcast: {
+        reading: 'Not listening to anything',
+        to_read: 'No shows saved to try',
+        to_find: 'Nothing to look for',
+        finished: 'No shows done yet',
+    },
 };
-const empty: Record<BookStatus, string> = {
-    reading: 'Nothing on the go. Start a book from your shelf, or add one.',
-    to_read: 'Books you own but haven’t started will wait here.',
-    to_find: 'Books you want to track down — to buy, borrow or download.',
-    finished: 'Books you finish show up here with when you finished them.',
+const emptyMessages: Record<BookKind, Record<BookStatus, string>> = {
+    book: {
+        reading: 'Nothing on the go. Start a book from your shelf, or add one.',
+        to_read: 'Books you own but haven’t started will wait here.',
+        to_find: 'Books you want to track down — to buy, borrow or download.',
+        finished: 'Books you finish show up here with when you finished them.',
+    },
+    podcast: {
+        reading: 'Shows you follow now. Log each episode with what it said and how it’s affecting you.',
+        to_read: 'Shows you want to try will wait here.',
+        to_find: 'Shows someone recommended that you still need to find.',
+        finished: 'Shows you’ve stopped following, with everything they gave you.',
+    },
 };
+const emptyTitle = computed(() => emptyTitles[kind.value]);
+const empty = computed(() => emptyMessages[kind.value]);
 
 function add(): void {
     editing.value = null;
@@ -56,6 +83,7 @@ function log(book: Book): void {
 }
 
 function saved(book: Book): void {
+    kind.value = book.kind;
     tab.value = book.status;
     void run();
 }
@@ -65,7 +93,7 @@ async function confirmDelete(): Promise<void> {
     deleteBusy.value = true;
     try {
         await api.books.remove(deleting.value.id);
-        toast.success('Book deleted');
+        toast.success(deleting.value.kind === 'podcast' ? 'Podcast deleted' : 'Book deleted');
         deleting.value = null;
         await run();
     } catch (e) {
@@ -81,12 +109,17 @@ onMounted(run);
 <template>
     <div class="flex flex-col gap-6">
         <PageHeader
-            title="Books"
+            :title="kind === 'podcast' ? 'Podcasts' : 'Books'"
             title-id="page-title"
-            description="What you’re reading, what’s on the shelf, what to look for and what you’ve finished."
+            :description="
+                kind === 'podcast'
+                    ? 'The shows you listen to, each episode logged with what it said and how it’s affecting you.'
+                    : 'What you’re reading, what’s on the shelf, what to look for and what you’ve finished.'
+            "
         >
             <template #actions>
-                <Button icon-start="add" @click="add">Add book</Button>
+                <SegmentedControl v-model="kind" label="Books or podcasts" :options="kindOptions" />
+                <Button icon-start="add" @click="add">Add {{ noun }}</Button>
             </template>
         </PageHeader>
 
@@ -94,25 +127,30 @@ onMounted(run);
         <div v-else-if="loading && !data" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">
             <Skeleton v-for="n in 3" :key="n" class="h-56" />
         </div>
-        <Tabs v-else v-model="tab" label="Books by status" :tabs="tabs">
+        <Tabs v-else v-model="tab" :label="`${kind === 'podcast' ? 'Podcasts' : 'Books'} by status`" :tabs="tabs">
             <template v-for="group in groups" :key="group.status" #[group.status]>
                 <ul v-if="group.items.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     <li v-for="book in group.items" :key="book.id" class="flex">
                         <BookCard :book="book" class="w-full" @edit="edit" @log="log" @delete="deleting = $event" />
                     </li>
                 </ul>
-                <EmptyState v-else icon="book" :title="emptyTitle[group.status]" :message="empty[group.status]">
-                    <Button variant="outline" icon-start="add" @click="add">Add book</Button>
+                <EmptyState
+                    v-else
+                    :icon="kind === 'podcast' ? 'headphones' : 'book'"
+                    :title="emptyTitle[group.status]"
+                    :message="empty[group.status]"
+                >
+                    <Button variant="outline" icon-start="add" @click="add">Add {{ noun }}</Button>
                 </EmptyState>
             </template>
         </Tabs>
 
-        <BookFormDialog v-model:open="formOpen" :book="editing" :status="tab" @saved="saved" />
+        <BookFormDialog v-model:open="formOpen" :book="editing" :status="tab" :kind="kind" @saved="saved" />
         <ReadingLogDialog v-model:open="logOpen" :book="logging" @saved="run" />
         <ConfirmDialog
             :open="!!deleting"
-            title="Delete book?"
-            :message="`“${deleting?.title}” and its reading log will be deleted. Its tasks are kept and simply unlinked.`"
+            :title="deleting?.kind === 'podcast' ? 'Delete podcast?' : 'Delete book?'"
+            :message="`“${deleting?.title}” and its ${deleting?.kind === 'podcast' ? 'episode' : 'reading'} log will be deleted. Its tasks are kept and simply unlinked.`"
             :loading="deleteBusy"
             @update:open="(value: boolean) => !value && (deleting = null)"
             @confirm="confirmDelete"

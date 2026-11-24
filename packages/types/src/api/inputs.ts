@@ -45,6 +45,7 @@ export type AchievementInput = Partial<
 export type BookInput = Partial<
     Pick<
         Book,
+        | 'kind'
         | 'title'
         | 'author'
         | 'status'
@@ -58,7 +59,9 @@ export type BookInput = Partial<
     >
 >;
 
-export type BookReadingInput = Partial<Pick<BookReading, 'read_on' | 'chapters' | 'minutes' | 'note'>>;
+export type BookReadingInput = Partial<
+    Pick<BookReading, 'read_on' | 'episode' | 'chapters' | 'minutes' | 'note' | 'impact'>
+>;
 
 /** A new reading task, or `task_id` to link one of your tasks. */
 export interface BookTaskInput {

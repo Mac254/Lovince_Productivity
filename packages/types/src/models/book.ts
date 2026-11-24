@@ -1,13 +1,17 @@
-import type { BookStatus, TaskRecurrence, TaskStatus } from '../generated/contract';
+import type { BookKind, BookStatus, TaskRecurrence, TaskStatus } from '../generated/contract';
 import type { GoalRef, IsoDate, IsoDateTime } from './task';
 
 export interface BookReading {
     id: number;
     book_id: number;
     read_on: IsoDate;
+    /** A podcast episode's name. */
+    episode: string | null;
     chapters: number;
     minutes: number | null;
     note: string | null;
+    /** How a podcast episode is changing me. */
+    impact: string | null;
     created_at: IsoDateTime;
 }
 
@@ -21,6 +25,7 @@ export interface BookTask {
 
 export interface Book {
     id: number;
+    kind: BookKind;
     title: string;
     author: string | null;
     status: BookStatus;

@@ -31,7 +31,9 @@ class BookReadingRequest extends FormRequest
             'read_on' => [$presence, 'date_format:Y-m-d'],
             'chapters' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_READING_CHAPTERS_MAX],
             'minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::TASK_NOTE_MINUTES_MAX],
+            'episode' => ['sometimes', 'nullable', 'string', 'max:'.Contract::BOOK_TITLE_MAX],
             'note' => ['sometimes', 'nullable', 'string', 'max:'.Contract::BOOK_READING_NOTE_MAX],
+            'impact' => ['sometimes', 'nullable', 'string', 'max:'.Contract::BOOK_READING_NOTE_MAX],
         ];
     }
 
@@ -41,8 +43,8 @@ class BookReadingRequest extends FormRequest
             if (! $this->isMethod('POST')) {
                 return;
             }
-            if ((int) $this->input('chapters', 0) === 0 && ! $this->filled('minutes') && ! $this->filled('note')) {
-                $validator->errors()->add('chapters', 'Log at least a chapter, some minutes or a note.');
+            if ((int) $this->input('chapters', 0) === 0 && ! $this->filled('minutes') && ! $this->filled('note') && ! $this->filled('episode')) {
+                $validator->errors()->add('chapters', 'Log at least a chapter, an episode, some minutes or a note.');
             }
         }];
     }

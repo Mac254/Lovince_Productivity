@@ -3,6 +3,7 @@
 namespace App\Modules\Backup\Services;
 
 use App\Modules\Blockers\Enums\BlockerStatus;
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Enums\GoalTimeframe;
@@ -162,6 +163,7 @@ class BackupRules
             'books.*.task_refs.*' => ['integer'],
             'books.*.title' => ['required', 'string', 'max:'.Contract::BOOK_TITLE_MAX],
             'books.*.author' => ['nullable', 'string', 'max:'.Contract::BOOK_AUTHOR_MAX],
+            'books.*.kind' => ['sometimes', Rule::enum(BookKind::class)],
             'books.*.status' => ['required', Rule::enum(BookStatus::class)],
             'books.*.chapters_total' => ['nullable', 'integer', 'min:1', 'max:'.Contract::BOOK_CHAPTERS_MAX],
             'books.*.chapters_read' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_CHAPTERS_MAX],
@@ -173,7 +175,9 @@ class BackupRules
             'books.*.readings.*.read_on' => ['required', 'date_format:Y-m-d'],
             'books.*.readings.*.chapters' => ['sometimes', 'integer', 'min:0', 'max:'.Contract::BOOK_READING_CHAPTERS_MAX],
             'books.*.readings.*.minutes' => ['nullable', 'integer', 'min:1', 'max:'.Contract::TASK_NOTE_MINUTES_MAX],
+            'books.*.readings.*.episode' => ['nullable', 'string', 'max:'.Contract::BOOK_TITLE_MAX],
             'books.*.readings.*.note' => ['nullable', 'string', 'max:'.Contract::BOOK_READING_NOTE_MAX],
+            'books.*.readings.*.impact' => ['nullable', 'string', 'max:'.Contract::BOOK_READING_NOTE_MAX],
             'roadmap' => $list,
             'roadmap.*.title' => ['required', 'string', 'max:'.Contract::ROADMAP_TITLE_MAX],
             'roadmap.*.details' => ['nullable', 'string', 'max:'.Contract::DESCRIPTION_MAX],

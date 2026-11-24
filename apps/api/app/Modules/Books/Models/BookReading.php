@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One sitting with a book: the day, the chapters it covered and, optionally, how long it took.
+ * One sitting with a book, or one podcast episode: the day, the chapters it covered and, optionally,
+ * how long it took, what it said and how it is changing me.
  * Adding, changing or removing one moves the book's progress by the same number of chapters.
  */
-#[Fillable(['read_on', 'chapters', 'minutes', 'note'])]
+#[Fillable(['read_on', 'episode', 'chapters', 'minutes', 'note', 'impact'])]
 class BookReading extends Model
 {
     protected $attributes = [

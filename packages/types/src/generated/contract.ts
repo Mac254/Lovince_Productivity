@@ -52,6 +52,9 @@ export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
 export const BOOK_STATUSES = ['to_find', 'to_read', 'reading', 'finished'] as const;
 export type BookStatus = (typeof BOOK_STATUSES)[number];
 
+export const BOOK_KINDS = ['book', 'podcast'] as const;
+export type BookKind = (typeof BOOK_KINDS)[number];
+
 export const ROADMAP_STAGES = ['now', 'next', 'later', 'done'] as const;
 export type RoadmapStage = (typeof ROADMAP_STAGES)[number];
 

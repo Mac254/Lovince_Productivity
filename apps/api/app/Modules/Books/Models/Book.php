@@ -3,6 +3,7 @@
 namespace App\Modules\Books\Models;
 
 use App\Modules\Books\Database\Factories\BookFactory;
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Goals\Models\Goal;
 use App\Modules\Tasks\Models\Task;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy(ActivityObserver::class)]
-#[Fillable(['goal_id', 'title', 'author', 'status', 'chapters_total', 'chapters_read', 'started_on', 'finished_on', 'rating', 'notes'])]
+#[Fillable(['goal_id', 'kind', 'title', 'author', 'status', 'chapters_total', 'chapters_read', 'started_on', 'finished_on', 'rating', 'notes'])]
 #[UseFactory(BookFactory::class)]
 class Book extends Model
 {
@@ -27,6 +28,7 @@ class Book extends Model
     public const RELATIONS = ['goal:id,title,tone'];
 
     protected $attributes = [
+        'kind' => 'book',
         'status' => 'to_find',
         'chapters_read' => 0,
     ];
@@ -57,6 +59,7 @@ class Book extends Model
     protected function casts(): array
     {
         return [
+            'kind' => BookKind::class,
             'status' => BookStatus::class,
             'chapters_total' => 'integer',
             'chapters_read' => 'integer',
@@ -68,16 +71,18 @@ class Book extends Model
 
     /**
      * Moves the book on by a change in chapters read on a day: a first reading starts it, reaching
-     * the last chapter finishes it, and taking chapters back off a finished book reopens it.
+     * the last chapter finishes it, and taking chapters back off a finished book reopens it. A podcast
+     * has no chapters, so any listen starts it.
      */
     public function advance(int $chapters, string $on): void
     {
         $this->chapters_read = max(0, $this->chapters_read + $chapters);
+        $moved = $chapters > 0 || $this->kind === BookKind::Podcast;
 
-        if ($chapters > 0 && $this->status->isWaiting()) {
+        if ($moved && $this->status->isWaiting()) {
             $this->status = BookStatus::Reading;
         }
-        if ($chapters > 0 && ($this->started_on === null || $this->started_on->toDateString() > $on)) {
+        if ($moved && ($this->started_on === null || $this->started_on->toDateString() > $on)) {
             $this->started_on = $on;
         }
 
