@@ -50,6 +50,12 @@ const sections = computed(() =>
     }),
 );
 const current = computed(() => sections.value.find((option) => option.value === section.value)!);
+const balanceItems = computed(() =>
+    rows.value.map((row) => ({
+        minutes: Number(row.minutes || 0),
+        task_type_id: row.type === '' || row.type === null ? null : row.type,
+    })),
+);
 const total = computed(() => formatMinutes(sections.value.reduce((sum, option) => sum + option.minutes, 0)));
 
 const durations = [5, 10, 15, 20, 30, 40, 45, 60, 90, 120, 180, 240, 300, 360, 450, 480].map((value) => ({
@@ -212,6 +218,7 @@ async function submit(): Promise<void> {
                         >{{ rows.length }} activities · {{ total }}</Text
                     >
                 </nav>
+                <ScheduleBalance :items="balanceItems" />
             </aside>
 
             <section class="flex min-w-0 flex-col gap-4 lg:col-span-2" :aria-label="`${current.label} activities`">

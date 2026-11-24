@@ -95,6 +95,7 @@ async function remove(): Promise<void> {
         </CardHeader>
 
         <div v-show="expanded" :id="`${uid}-body`" class="flex flex-col gap-4">
+            <ScheduleBalance :items="schedule.items" />
             <ChipGroup
                 v-if="sectionOptions.length > 1"
                 v-model="section"
