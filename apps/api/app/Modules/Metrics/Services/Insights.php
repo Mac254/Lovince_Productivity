@@ -46,16 +46,20 @@ class Insights
             return null;
         }
         if ($previous === 0) {
-            return $this->insight('pace', 'positive', "You finished {$completed} tasks in the last {$days} days, up from none before.");
+            return $this->insight('pace', 'positive', "You finished {$completed} tasks {$this->within($days)}, up from none before.");
         }
         $change = (int) round(($completed - $previous) / $previous * 100);
         if (abs($change) < 10) {
-            return $this->insight('pace', 'neutral', "You’re finishing tasks at the same pace as the {$days} days before.");
+            return $this->insight('pace', 'neutral', "You’re finishing tasks at the same pace as {$this->before($days)}.");
+        }
+
+        if ($change >= 200) {
+            return $this->insight('pace', 'positive', "You finished {$completed} tasks {$this->within($days)}, up from {$previous} {$this->before($days)}.");
         }
 
         return $change > 0
-            ? $this->insight('pace', 'positive', "You finished {$change}% more tasks than in the {$days} days before.")
-            : $this->insight('pace', 'warning', 'You finished '.abs($change)."% fewer tasks than in the {$days} days before.");
+            ? $this->insight('pace', 'positive', "You finished {$change}% more tasks than {$this->before($days)}.")
+            : $this->insight('pace', 'warning', 'You finished '.abs($change)."% fewer tasks than {$this->before($days)}.");
     }
 
     private function onTime(?int $rate, int $sample): ?array
@@ -150,7 +154,7 @@ class Insights
         }
         $count = $achievements['count'];
 
-        return $this->insight('achievements', 'positive', ($count === 1 ? '1 achievement' : "{$count} achievements")." recorded in the last {$days} days.");
+        return $this->insight('achievements', 'positive', ($count === 1 ? '1 achievement' : "{$count} achievements")." recorded {$this->within($days)}.");
     }
 
     /**
@@ -164,16 +168,16 @@ class Insights
         if ($reading['finished'] > 0) {
             $books = $reading['finished'] === 1 ? 'a book' : "{$reading['finished']} books";
 
-            return $this->insight('reading', 'positive', "You finished {$books} and read {$reading['chapters']} chapters in the last {$days} days.");
+            return $this->insight('reading', 'positive', "You finished {$books} and read {$reading['chapters']} chapters {$this->within($days)}.");
         }
         if ($reading['chapters'] > 0) {
             $chapters = $reading['chapters'] === 1 ? '1 chapter' : "{$reading['chapters']} chapters";
             $on = $reading['days'] === 1 ? '1 day' : "{$reading['days']} days";
 
-            return $this->insight('reading', 'positive', "You read {$chapters} on {$on} in the last {$days} days.");
+            return $this->insight('reading', 'positive', "You read {$chapters} on {$on} {$this->within($days)}.");
         }
         if ($reading['current'] !== []) {
-            return $this->insight('reading', 'neutral', "No reading logged for {$reading['current'][0]['title']} in the last {$days} days.");
+            return $this->insight('reading', 'neutral', "No reading logged for {$reading['current'][0]['title']} {$this->within($days)}.");
         }
 
         return null;
@@ -183,6 +187,16 @@ class Insights
      * @param  'positive'|'neutral'|'warning'  $tone
      * @return array{key: string, tone: 'positive'|'neutral'|'warning', text: string}
      */
+    private function within(int $days): string
+    {
+        return $days === 1 ? 'today' : "in the last {$days} days";
+    }
+
+    private function before(int $days): string
+    {
+        return $days === 1 ? 'yesterday' : "the {$days} days before";
+    }
+
     private function insight(string $key, string $tone, string $text): array
     {
         return ['key' => $key, 'tone' => $tone, 'text' => $text];
