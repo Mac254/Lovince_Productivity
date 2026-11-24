@@ -64,7 +64,7 @@ final class Contract
 
     public const BLOCKER_MAX = 1000;
 
-    public const METRIC_RANGES = [7, 30, 90];
+    public const METRIC_RANGES = [1, 7, 30, 90];
 
     public const AVATAR_MAX_KB = 2048;
 

@@ -11,8 +11,9 @@ import {
     taskPriorityLabels,
 } from '@/lib/labels';
 
-const range = ref<'7' | '30' | '90'>('30');
+const range = ref<'1' | '7' | '30' | '90'>('30');
 const ranges = [
+    { value: '1' as const, label: 'Today' },
     { value: '7' as const, label: 'Last 7 days' },
     { value: '30' as const, label: 'Last 30 days' },
     { value: '90' as const, label: 'Last 90 days' },
@@ -67,7 +68,7 @@ const delta = computed(() => {
     const { completed, completed_previous: previous } = data.value.totals;
     if (previous === 0) return completed ? 'No completions in the previous period' : 'Same as the previous period';
     const change = Math.round(((completed - previous) / previous) * 100);
-    return `${change >= 0 ? '+' : ''}${change}% vs previous ${range.value} days`;
+    return `${change >= 0 ? '+' : ''}${change}% vs ${previousPeriod.value}`;
 });
 
 const priorityRows = computed(() =>
@@ -118,6 +119,10 @@ const estimateHint = computed(() => {
 const showTable = ref(false);
 /** The first two totals share a row unless the estimate tile makes it three to a row. */
 const wide = computed(() => (settings.values.tasks.estimates ? 'lg:col-span-2' : 'lg:col-span-3'));
+
+/** The window just before this one, in words: yesterday for today, otherwise the days before. */
+const previousPeriod = computed(() => (range.value === '1' ? 'yesterday' : `the previous ${range.value} days`));
+const before = computed(() => (range.value === '1' ? 'yesterday' : `in the ${range.value} days before`));
 
 watch(range, run);
 onMounted(run);
@@ -324,7 +329,7 @@ onMounted(run);
                                 title="Suggestions"
                                 title-id="suggestion-metrics-heading"
                                 icon="lightbulb"
-                                :subtitle="`${data.suggestions.acted} acted on, ${data.suggestions.acted_previous} in the ${range} days before`"
+                                :subtitle="`${data.suggestions.acted} acted on, ${data.suggestions.acted_previous} ${before}`"
                             >
                                 <Button variant="ghost" size="sm" :to="{ name: 'suggestions' }" icon-end="arrow-right"
                                     >Open</Button
@@ -352,7 +357,7 @@ onMounted(run);
                                 title="Achievements"
                                 title-id="achievement-metrics-heading"
                                 icon="star"
-                                :subtitle="`${data.achievements.count} recorded · ${data.achievements.from_goals} from goals · ${data.achievements.previous} in the ${range} days before`"
+                                :subtitle="`${data.achievements.count} recorded · ${data.achievements.from_goals} from goals · ${data.achievements.previous} ${before}`"
                             >
                                 <Button variant="ghost" size="sm" :to="{ name: 'achievements' }" icon-end="arrow-right"
                                     >Open</Button
@@ -392,7 +397,7 @@ onMounted(run);
                                 title="Reading"
                                 title-id="reading-metrics-heading"
                                 icon="book"
-                                :subtitle="`${data.reading.chapters} chapters, ${data.reading.chapters_previous} in the ${range} days before`"
+                                :subtitle="`${data.reading.chapters} chapters, ${data.reading.chapters_previous} ${before}`"
                             >
                                 <Button variant="ghost" size="sm" :to="{ name: 'books' }" icon-end="arrow-right"
                                     >Open</Button

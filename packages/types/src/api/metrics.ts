@@ -8,7 +8,8 @@ import type {
 import type { IsoDate } from '../models/task';
 import type { ReportAchievement, ReportGoal, TypeBreakdownRow } from './reports';
 
-export type MetricRange = 7 | 30 | 90;
+/** Trailing days ending today; 1 is today alone. */
+export type MetricRange = 1 | 7 | 30 | 90;
 
 export interface FocusMetrics {
     minutes: number;

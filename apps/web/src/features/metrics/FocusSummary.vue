@@ -13,7 +13,7 @@ const change = computed(() => {
     const { minutes, minutes_previous: previous } = props.focus;
     if (!previous) return null;
     const value = Math.round(((minutes - previous) / previous) * 100);
-    return `${value >= 0 ? '+' : ''}${value}% vs previous ${props.days} days`;
+    return `${value >= 0 ? '+' : ''}${value}% vs ${props.days === 1 ? 'yesterday' : `the previous ${props.days} days`}`;
 });
 
 const stats = computed(() => [
