@@ -98,7 +98,15 @@ export const router = createRouter({
                     path: 'books',
                     name: 'books',
                     component: () => import('@/pages/BooksPage.vue'),
+                    props: { kind: 'book' },
                     meta: { title: 'Books' },
+                },
+                {
+                    path: 'podcasts',
+                    name: 'podcasts',
+                    component: () => import('@/pages/BooksPage.vue'),
+                    props: { kind: 'podcast' },
+                    meta: { title: 'Podcasts' },
                 },
                 {
                     path: 'books/:id(\\d+)',

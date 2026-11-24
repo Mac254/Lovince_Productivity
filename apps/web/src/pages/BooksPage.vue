@@ -12,17 +12,9 @@ const logging = ref<Book | null>(null);
 const deleting = ref<Book | null>(null);
 const deleteBusy = ref(false);
 const settings = useSettingsStore();
-const kind = ref<BookKind>('book');
-const kindOptions: { value: BookKind; label: string; icon: 'book' | 'headphones' }[] = [
-    { value: 'book', label: 'Books', icon: 'book' },
-    { value: 'podcast', label: 'Podcasts', icon: 'headphones' },
-];
-watch(
-    () => settings.values.books.podcasts,
-    (on) => {
-        if (!on) kind.value = 'book';
-    },
-);
+const props = withDefaults(defineProps<{ kind?: BookKind }>(), { kind: 'book' });
+const kind = computed(() => props.kind);
+const router = useRouter();
 const noun = computed(() => (kind.value === 'podcast' ? 'podcast' : 'book'));
 
 const { data, loading, error, run } = useAsync((signal) => api.books.list({}, { signal }));
@@ -89,7 +81,10 @@ function log(book: Book): void {
 }
 
 function saved(book: Book): void {
-    kind.value = book.kind;
+    if (book.kind !== kind.value) {
+        void router.push({ name: book.kind === 'podcast' ? 'podcasts' : 'books', query: { tab: book.status } });
+        return;
+    }
     tab.value = book.status;
     void run();
 }
@@ -124,12 +119,6 @@ onMounted(run);
             "
         >
             <template #actions>
-                <SegmentedControl
-                    v-if="settings.values.books.podcasts"
-                    v-model="kind"
-                    label="Books or podcasts"
-                    :options="kindOptions"
-                />
                 <Button icon-start="add" @click="add">Add {{ noun }}</Button>
             </template>
         </PageHeader>

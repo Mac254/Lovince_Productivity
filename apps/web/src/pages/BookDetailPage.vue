@@ -80,8 +80,8 @@ async function confirmDelete(): Promise<void> {
     deleteBusy.value = true;
     try {
         await api.books.remove(book.value.id);
-        toast.success('Book deleted');
-        await router.replace({ name: 'books' });
+        toast.success(podcast.value ? 'Podcast deleted' : 'Book deleted');
+        await router.replace({ name: podcast.value ? 'podcasts' : 'books' });
     } catch (e) {
         toast.error(errorMessage(e, 'Could not delete the book.'));
     } finally {
@@ -105,7 +105,11 @@ watch(id, load, { immediate: true });
         <PageHeader
             :title="book?.title ?? 'Book'"
             title-id="page-title"
-            :back="{ to: { name: 'books' }, label: 'Back to all books' }"
+            :back="
+                podcast
+                    ? { to: { name: 'podcasts' }, label: 'Back to all podcasts' }
+                    : { to: { name: 'books' }, label: 'Back to all books' }
+            "
         >
             <template v-if="book" #eyebrow>
                 <Avatar v-if="podcast" :name="book.title" :src="book.image_url" size="lg" />

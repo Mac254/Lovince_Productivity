@@ -8,6 +8,8 @@ export interface NavItem {
     motion: IconMotion;
     /** A module whose `show_in_sidebar` setting can hide this item. */
     module?: { [K in keyof Settings]: Settings[K] extends { show_in_sidebar: boolean } ? K : never }[keyof Settings];
+    /** Shown only while this setting is on. */
+    when?: (settings: Settings) => boolean;
 }
 
 export const navigation: { label: string; items: NavItem[] }[] = [
@@ -27,6 +29,14 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'goals', label: 'Goals', icon: 'target', motion: 'spin' },
             { name: 'achievements', label: 'Achievements', icon: 'star', motion: 'pop' },
             { name: 'books', label: 'Books', icon: 'book', motion: 'lift', module: 'books' },
+            {
+                name: 'podcasts',
+                label: 'Podcasts',
+                icon: 'headphones',
+                motion: 'pop',
+                module: 'books',
+                when: (settings) => settings.books.podcasts,
+            },
             { name: 'types', label: 'Types', icon: 'tag', motion: 'wiggle' },
             { name: 'blockers', label: 'Blockers', icon: 'blocker', motion: 'wiggle' },
         ],
@@ -61,7 +71,9 @@ export function visibleNavigation(settings: Settings) {
     return navigation
         .map((section) => ({
             ...section,
-            items: section.items.filter((item) => !item.module || settings[item.module].show_in_sidebar),
+            items: section.items.filter(
+                (item) => (!item.module || settings[item.module].show_in_sidebar) && (item.when?.(settings) ?? true),
+            ),
         }))
         .filter((section) => section.items.length);
 }
