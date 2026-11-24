@@ -2,6 +2,7 @@
 
 namespace App\Modules\Metrics\Services;
 
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Models\BookReading;
 use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Tasks\Enums\TaskStatus;
@@ -38,6 +39,7 @@ class ActivityDays
             ->pluck('logged_on')
             ->countBy(fn ($on) => Carbon::parse($on)->toDateString());
         $read = BookReading::query()->whereBelongsTo($user)
+            ->whereHas('book', fn ($q) => $q->where('kind', BookKind::Book))
             ->whereDate('read_on', '>=', $from->toDateString())
             ->whereDate('read_on', '<=', $to->toDateString())
             ->pluck('read_on')

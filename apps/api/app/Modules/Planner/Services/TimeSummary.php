@@ -2,7 +2,7 @@
 
 namespace App\Modules\Planner\Services;
 
-use App\Modules\Clock\Models\FocusSession;
+use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Planner\Models\TimeBlock;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Users\Models\User;
@@ -16,6 +16,8 @@ use Illuminate\Support\Collection;
 class TimeSummary
 {
     public const RANGES = ['day', 'week', 'month'];
+
+    public function __construct(private readonly FocusStats $focus) {}
 
     /** @return array<string, mixed> */
     public function for(User $user, string $range, Carbon $date): array
@@ -35,11 +37,7 @@ class TimeSummary
             'previous_total' => $previous = $this->spans($user, $prevFrom, $prevTo)->sum('minutes'),
             'daily_average' => (int) round($total / $elapsed),
             'previous_average' => (int) round($previous / ((int) $prevFrom->diffInDays($prevTo) + 1)),
-            'focus_minutes' => (int) round(FocusSession::query()
-                ->whereBelongsTo($user)
-                ->whereDate('started_on', '>=', $from->toDateString())
-                ->whereDate('started_on', '<=', $to->toDateString())
-                ->sum('focused_seconds') / 60),
+            'focus_minutes' => FocusStats::minutes($this->focus->between($user, $from, $to->copy()->endOfDay())),
             'categories' => $this->categories($spans),
             'buckets' => $range === 'day' ? $this->byHour($spans) : $this->byDay($spans, $from, $to),
             'activities' => $spans->groupBy('title')

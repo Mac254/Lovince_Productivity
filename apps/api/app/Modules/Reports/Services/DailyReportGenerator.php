@@ -5,6 +5,7 @@ namespace App\Modules\Reports\Services;
 use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Models\Book;
 use App\Modules\Books\Models\BookReading;
 use App\Modules\Goals\Enums\GoalStatus;
@@ -93,11 +94,12 @@ class DailyReportGenerator
             ->orderBy('id')
             ->get();
         $readings = BookReading::query()->whereBelongsTo($user)->with('book:id,title,author')
+            ->whereHas('book', fn ($q) => $q->where('kind', BookKind::Book))
             ->whereDate('read_on', $date)
             ->where('created_at', '<=', $asOf)
             ->orderBy('id')
             ->get();
-        $booksFinished = Book::query()->whereBelongsTo($user)
+        $booksFinished = Book::query()->whereBelongsTo($user)->where('kind', BookKind::Book)
             ->whereDate('finished_on', $date)
             ->where('created_at', '<=', $asOf)
             ->orderBy('id')

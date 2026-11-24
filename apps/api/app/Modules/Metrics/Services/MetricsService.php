@@ -5,6 +5,7 @@ namespace App\Modules\Metrics\Services;
 use App\Modules\Achievements\Models\Achievement;
 use App\Modules\Blockers\Enums\BlockerStatus;
 use App\Modules\Blockers\Models\Blocker;
+use App\Modules\Books\Enums\BookKind;
 use App\Modules\Books\Enums\BookStatus;
 use App\Modules\Books\Models\Book;
 use App\Modules\Books\Models\BookReading;
@@ -222,12 +223,13 @@ class MetricsService
     private function reading(User $user, Carbon $start, Carbon $end, Carbon $previousStart): array
     {
         $readings = BookReading::query()->whereBelongsTo($user)
+            ->whereHas('book', fn ($q) => $q->where('kind', BookKind::Book))
             ->whereDate('read_on', '>=', $previousStart->toDateString())
             ->whereDate('read_on', '<=', $end->toDateString())
             ->get(['id', 'book_id', 'read_on', 'chapters', 'minutes']);
         $inRange = $readings->filter(fn (BookReading $r) => $r->read_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
         $previous = $readings->diff($inRange);
-        $books = Book::query()->whereBelongsTo($user)->get(['id', 'title', 'author', 'status', 'chapters_total', 'chapters_read', 'finished_on']);
+        $books = Book::query()->whereBelongsTo($user)->where('kind', BookKind::Book)->get(['id', 'title', 'author', 'status', 'chapters_total', 'chapters_read', 'finished_on']);
         $finished = fn (Carbon $from, Carbon $to) => $books->filter(fn (Book $b) => $b->finished_on?->between($from->copy()->startOfDay(), $to))->count();
         $byDay = $inRange->groupBy(fn (BookReading $r) => $r->read_on->toDateString());
 
