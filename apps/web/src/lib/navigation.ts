@@ -12,24 +12,30 @@ export interface NavItem {
     when?: (settings: Settings) => boolean;
 }
 
+/** Grouped by what you are doing: running the day, planning work, learning, money, then looking back. */
 export const navigation: { label: string; items: NavItem[] }[] = [
     {
         label: 'Overview',
         items: [
             { name: 'dashboard', label: 'Dashboard', icon: 'dashboard', motion: 'pop' },
             { name: 'today', label: 'Today', icon: 'calendar-check', motion: 'lift' },
-            { name: 'schedules', label: 'Schedules', icon: 'calendar-clock', motion: 'nudge' },
-            { name: 'time', label: 'Time', icon: 'history', motion: 'spin' },
-            { name: 'habits', label: 'Habits', icon: 'flame', motion: 'pop' },
             { name: 'suggestions', label: 'Suggestions', icon: 'lightbulb', motion: 'pop' },
         ],
     },
     {
-        label: 'Work',
+        label: 'Plan',
         items: [
             { name: 'tasks', label: 'Tasks', icon: 'tasks', motion: 'nudge' },
             { name: 'goals', label: 'Goals', icon: 'target', motion: 'spin' },
-            { name: 'achievements', label: 'Achievements', icon: 'star', motion: 'pop' },
+            { name: 'schedules', label: 'Schedules', icon: 'calendar-clock', motion: 'nudge' },
+            { name: 'habits', label: 'Habits', icon: 'flame', motion: 'pop' },
+            { name: 'blockers', label: 'Blockers', icon: 'blocker', motion: 'wiggle' },
+            { name: 'types', label: 'Types', icon: 'tag', motion: 'wiggle' },
+        ],
+    },
+    {
+        label: 'Learn',
+        items: [
             { name: 'books', label: 'Books', icon: 'book', motion: 'lift', module: 'books' },
             {
                 name: 'podcasts',
@@ -39,8 +45,6 @@ export const navigation: { label: string; items: NavItem[] }[] = [
                 module: 'books',
                 when: (settings) => settings.books.podcasts,
             },
-            { name: 'types', label: 'Types', icon: 'tag', motion: 'wiggle' },
-            { name: 'blockers', label: 'Blockers', icon: 'blocker', motion: 'wiggle' },
         ],
     },
     {
@@ -50,10 +54,10 @@ export const navigation: { label: string; items: NavItem[] }[] = [
             { name: 'transactions', label: 'Transactions', icon: 'transfer', motion: 'nudge' },
             { name: 'financial-accounts', label: 'Accounts', icon: 'card', motion: 'lift' },
             { name: 'budgets', label: 'Budgets', icon: 'target', motion: 'pop' },
-            { name: 'money-goals', label: 'Goals', icon: 'star', motion: 'pop' },
-            { name: 'money-rules', label: 'Rules', icon: 'quote', motion: 'pop' },
-            { name: 'roadmap', label: 'Roadmap', icon: 'roadmap', motion: 'nudge', module: 'roadmap' },
             { name: 'recurring', label: 'Recurring', icon: 'calendar-clock', motion: 'nudge' },
+            { name: 'money-goals', label: 'Goals', icon: 'star', motion: 'pop' },
+            { name: 'roadmap', label: 'Roadmap', icon: 'roadmap', motion: 'nudge', module: 'roadmap' },
+            { name: 'money-rules', label: 'Rules', icon: 'quote', motion: 'pop' },
             { name: 'financial-reports', label: 'Statements', icon: 'report', motion: 'pop' },
         ],
     },
@@ -61,9 +65,16 @@ export const navigation: { label: string; items: NavItem[] }[] = [
         label: 'Insights',
         items: [
             { name: 'metrics', label: 'Metrics', icon: 'metrics', motion: 'lift' },
+            { name: 'time', label: 'Time', icon: 'history', motion: 'spin' },
             { name: 'reports', label: 'Reports', icon: 'report', motion: 'pop' },
-            { name: 'review', label: 'Reviews', icon: 'calendar-range', motion: 'lift' },
+        ],
+    },
+    {
+        label: 'Reflect',
+        items: [
             { name: 'journal', label: 'Journal', icon: 'journal', motion: 'wiggle' },
+            { name: 'achievements', label: 'Achievements', icon: 'star', motion: 'pop' },
+            { name: 'review', label: 'Reviews', icon: 'calendar-range', motion: 'lift' },
         ],
     },
 ];
