@@ -116,6 +116,15 @@ const typeTime = computed(() => {
     const most = Math.max(1, ...rows.map((row) => row.minutes));
     return rows.map((row) => ({ ...row, share: (row.minutes / most) * 100 }));
 });
+const singleDay = computed(() => range.value === '1');
+const trendSubtitle = computed(() => {
+    if (!data.value) return '';
+    const { range: r, totals } = data.value;
+    const entries = `${totals.entries_logged} work ${totals.entries_logged === 1 ? 'entry' : 'entries'}`;
+    if (singleDay.value)
+        return `${formatDate(r.end, { dateStyle: 'medium' })} · ${totals.completed} completed · ${entries}`;
+    return `${formatDate(r.start, { dateStyle: 'medium' })} – ${formatDate(r.end, { dateStyle: 'medium' })} · ${totals.per_day} completed per day · ${entries}`;
+});
 const hasActivity = computed(
     () => !!data.value && data.value.daily.some((d) => d.completed || d.created || d.logged || d.focus),
 );
@@ -239,10 +248,10 @@ onMounted(run);
 
                     <Card as="section" aria-labelledby="trend-heading" class="group">
                         <CardHeader
-                            title="Daily trend"
+                            :title="singleDay ? 'Today by type' : 'Daily trend'"
                             title-id="trend-heading"
                             icon="metrics"
-                            :subtitle="`${formatDate(data.range.start, { dateStyle: 'medium' })} – ${formatDate(data.range.end, { dateStyle: 'medium' })} · ${data.totals.per_day} completed per day · ${data.totals.entries_logged} work ${data.totals.entries_logged === 1 ? 'entry' : 'entries'}`"
+                            :subtitle="trendSubtitle"
                         >
                             <Pressable
                                 type="button"
@@ -253,7 +262,20 @@ onMounted(run);
                             </Pressable>
                         </CardHeader>
                         <template v-if="!showTable">
-                            <DailyTrendChart v-if="hasActivity" :daily="data.daily" />
+                            <template v-if="singleDay">
+                                <BreakdownChart
+                                    v-if="typeRows.length"
+                                    :rows="typeRows"
+                                    :names="['Completed today', 'Open now']"
+                                />
+                                <EmptyState
+                                    v-else
+                                    icon="metrics"
+                                    title="Nothing yet today"
+                                    message="Complete or log work on tasks to see today's split."
+                                />
+                            </template>
+                            <DailyTrendChart v-else-if="hasActivity" :daily="data.daily" />
                             <EmptyState
                                 v-else
                                 icon="metrics"
