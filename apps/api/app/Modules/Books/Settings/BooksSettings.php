@@ -32,6 +32,7 @@ class BooksSettings extends SettingsModule
                 'to_find' => 'To find',
                 'finished' => 'Finished',
             ], 'reading', 'The tab you see first on the Books page.'),
+            Setting::toggle('podcasts', 'Track podcasts', true, 'Add a Podcasts view to log the shows you listen to, with notes on how each episode affects you.'),
             Setting::toggle('show_in_insights', 'Reading in reports and metrics', true, 'Show the reading card on daily reports and the metrics page.'),
         ];
     }

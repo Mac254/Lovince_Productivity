@@ -11,17 +11,23 @@ const logOpen = ref(false);
 const logging = ref<Book | null>(null);
 const deleting = ref<Book | null>(null);
 const deleteBusy = ref(false);
+const settings = useSettingsStore();
 const kind = ref<BookKind>('book');
 const kindOptions: { value: BookKind; label: string; icon: 'book' | 'headphones' }[] = [
     { value: 'book', label: 'Books', icon: 'book' },
     { value: 'podcast', label: 'Podcasts', icon: 'headphones' },
 ];
+watch(
+    () => settings.values.books.podcasts,
+    (on) => {
+        if (!on) kind.value = 'book';
+    },
+);
 const noun = computed(() => (kind.value === 'podcast' ? 'podcast' : 'book'));
 
 const { data, loading, error, run } = useAsync((signal) => api.books.list({}, { signal }));
 
 const order: BookStatus[] = ['reading', 'to_read', 'to_find', 'finished'];
-const settings = useSettingsStore();
 const tab = useTabQuery(order, settings.values.books.start_tab);
 const groups = computed(() =>
     order.map((status) => ({
@@ -118,7 +124,12 @@ onMounted(run);
             "
         >
             <template #actions>
-                <SegmentedControl v-model="kind" label="Books or podcasts" :options="kindOptions" />
+                <SegmentedControl
+                    v-if="settings.values.books.podcasts"
+                    v-model="kind"
+                    label="Books or podcasts"
+                    :options="kindOptions"
+                />
                 <Button icon-start="add" @click="add">Add {{ noun }}</Button>
             </template>
         </PageHeader>

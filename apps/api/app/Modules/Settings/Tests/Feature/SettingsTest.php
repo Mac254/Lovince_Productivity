@@ -18,11 +18,11 @@ class SettingsTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->getJson('/api/v1/settings')
             ->assertOk()
-            ->assertJsonPath('data.modules.*.key', ['general', 'appearance', 'tasks', 'planner', 'suggestions', 'clock', 'timer', 'review', 'journal', 'books', 'roadmap'])
+            ->assertJsonPath('data.modules.*.key', ['general', 'appearance', 'tasks', 'planner', 'schedules', 'suggestions', 'clock', 'timer', 'review', 'journal', 'books', 'roadmap'])
             ->assertJsonPath('data.values.appearance.theme', 'dark')
             ->assertJsonPath('data.values.timer.chime', true)
             ->assertJsonPath('data.modules.1.settings.0.options.1', ['value' => 'light', 'label' => 'Light'])
-            ->assertJsonPath('data.modules.5.settings.0.listed', false);
+            ->assertJsonPath('data.modules.6.settings.0.listed', false);
     }
 
     public function test_changes_are_validated_merged_and_stored_as_differences_from_the_defaults(): void

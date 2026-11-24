@@ -4,6 +4,7 @@ namespace App\Modules\Planner\Console\Commands;
 
 use App\Modules\Planner\Models\ScheduleItem;
 use App\Modules\Planner\Models\TimeBlock;
+use App\Modules\Settings\Services\SettingsRegistry;
 use App\Modules\Tasks\Enums\TaskStatus;
 use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
@@ -16,10 +17,13 @@ use Illuminate\Console\Command;
 #[Description('Skip routine tasks left open on a past day, so they stop showing as overdue')]
 class SkipMissedRoutines extends Command
 {
-    public function handle(): int
+    public function handle(SettingsRegistry $settings): int
     {
         $count = 0;
-        User::query()->whereHas('schedules')->lazyById()->each(function (User $user) use (&$count) {
+        User::query()->whereHas('schedules')->lazyById()->each(function (User $user) use ($settings, &$count) {
+            if (! $settings->resolve($user->settings)['schedules']['skip_missed']) {
+                return;
+            }
             $count += AccountTimezone::run($user, fn () => $this->skip($user));
         });
 

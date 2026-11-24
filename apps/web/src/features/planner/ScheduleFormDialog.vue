@@ -10,6 +10,7 @@ const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ saved: [Schedule] }>();
 
 const toast = useToast();
+const settings = useSettingsStore();
 const types = useTaskTypesStore();
 const goals = useGoalsStore();
 const uid = useId();
@@ -92,7 +93,7 @@ function addRow(): void {
         title: '',
         fallback: '',
         start: clockTime(start),
-        minutes: 30,
+        minutes: Number(settings.values.schedules.activity_minutes),
         type: '',
         goal: '',
         section: section.value,

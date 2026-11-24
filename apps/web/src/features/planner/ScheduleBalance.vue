@@ -8,6 +8,7 @@ import { balanceOf, type BalanceSlice } from './balance';
 const props = defineProps<{ items: Pick<ScheduleItem, 'minutes' | 'task_type_id'>[] }>();
 
 const types = useTaskTypesStore();
+const settings = useSettingsStore();
 onMounted(() => void types.load());
 
 const slices = computed(() => balanceOf(props.items, types.types));
@@ -18,7 +19,7 @@ const summary = computed(() =>
 </script>
 
 <template>
-    <figure v-if="slices.length" class="flex flex-col gap-3">
+    <figure v-if="settings.values.schedules.show_balance && slices.length" class="flex flex-col gap-3">
         <figcaption class="text-caption font-semibold text-fg-muted uppercase">Balance</figcaption>
         <div role="img" :aria-label="`Time by type: ${summary}`" class="flex h-2 w-full gap-1">
             <span

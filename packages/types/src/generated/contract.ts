@@ -218,6 +218,11 @@ export interface Settings {
         plan_ahead: boolean;
         reminder: 'off' | '5' | '10' | '15';
     };
+    schedules: {
+        skip_missed: boolean;
+        show_balance: boolean;
+        activity_minutes: '15' | '30' | '45' | '60';
+    };
     suggestions: {
         enabled: boolean;
         ideas_per_day: '1' | '2' | '3' | '5';
@@ -245,6 +250,7 @@ export interface Settings {
     books: {
         show_in_sidebar: boolean;
         start_tab: 'reading' | 'to_read' | 'to_find' | 'finished';
+        podcasts: boolean;
         show_in_insights: boolean;
     };
     roadmap: {
@@ -288,6 +294,11 @@ export const SETTINGS_DEFAULTS: Settings = {
         plan_ahead: false,
         reminder: '5',
     },
+    schedules: {
+        skip_missed: true,
+        show_balance: true,
+        activity_minutes: '30',
+    },
     suggestions: {
         enabled: true,
         ideas_per_day: '3',
@@ -315,6 +326,7 @@ export const SETTINGS_DEFAULTS: Settings = {
     books: {
         show_in_sidebar: true,
         start_tab: 'reading',
+        podcasts: true,
         show_in_insights: true,
     },
     roadmap: {
