@@ -43,11 +43,17 @@ const when = computed(() => {
 <template>
     <Card v-if="podcast" interactive class="gap-4">
         <div class="flex items-center gap-4">
-            <Avatar :name="book.title" :src="book.image_url" size="xl" />
+            <RouterLink
+                :to="{ name: 'podcast-detail', params: { id: book.id } }"
+                class="shrink-0 rounded-full"
+                tabindex="-1"
+                aria-hidden="true"
+                ><Avatar :name="book.title" :src="book.image_url" size="xl"
+            /></RouterLink>
             <div class="flex min-w-0 flex-1 flex-col gap-1">
                 <Heading :level="3" role="title" class="truncate">
                     <RouterLink
-                        :to="{ name: 'book-detail', params: { id: book.id } }"
+                        :to="{ name: 'podcast-detail', params: { id: book.id } }"
                         class="underline-offset-4 hover:underline"
                         >{{ book.title }}</RouterLink
                     >

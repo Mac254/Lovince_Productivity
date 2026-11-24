@@ -115,6 +115,12 @@ export const router = createRouter({
                     meta: { title: 'Podcasts' },
                 },
                 {
+                    path: 'podcasts/:id(\\d+)',
+                    name: 'podcast-detail',
+                    component: () => import('@/pages/BookDetailPage.vue'),
+                    meta: { title: 'Podcast' },
+                },
+                {
                     path: 'books/:id(\\d+)',
                     name: 'book-detail',
                     component: () => import('@/pages/BookDetailPage.vue'),

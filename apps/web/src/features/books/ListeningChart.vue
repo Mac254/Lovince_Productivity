@@ -32,7 +32,7 @@ const options = computed<ApexOptions>(() => ({
     yaxis: {
         min: 0,
         tickAmount: 3,
-        labels: { formatter: (v: number) => (v >= 60 ? `${Math.round(v / 60)}h` : `${Math.round(v)}m`) },
+        labels: { formatter: (v: number) => (v >= 60 ? `${Number((v / 60).toFixed(1))}h` : `${Math.round(v)}m`) },
     },
     grid: { ...base.grid, xaxis: { lines: { show: false } } },
     tooltip: {
