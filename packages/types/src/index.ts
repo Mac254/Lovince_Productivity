@@ -76,6 +76,8 @@ export type {
     FocusMetrics,
     MetricInsight,
     MetricRange,
+    ListeningMetrics,
+    HabitMetrics,
     Metrics,
     ReadingMetrics,
     SuggestionMetrics,

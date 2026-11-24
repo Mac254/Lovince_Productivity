@@ -1,3 +1,4 @@
+import type { GoalTone } from '../generated/contract';
 import type {
     AchievementCategory,
     BookStatus,
@@ -78,6 +79,42 @@ export interface ReadingMetrics {
     }[];
 }
 
+/** Podcast episodes in the range; kept apart from reading. */
+export interface ListeningMetrics {
+    episodes: number;
+    episodes_previous: number;
+    minutes: number;
+    /** Episodes watched or heard to the end. */
+    finished: number;
+    /** Episodes with a lesson written down. */
+    lessons: number;
+    shows: {
+        id: number;
+        title: string;
+        host: string | null;
+        image_url: string | null;
+        episodes: number;
+        minutes: number;
+    }[];
+}
+
+/** How well the schedule's routines held in the range. */
+export interface HabitMetrics {
+    count: number;
+    done: number;
+    planned: number;
+    rate: number | null;
+    longest_streak: { title: string; days: number } | null;
+    rows: {
+        title: string;
+        tone: GoalTone | null;
+        done: number;
+        planned: number;
+        rate: number | null;
+        streak: number;
+    }[];
+}
+
 export interface Metrics {
     range: { days: MetricRange; start: IsoDate; end: IsoDate };
     totals: {
@@ -121,4 +158,6 @@ export interface Metrics {
     suggestions: SuggestionMetrics;
     achievements: AchievementMetrics;
     reading?: ReadingMetrics;
+    listening?: ListeningMetrics;
+    habits?: HabitMetrics;
 }

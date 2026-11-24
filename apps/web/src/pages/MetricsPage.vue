@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { categoryClass } from '@/features/time/tones';
 import { api } from '@focus/api-client';
 import type { TabItem } from '@focus/ui';
 import type { MetricRange } from '@focus/types';
@@ -23,10 +24,11 @@ const { data, loading, error, run } = useAsync((signal) =>
     api.metrics.get(Number(range.value) as MetricRange, { signal }),
 );
 
-const tab = useTabQuery(['trend', 'focus', 'breakdown', 'wins', 'goals'] as const, 'trend');
+const tab = useTabQuery(['trend', 'focus', 'habits', 'breakdown', 'wins', 'goals'] as const, 'trend');
 const tabs: TabItem<typeof tab.value>[] = [
     { value: 'trend', label: 'Trend', icon: 'metrics' },
     { value: 'focus', label: 'Focus', icon: 'clock' },
+    { value: 'habits', label: 'Habits', icon: 'flame' },
     { value: 'breakdown', label: 'Breakdown', icon: 'tag' },
     { value: 'wins', label: 'Wins', icon: 'star' },
     { value: 'goals', label: 'Goals', icon: 'target' },
@@ -46,6 +48,29 @@ const readingStats = computed(() => {
         { label: 'Finished', value: r.finished },
         { label: 'Finished this year', value: r.finished_this_year },
         { label: 'Still to find', value: r.by_status.find((row) => row.key === 'to_find')?.count ?? 0 },
+    ];
+});
+
+const listeningStats = computed(() => {
+    const l = data.value?.listening;
+    if (!l) return [];
+    return [
+        { label: 'Episodes', value: l.episodes },
+        { label: 'Time listened', value: l.minutes ? formatMinutes(l.minutes) : '—' },
+        { label: 'To the end', value: l.finished },
+        { label: 'Lessons noted', value: l.lessons },
+    ];
+});
+const topShow = computed(() => data.value?.listening?.shows[0]?.minutes ?? 0);
+
+const habitStats = computed(() => {
+    const h = data.value?.habits;
+    if (!h) return [];
+    return [
+        { label: 'Kept', value: h.rate === null ? '—' : `${h.rate}%` },
+        { label: 'Done', value: `${h.done} of ${h.planned}` },
+        { label: 'Habits', value: h.count },
+        { label: 'Longest run', value: h.longest_streak ? `${h.longest_streak.days} days` : '—' },
     ];
 });
 
@@ -288,6 +313,50 @@ onMounted(run);
                         <ActivityHeatmap :days="data.heatmap" :consistency="data.consistency" />
                     </Card>
                 </template>
+                <template #habits>
+                    <Card v-if="data.habits" as="section" aria-labelledby="habit-metrics-heading" class="group">
+                        <CardHeader
+                            title="Habits"
+                            title-id="habit-metrics-heading"
+                            icon="flame"
+                            subtitle="Routines your schedules laid out, counted on the days they were planned"
+                        >
+                            <Button variant="ghost" size="sm" :to="{ name: 'habits' }" icon-end="arrow-right"
+                                >Open</Button
+                            >
+                        </CardHeader>
+                        <dl class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                            <div v-for="stat in habitStats" :key="stat.label" class="flex flex-col gap-1">
+                                <dt class="text-caption text-fg-muted">{{ stat.label }}</dt>
+                                <dd class="text-title font-semibold tabular">{{ stat.value }}</dd>
+                            </div>
+                        </dl>
+                        <ul
+                            v-if="data.habits.rows.length"
+                            class="grid gap-x-8 gap-y-4 border-t border-border pt-4 md:grid-cols-2"
+                        >
+                            <li v-for="habit in data.habits.rows" :key="habit.title" class="flex flex-col gap-2">
+                                <div class="flex items-baseline justify-between gap-3">
+                                    <span class="flex min-w-0 items-center gap-2 font-semibold">
+                                        <span
+                                            :class="['size-2 shrink-0 rounded-full', categoryClass(habit)]"
+                                            aria-hidden="true"
+                                        />
+                                        <span class="truncate">{{ habit.title }}</span>
+                                    </span>
+                                    <Text as="span" role="label" tone="muted" tabular class="shrink-0"
+                                        >{{ habit.done }}/{{ habit.planned
+                                        }}<template v-if="habit.streak"> · {{ habit.streak }}-day run</template></Text
+                                    >
+                                </div>
+                                <ProgressBar :value="habit.rate ?? 0" :label="`${habit.title} kept`" />
+                            </li>
+                        </ul>
+                        <Text v-else role="label" tone="muted" class="border-t border-border pt-4"
+                            >No habits planned in this range. Plan a day from a schedule to start.</Text
+                        >
+                    </Card>
+                </template>
                 <template #breakdown>
                     <div class="grid gap-6 lg:grid-cols-2">
                         <Card as="section" aria-labelledby="priority-heading" class="group">
@@ -435,6 +504,62 @@ onMounted(run);
                             </ul>
                             <Text v-else role="label" tone="muted" class="border-t border-border pt-4"
                                 >No book in progress.</Text
+                            >
+                        </Card>
+                        <Card
+                            v-if="
+                                data.listening &&
+                                settings.values.books.podcasts &&
+                                settings.values.books.show_in_insights
+                            "
+                            as="section"
+                            aria-labelledby="listening-metrics-heading"
+                            class="group lg:col-span-2"
+                        >
+                            <CardHeader
+                                title="Podcasts"
+                                title-id="listening-metrics-heading"
+                                icon="headphones"
+                                :subtitle="`${data.listening.episodes} episodes, ${data.listening.episodes_previous} ${before}`"
+                            >
+                                <Button variant="ghost" size="sm" :to="{ name: 'podcasts' }" icon-end="arrow-right"
+                                    >Open</Button
+                                >
+                            </CardHeader>
+                            <dl class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                <div v-for="stat in listeningStats" :key="stat.label" class="flex flex-col gap-1">
+                                    <dt class="text-caption text-fg-muted">{{ stat.label }}</dt>
+                                    <dd class="text-title font-semibold tabular">{{ stat.value }}</dd>
+                                </div>
+                            </dl>
+                            <ul
+                                v-if="data.listening.shows.length"
+                                class="flex flex-col gap-4 border-t border-border pt-4"
+                            >
+                                <li v-for="show in data.listening.shows" :key="show.id" class="flex items-center gap-3">
+                                    <Avatar :name="show.title" :src="show.image_url ?? undefined" size="sm" />
+                                    <div class="flex min-w-0 flex-1 flex-col gap-2">
+                                        <div class="flex items-baseline justify-between gap-3">
+                                            <RouterLink
+                                                :to="{ name: 'podcast-detail', params: { id: show.id } }"
+                                                class="truncate font-semibold underline-offset-4 hover:underline"
+                                                >{{ show.title }}</RouterLink
+                                            >
+                                            <Text as="span" role="label" tone="muted" tabular class="shrink-0"
+                                                >{{ show.episodes }}
+                                                {{ show.episodes === 1 ? 'episode' : 'episodes' }} ·
+                                                {{ formatMinutes(show.minutes) || '0m' }}</Text
+                                            >
+                                        </div>
+                                        <ProgressBar
+                                            :value="topShow ? Math.round((show.minutes / topShow) * 100) : 0"
+                                            :label="`${show.title} share of listening`"
+                                        />
+                                    </div>
+                                </li>
+                            </ul>
+                            <Text v-else role="label" tone="muted" class="border-t border-border pt-4"
+                                >No episodes logged in this range.</Text
                             >
                         </Card>
                     </div>

@@ -25,6 +25,10 @@ class ReadingMetricsTest extends TestCase
         $this->getJson('/api/v1/metrics?days=7')
             ->assertOk()
             ->assertJsonPath('data.reading.minutes', 20)
-            ->assertJsonPath('data.reading.sessions', 1);
+            ->assertJsonPath('data.reading.sessions', 1)
+            ->assertJsonPath('data.listening.episodes', 1)
+            ->assertJsonPath('data.listening.minutes', 60)
+            ->assertJsonPath('data.listening.shows.0.id', $show->id)
+            ->assertJsonPath('data.habits.planned', 0);
     }
 }

@@ -13,6 +13,7 @@ use App\Modules\Clock\Models\FocusSession;
 use App\Modules\Clock\Services\FocusStats;
 use App\Modules\Goals\Enums\GoalStatus;
 use App\Modules\Goals\Models\Goal;
+use App\Modules\Planner\Services\HabitSummary;
 use App\Modules\Suggestions\Enums\SuggestionCategory;
 use App\Modules\Suggestions\Enums\SuggestionStatus;
 use App\Modules\Suggestions\Models\Suggestion;
@@ -36,6 +37,7 @@ class MetricsService
         private readonly FocusStats $focus,
         private readonly Insights $insights,
         private readonly ActivityDays $activity,
+        private readonly HabitSummary $habits,
     ) {}
 
     /**
@@ -150,6 +152,8 @@ class MetricsService
             'suggestions' => $this->suggestions($user, $start, $end, $previousStart),
             'achievements' => $this->achievements($user, $start, $end, $previousStart),
             'reading' => $this->reading($user, $start, $end, $previousStart),
+            'listening' => $this->listening($user, $start, $end, $previousStart),
+            'habits' => $this->habits($user, $days),
         ];
 
         return $metrics + ['insights' => $this->insights->for($metrics)];
@@ -255,6 +259,69 @@ class MetricsService
                 'progress' => $b->progress(),
                 'chapters_in_range' => (int) $inRange->where('book_id', $b->id)->sum('chapters'),
             ])->values()->all(),
+        ];
+    }
+
+    /**
+     * Podcast episodes, kept apart from reading so neither inflates the other.
+     *
+     * @return array<string, mixed>
+     */
+    private function listening(User $user, Carbon $start, Carbon $end, Carbon $previousStart): array
+    {
+        $episodes = BookReading::query()->whereBelongsTo($user)
+            ->whereHas('book', fn ($q) => $q->where('kind', BookKind::Podcast))
+            ->whereDate('read_on', '>=', $previousStart->toDateString())
+            ->whereDate('read_on', '<=', $end->toDateString())
+            ->with('book:id,title,author,image_path,updated_at')
+            ->get(['id', 'book_id', 'read_on', 'minutes', 'note', 'impact']);
+        $inRange = $episodes->filter(fn (BookReading $r) => $r->read_on->greaterThanOrEqualTo($start->copy()->startOfDay()));
+
+        return [
+            'episodes' => $inRange->count(),
+            'episodes_previous' => $episodes->count() - $inRange->count(),
+            'minutes' => (int) $inRange->sum('minutes'),
+            'finished' => $inRange->filter(fn (BookReading $r) => preg_match('/^watched to the end/i', (string) $r->note) === 1)->count(),
+            'lessons' => $inRange->filter(fn (BookReading $r) => filled($r->impact))->count(),
+            'shows' => $inRange->groupBy('book_id')->map(fn (Collection $rows) => [
+                'id' => $rows->first()->book->id,
+                'title' => $rows->first()->book->title,
+                'host' => $rows->first()->book->author,
+                'image_url' => $rows->first()->book->image_path
+                    ? "/api/v1/books/{$rows->first()->book->id}/image?v=".$rows->first()->book->updated_at?->timestamp
+                    : null,
+                'episodes' => $rows->count(),
+                'minutes' => (int) $rows->sum('minutes'),
+            ])->sortByDesc('minutes')->values()->all(),
+        ];
+    }
+
+    /**
+     * How well the schedule's routines held over the window.
+     *
+     * @return array<string, mixed>
+     */
+    private function habits(User $user, int $days): array
+    {
+        $habits = collect($this->habits->for($user, $days)['habits'])->where('scheduled', true)->values();
+        $done = $habits->sum('done');
+        $planned = $habits->sum('planned');
+        $streak = $habits->sortByDesc('streak')->first();
+
+        return [
+            'count' => $habits->count(),
+            'done' => $done,
+            'planned' => $planned,
+            'rate' => $planned ? (int) round($done / $planned * 100) : null,
+            'longest_streak' => $streak && $streak['streak'] > 0 ? ['title' => $streak['title'], 'days' => $streak['streak']] : null,
+            'rows' => $habits->map(fn (array $habit) => [
+                'title' => $habit['title'],
+                'tone' => $habit['type']['tone'] ?? null,
+                'done' => $habit['done'],
+                'planned' => $habit['planned'],
+                'rate' => $habit['rate'],
+                'streak' => $habit['streak'],
+            ])->sortBy([['rate', 'desc'], ['title', 'asc']])->values()->all(),
         ];
     }
 
