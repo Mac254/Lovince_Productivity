@@ -33,6 +33,7 @@ class BookRequest extends FormRequest
         return [
             'title' => [$presence, 'string', 'min:1', 'max:'.Contract::BOOK_TITLE_MAX],
             'kind' => ['sometimes', Rule::enum(BookKind::class)],
+            'link' => ['sometimes', 'nullable', 'url:http,https', 'max:'.Contract::BOOK_LINK_MAX],
             'author' => ['sometimes', 'nullable', 'string', 'max:'.Contract::BOOK_AUTHOR_MAX],
             'status' => ['sometimes', Rule::enum(BookStatus::class)],
             'chapters_total' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.Contract::BOOK_CHAPTERS_MAX],
@@ -58,6 +59,9 @@ class BookRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (is_string($this->input('link'))) {
+            $this->merge(['link' => trim($this->input('link')) ?: null]);
+        }
         foreach (['title', 'author'] as $field) {
             if (is_string($this->input($field))) {
                 $this->merge([$field => trim($this->input($field)) ?: ($field === 'author' ? null : '')]);

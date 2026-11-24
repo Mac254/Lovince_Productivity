@@ -28,6 +28,10 @@ export interface Book {
     kind: BookKind;
     title: string;
     author: string | null;
+    /** Where to find it: a podcast's channel, a book's page. */
+    link: string | null;
+    /** The uploaded cover or picture, served by the API. */
+    image_url: string | null;
     status: BookStatus;
     chapters_total: number | null;
     chapters_read: number;

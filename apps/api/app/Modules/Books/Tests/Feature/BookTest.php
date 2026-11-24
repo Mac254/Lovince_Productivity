@@ -8,6 +8,7 @@ use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class BookTest extends TestCase
@@ -193,5 +194,26 @@ class BookTest extends TestCase
         $this->getJson("/api/v1/books/{$id}")->assertOk()->assertJsonPath('data.status', 'reading')->assertJsonPath('data.minutes_read', 45)->assertJsonPath('data.sessions', 1);
         $this->getJson('/api/v1/books?kind=podcast')->assertOk()->assertJsonCount(1, 'data');
         $this->getJson('/api/v1/books?kind=book')->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    public function test_a_podcast_takes_a_picture_and_a_link(): void
+    {
+        Storage::fake('local');
+        $book = Book::factory()->for($this->user)->create(['kind' => 'podcast', 'title' => 'NetworkChuck']);
+
+        $this->patchJson("/api/v1/books/{$book->id}", ['link' => ' https://www.youtube.com/@NetworkChuck '])
+            ->assertOk()
+            ->assertJsonPath('data.link', 'https://www.youtube.com/@NetworkChuck');
+        $this->patchJson("/api/v1/books/{$book->id}", ['link' => 'javascript:alert(1)'])->assertUnprocessable();
+
+        $url = $this->post("/api/v1/books/{$book->id}/image", ['image' => UploadedFile::fake()->image('chuck.png', 200, 200)], ['Accept' => 'application/json'])
+            ->assertOk()
+            ->json('data.image_url');
+        $this->assertStringStartsWith("/api/v1/books/{$book->id}/image", $url);
+        $this->get("/api/v1/books/{$book->id}/image")->assertOk();
+
+        $this->actingAs(User::factory()->create())->getJson("/api/v1/books/{$book->id}/image")->assertNotFound();
+
+        $this->actingAs($this->user)->deleteJson("/api/v1/books/{$book->id}/image")->assertOk()->assertJsonPath('data.image_url', null);
     }
 }

@@ -121,6 +121,8 @@ final class Contract
 
     public const BOOK_AUTHOR_MAX = 120;
 
+    public const BOOK_LINK_MAX = 500;
+
     public const BOOK_CHAPTERS_MAX = 1000;
 
     /** The most chapters one sitting can claim. */
@@ -232,6 +234,7 @@ final class Contract
             'book' => [
                 'title' => self::BOOK_TITLE_MAX,
                 'author' => self::BOOK_AUTHOR_MAX,
+                'link' => self::BOOK_LINK_MAX,
                 'notes' => self::DESCRIPTION_MAX,
                 'chapters' => self::BOOK_CHAPTERS_MAX,
                 'readingChapters' => self::BOOK_READING_CHAPTERS_MAX,

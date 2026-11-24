@@ -148,6 +148,7 @@ export const LIMITS = {
     book: {
         title: 200,
         author: 120,
+        link: 500,
         notes: 5000,
         chapters: 1000,
         readingChapters: 100,

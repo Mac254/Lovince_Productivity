@@ -3,6 +3,7 @@ import { LIMITS, type Book } from '@focus/types';
 import type { MenuItem } from '@focus/ui';
 import { formatDate, formatMinutes } from '@/lib/dates';
 import { bookStatusTones, statusLabelsFor } from '@/lib/labels';
+import { linkHandle } from './handle';
 import { chapterSummary } from './progress';
 
 const props = defineProps<{ book: Book }>();
@@ -22,12 +23,12 @@ const menu = computed<MenuItem[]>(() => [
     { label: `Delete ${noun.value}`, icon: 'trash', destructive: true, onSelect: () => emit('delete', props.book) },
 ]);
 
-const listened = computed(() => {
-    const count = props.book.sessions ?? 0;
-    const parts = [`${count} ${count === 1 ? 'episode' : 'episodes'}`];
-    if (props.book.minutes_read) parts.push(formatMinutes(props.book.minutes_read));
-    return parts.join(' · ');
-});
+const handle = computed(() => linkHandle(props.book.link));
+const stats = computed(() => [
+    { label: props.book.sessions === 1 ? 'Episode' : 'Episodes', value: String(props.book.sessions ?? 0) },
+    { label: 'Listened', value: props.book.minutes_read ? formatMinutes(props.book.minutes_read) : '0m' },
+    { label: 'Last', value: props.book.last_read_on ? formatDate(props.book.last_read_on) : '—' },
+]);
 
 const when = computed(() => {
     const { status, finished_on: finished, last_read_on: last, started_on: started } = props.book;
@@ -41,8 +42,8 @@ const when = computed(() => {
 
 <template>
     <Card v-if="podcast" interactive class="gap-4">
-        <div class="flex items-start gap-4">
-            <Avatar :name="book.title" size="lg" />
+        <div class="flex items-center gap-4">
+            <Avatar :name="book.title" :src="book.image_url" size="xl" />
             <div class="flex min-w-0 flex-1 flex-col gap-1">
                 <Heading :level="3" role="title" class="truncate">
                     <RouterLink
@@ -52,12 +53,33 @@ const when = computed(() => {
                     >
                 </Heading>
                 <Text v-if="book.author" role="label" tone="muted" class="truncate">{{ book.author }}</Text>
+                <a
+                    v-if="handle && book.link"
+                    :href="book.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="w-fit max-w-full truncate text-label text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+                    >{{ handle }}</a
+                >
             </div>
-            <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" />
+            <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" class="self-start" />
         </div>
-        <div class="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-3">
-            <Text role="label" tone="muted" tabular>{{ when }}</Text>
-            <Text role="label" tone="muted" tabular>{{ listened }}</Text>
+        <dl class="grid grid-cols-3 gap-3">
+            <div v-for="stat in stats" :key="stat.label" class="flex flex-col-reverse gap-1">
+                <dt class="text-caption text-fg-muted">{{ stat.label }}</dt>
+                <dd class="truncate font-display text-lead font-semibold tabular">{{ stat.value }}</dd>
+            </div>
+        </dl>
+        <div class="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3">
+            <Badge dot :tone="bookStatusTones[book.status]">{{ statusLabelsFor(book.kind)[book.status] }}</Badge>
+            <Button
+                v-if="book.status !== 'finished'"
+                variant="outline"
+                size="sm"
+                icon-start="headphones"
+                @click="emit('log', book)"
+                >Log episode</Button
+            >
         </div>
     </Card>
     <Card v-else interactive class="min-h-56 gap-3">

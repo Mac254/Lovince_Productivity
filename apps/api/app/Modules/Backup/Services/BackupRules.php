@@ -162,6 +162,7 @@ class BackupRules
             'books.*.task_refs' => ['sometimes', 'array'],
             'books.*.task_refs.*' => ['integer'],
             'books.*.title' => ['required', 'string', 'max:'.Contract::BOOK_TITLE_MAX],
+            'books.*.link' => ['nullable', 'url:http,https', 'max:'.Contract::BOOK_LINK_MAX],
             'books.*.author' => ['nullable', 'string', 'max:'.Contract::BOOK_AUTHOR_MAX],
             'books.*.kind' => ['sometimes', Rule::enum(BookKind::class)],
             'books.*.status' => ['required', Rule::enum(BookStatus::class)],

@@ -10,15 +10,18 @@ use App\Modules\Tasks\Models\Task;
 use App\Modules\Users\Models\User;
 use App\Shared\Support\ActivityObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 #[ObservedBy(ActivityObserver::class)]
-#[Fillable(['goal_id', 'kind', 'title', 'author', 'status', 'chapters_total', 'chapters_read', 'started_on', 'finished_on', 'rating', 'notes'])]
+#[Hidden(['image_path'])]
+#[Fillable(['goal_id', 'kind', 'title', 'author', 'link', 'status', 'chapters_total', 'chapters_read', 'started_on', 'finished_on', 'rating', 'notes'])]
 #[UseFactory(BookFactory::class)]
 class Book extends Model
 {
@@ -26,6 +29,8 @@ class Book extends Model
     use HasFactory;
 
     public const RELATIONS = ['goal:id,title,tone'];
+
+    public const IMAGE_DISK = 'local';
 
     protected $attributes = [
         'kind' => 'book',
@@ -35,6 +40,12 @@ class Book extends Model
 
     protected static function booted(): void
     {
+        static::deleted(function (Book $book) {
+            if ($book->image_path) {
+                Storage::disk(self::IMAGE_DISK)->delete($book->image_path);
+            }
+        });
+
         static::saving(function (Book $book) {
             if ($book->chapters_total !== null) {
                 $book->chapters_read = min($book->chapters_read, $book->chapters_total);

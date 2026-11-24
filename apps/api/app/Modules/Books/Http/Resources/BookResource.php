@@ -24,6 +24,8 @@ class BookResource extends JsonResource
             'kind' => $this->kind,
             'title' => $this->title,
             'author' => $this->author,
+            'link' => $this->link,
+            'image_url' => $this->image_path ? "/api/v1/books/{$this->id}/image?v=".$this->updated_at?->timestamp : null,
             'status' => $this->status,
             'chapters_total' => $this->chapters_total,
             'chapters_read' => $this->chapters_read,

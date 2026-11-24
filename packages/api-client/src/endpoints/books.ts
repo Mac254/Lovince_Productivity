@@ -32,6 +32,16 @@ export function bookEndpoints(http: HttpClient) {
         async remove(id: number): Promise<void> {
             await http.delete(`/books/${id}`);
         },
+        async uploadImage(id: number, file: File): Promise<Book> {
+            const form = new FormData();
+            form.append('image', file);
+            const { data } = await http.post<Resource<Book>>(`/books/${id}/image`, form);
+            return data.data;
+        },
+        async removeImage(id: number): Promise<Book> {
+            const { data } = await http.delete<Resource<Book>>(`/books/${id}/image`);
+            return data.data;
+        },
         async logReading(bookId: number, input: BookReadingInput): Promise<BookReading> {
             const { data } = await http.post<Resource<BookReading>>(`/books/${bookId}/readings`, input);
             return data.data;

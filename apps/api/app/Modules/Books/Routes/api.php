@@ -1,12 +1,16 @@
 <?php
 
 use App\Modules\Books\Http\Controllers\BookController;
+use App\Modules\Books\Http\Controllers\BookImageController;
 use App\Modules\Books\Http\Controllers\BookReadingController;
 use App\Modules\Books\Http\Controllers\BookTaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('books', BookController::class);
+    Route::get('books/{book}/image', [BookImageController::class, 'show']);
+    Route::post('books/{book}/image', [BookImageController::class, 'store'])->middleware('throttle:10,1,book-image');
+    Route::delete('books/{book}/image', [BookImageController::class, 'destroy']);
     Route::post('books/{book}/readings', [BookReadingController::class, 'store']);
     Route::patch('book-readings/{reading}', [BookReadingController::class, 'update']);
     Route::delete('book-readings/{reading}', [BookReadingController::class, 'destroy']);

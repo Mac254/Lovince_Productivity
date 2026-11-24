@@ -166,6 +166,7 @@ class BackupExporter
                 'kind' => $this->value($book->kind),
                 'title' => $book->title,
                 'author' => $book->author,
+                'link' => $book->link,
                 'status' => $this->value($book->status),
                 'chapters_total' => $book->chapters_total,
                 'chapters_read' => $book->chapters_read,

@@ -48,6 +48,7 @@ export type BookInput = Partial<
         | 'kind'
         | 'title'
         | 'author'
+        | 'link'
         | 'status'
         | 'chapters_total'
         | 'chapters_read'

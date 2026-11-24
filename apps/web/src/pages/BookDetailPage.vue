@@ -108,7 +108,7 @@ watch(id, load, { immediate: true });
             :back="{ to: { name: 'books' }, label: 'Back to all books' }"
         >
             <template v-if="book" #eyebrow>
-                <Avatar v-if="podcast" :name="book.title" size="sm" />
+                <Avatar v-if="podcast" :name="book.title" :src="book.image_url" size="lg" />
                 <Badge dot :tone="bookStatusTones[book.status]">{{ statusLabelsFor(book.kind)[book.status] }}</Badge>
                 <Badge v-if="book.rating" tone="highlight" icon="star"
                     >{{ book.rating }}/{{ LIMITS.book.rating }}</Badge

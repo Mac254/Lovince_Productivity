@@ -14,6 +14,7 @@ const goalsStore = useGoalsStore();
 const form = reactive({
     title: '',
     author: '' as string | null,
+    link: '' as string | null,
     status: 'to_find' as BookStatus,
     chapters_total: '' as string | null,
     chapters_read: '' as string | null,
@@ -24,6 +25,24 @@ const form = reactive({
     notes: '' as string | null,
 });
 const errors = ref<Record<string, string>>({});
+const picture = ref<File | null>(null);
+const preview = ref<string | null>(null);
+const dropPicture = ref(false);
+const shownPicture = computed(() => preview.value ?? (dropPicture.value ? null : (props.book?.image_url ?? null)));
+
+function pick(file: File): void {
+    picture.value = file;
+    dropPicture.value = false;
+    const reader = new FileReader();
+    reader.onload = () => (preview.value = typeof reader.result === 'string' ? reader.result : null);
+    reader.readAsDataURL(file);
+}
+
+function clearPicture(): void {
+    picture.value = null;
+    preview.value = null;
+    dropPicture.value = true;
+}
 const saving = ref(false);
 const isEdit = computed(() => !!props.book);
 const podcast = computed(() => (props.book?.kind ?? props.kind) === 'podcast');
@@ -48,6 +67,7 @@ watch(open, (value) => {
     Object.assign(form, {
         title: book?.title ?? '',
         author: book?.author ?? '',
+        link: book?.link ?? '',
         status: book?.status ?? props.status ?? 'to_find',
         chapters_total: book?.chapters_total ? String(book.chapters_total) : '',
         chapters_read: book?.chapters_read ? String(book.chapters_read) : '',
@@ -58,6 +78,9 @@ watch(open, (value) => {
         notes: book?.notes ?? '',
     });
     errors.value = {};
+    picture.value = null;
+    preview.value = null;
+    dropPicture.value = false;
     void goalsStore.load().catch(() => []);
 });
 
@@ -87,6 +110,7 @@ async function submit(): Promise<void> {
         ...(props.book ? {} : { kind: podcast.value ? 'podcast' : 'book' }),
         title: form.title.trim(),
         author: form.author?.trim() || null,
+        link: form.link?.trim() || null,
         status: form.status,
         chapters_total: total,
         chapters_read: read ?? 0,
@@ -97,7 +121,9 @@ async function submit(): Promise<void> {
         notes: form.notes?.trim() || null,
     };
     try {
-        const saved = props.book ? await api.books.update(props.book.id, payload) : await api.books.create(payload);
+        let saved = props.book ? await api.books.update(props.book.id, payload) : await api.books.create(payload);
+        if (picture.value) saved = await api.books.uploadImage(saved.id, picture.value);
+        else if (dropPicture.value && saved.image_url) saved = await api.books.removeImage(saved.id);
         toast.success(`${podcast.value ? 'Podcast' : 'Book'} ${isEdit.value ? 'updated' : 'added'}`);
         open.value = false;
         emit('saved', saved);
@@ -122,6 +148,25 @@ async function submit(): Promise<void> {
         :busy="saving"
     >
         <form id="book-form" class="flex flex-col gap-6" novalidate @submit.prevent="submit">
+            <div class="flex items-center gap-4">
+                <Avatar :name="form.title || (podcast ? 'Podcast' : 'Book')" :src="shownPicture" size="xl" />
+                <div class="flex flex-col gap-2">
+                    <Text role="label" class="font-semibold">{{ podcast ? 'Picture' : 'Cover' }}</Text>
+                    <div class="flex flex-wrap gap-2">
+                        <FilePicker
+                            v-slot="{ open: choose }"
+                            accept="image/jpeg,image/png,image/webp"
+                            :label="podcast ? 'Choose a picture' : 'Choose a cover'"
+                            @pick="pick"
+                        >
+                            <Button variant="outline" size="sm" icon-start="upload" @click="choose">{{
+                                shownPicture ? 'Replace' : 'Upload'
+                            }}</Button>
+                        </FilePicker>
+                        <Button v-if="shownPicture" variant="ghost" size="sm" @click="clearPicture">Remove</Button>
+                    </div>
+                </div>
+            </div>
             <div class="grid gap-6 sm:grid-cols-2">
                 <Input
                     id="book-title"
@@ -141,6 +186,17 @@ async function submit(): Promise<void> {
                     :maxlength="LIMITS.book.author"
                     autocomplete="off"
                     :error="errors.author"
+                />
+                <Input
+                    id="book-link"
+                    v-model="form.link"
+                    type="url"
+                    :label="podcast ? 'Channel link' : 'Link'"
+                    optional
+                    placeholder="https://"
+                    :maxlength="LIMITS.book.link"
+                    autocomplete="off"
+                    :error="errors.link"
                 />
                 <Select
                     id="book-status"
