@@ -4,15 +4,19 @@ import { formatDate, formatMinutes } from '@/lib/dates';
 import { bookStatusTones, statusLabelsFor } from '@/lib/labels';
 import { linkHandle } from './handle';
 import { finished, listeningWeeks } from './listening';
+import LessonsNotes from './LessonsNotes.vue';
 import ListeningChart from './ListeningChart.vue';
 
 /** A podcast as a profile: who it is, how you've listened, the lessons you've kept and every episode. */
 const props = defineProps<{ book: Book }>();
-const emit = defineEmits<{ log: []; edit: [reading: BookReading]; remove: [reading: BookReading] }>();
+const emit = defineEmits<{ log: []; edit: [reading: BookReading]; remove: [reading: BookReading]; saved: [] }>();
 
 const readings = computed(() => props.book.readings ?? []);
 const handle = computed(() => linkHandle(props.book.link));
 const lessons = computed(() => readings.value.filter((r) => r.impact));
+const lessonCount = computed(
+    () => lessons.value.length + (props.book.notes ?? '').split('\n').filter((l) => /^\s*[-*+]\s+\S/.test(l)).length,
+);
 const weeks = computed(() => listeningWeeks(readings.value));
 const thisWeek = computed(() => weeks.value.at(-1)?.minutes ?? 0);
 const page = usePagedList(() => readings.value, 8);
@@ -21,7 +25,7 @@ const stats = computed(() => [
     { label: readings.value.length === 1 ? 'Episode' : 'Episodes', value: String(readings.value.length) },
     { label: 'Listened', value: formatMinutes(props.book.minutes_read) || '0m' },
     { label: 'To the end', value: String(readings.value.filter(finished).length) },
-    { label: lessons.value.length === 1 ? 'Lesson' : 'Lessons', value: String(lessons.value.length) },
+    { label: lessonCount.value === 1 ? 'Lesson' : 'Lessons', value: String(lessonCount.value) },
 ]);
 </script>
 
@@ -57,7 +61,6 @@ const stats = computed(() => [
                     <dd class="font-display text-heading font-semibold tracking-tight tabular">{{ stat.value }}</dd>
                 </div>
             </dl>
-            <Text v-if="book.notes" role="label" tone="muted" class="whitespace-pre-line">{{ book.notes }}</Text>
         </Card>
 
         <div class="grid gap-6 lg:grid-cols-5">
@@ -73,21 +76,22 @@ const stats = computed(() => [
 
             <Card as="section" aria-labelledby="lessons-heading" class="lg:col-span-2">
                 <CardHeader title="Lessons learnt" title-id="lessons-heading" icon="lightbulb" />
-                <ul v-if="lessons.length" class="flex flex-col gap-4">
-                    <li
-                        v-for="lesson in lessons.slice(0, 6)"
-                        :key="lesson.id"
-                        class="flex flex-col gap-1 border-l-2 border-highlight pl-4"
-                    >
-                        <Text class="whitespace-pre-line">{{ lesson.impact }}</Text>
-                        <Text role="caption" tone="muted" class="truncate"
-                            >{{ lesson.episode || 'Episode' }} · {{ formatDate(lesson.read_on) }}</Text
+                <LessonsNotes :book="book" @saved="emit('saved')" />
+                <div v-if="lessons.length" class="flex flex-col gap-3 border-t border-border pt-4">
+                    <Text role="caption" tone="muted" class="font-semibold">From episodes</Text>
+                    <ul class="flex flex-col gap-3">
+                        <li
+                            v-for="lesson in lessons.slice(0, 5)"
+                            :key="lesson.id"
+                            class="flex flex-col gap-1 border-l-2 border-highlight pl-4"
                         >
-                    </li>
-                </ul>
-                <Text v-else role="label" tone="muted"
-                    >Add the lesson you took from an episode, using the pencil beside it, and it collects here.</Text
-                >
+                            <Text role="label" class="whitespace-pre-line">{{ lesson.impact }}</Text>
+                            <Text role="caption" tone="muted" class="truncate"
+                                >{{ lesson.episode || 'Episode' }} · {{ formatDate(lesson.read_on) }}</Text
+                            >
+                        </li>
+                    </ul>
+                </div>
             </Card>
         </div>
 
@@ -116,12 +120,21 @@ const stats = computed(() => [
                             <span class="whitespace-pre-line">{{ reading.impact }}</span>
                         </p>
                     </div>
-                    <div class="flex shrink-0 gap-1">
+                    <div class="flex shrink-0 items-center gap-1">
+                        <Button
+                            v-if="!reading.impact"
+                            variant="outline"
+                            size="sm"
+                            icon-start="lightbulb"
+                            @click="emit('edit', reading)"
+                            >Add lesson</Button
+                        >
                         <IconButton
+                            v-else
                             icon="edit"
                             variant="ghost"
                             size="sm"
-                            :label="reading.impact ? 'Edit the episode' : 'Add a lesson'"
+                            label="Edit the episode and its lesson"
                             @click="emit('edit', reading)"
                         />
                         <IconButton

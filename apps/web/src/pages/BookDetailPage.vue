@@ -144,7 +144,14 @@ watch(id, load, { immediate: true });
         </div>
 
         <template v-else-if="book">
-            <PodcastProfile v-if="podcast" :book="book" @log="logNew" @edit="editReading" @remove="removeReading" />
+            <PodcastProfile
+                v-if="podcast"
+                :book="book"
+                @log="logNew"
+                @edit="editReading"
+                @remove="removeReading"
+                @saved="load"
+            />
             <section
                 v-if="!podcast"
                 :aria-label="podcast ? 'Podcast in numbers' : 'Book in numbers'"

@@ -41,20 +41,14 @@ const when = computed(() => {
 </script>
 
 <template>
-    <Card v-if="podcast" interactive class="gap-4">
+    <Card v-if="podcast" interactive class="relative gap-4">
         <div class="flex items-center gap-4">
-            <RouterLink
-                :to="{ name: 'podcast-detail', params: { id: book.id } }"
-                class="shrink-0 rounded-full"
-                tabindex="-1"
-                aria-hidden="true"
-                ><Avatar :name="book.title" :src="book.image_url" size="xl"
-            /></RouterLink>
+            <Avatar :name="book.title" :src="book.image_url" size="xl" />
             <div class="flex min-w-0 flex-1 flex-col gap-1">
                 <Heading :level="3" role="title" class="truncate">
                     <RouterLink
                         :to="{ name: 'podcast-detail', params: { id: book.id } }"
-                        class="underline-offset-4 hover:underline"
+                        class="underline-offset-4 after:absolute after:inset-0 after:rounded-lg hover:underline"
                         >{{ book.title }}</RouterLink
                     >
                 </Heading>
@@ -64,11 +58,11 @@ const when = computed(() => {
                     :href="book.link"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="w-fit max-w-full truncate text-label text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+                    class="relative w-fit max-w-full truncate text-label text-fg-muted underline-offset-4 hover:text-fg hover:underline"
                     >{{ handle }}</a
                 >
             </div>
-            <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" class="self-start" />
+            <DropdownMenu :items="menu" :label="`Actions for “${book.title}”`" size="sm" class="relative self-start" />
         </div>
         <dl class="grid grid-cols-3 gap-3">
             <div v-for="stat in stats" :key="stat.label" class="flex flex-col-reverse gap-1">
@@ -83,6 +77,7 @@ const when = computed(() => {
                 variant="outline"
                 size="sm"
                 icon-start="headphones"
+                class="relative"
                 @click="emit('log', book)"
                 >Log episode</Button
             >
