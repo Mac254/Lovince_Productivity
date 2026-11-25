@@ -158,7 +158,7 @@ class Insights
     }
 
     /**
-     * @param  array{chapters: int, days: int, finished: int, current: list<array{title: string}>}|null  $reading
+     * @param  array{chapters: int, minutes: int, sessions: int, days: int, finished: int, current: list<array{title: string}>}|null  $reading
      */
     private function reading(?array $reading, int $days): ?array
     {
@@ -176,6 +176,12 @@ class Insights
 
             return $this->insight('reading', 'positive', "You read {$chapters} on {$on} {$this->within($days)}.");
         }
+        if ($reading['sessions'] > 0) {
+            $time = $reading['minutes'] > 0 ? 'for '.$this->duration($reading['minutes']) : 'a little';
+            $on = $reading['days'] === 1 ? '' : " on {$reading['days']} days";
+
+            return $this->insight('reading', 'positive', "You read {$time}{$on} {$this->within($days)}.");
+        }
         if ($reading['current'] !== []) {
             return $this->insight('reading', 'neutral', "No reading logged for {$reading['current'][0]['title']} {$this->within($days)}.");
         }
@@ -187,6 +193,18 @@ class Insights
      * @param  'positive'|'neutral'|'warning'  $tone
      * @return array{key: string, tone: 'positive'|'neutral'|'warning', text: string}
      */
+    private function duration(int $minutes): string
+    {
+        $hours = intdiv($minutes, 60);
+        $rest = $minutes % 60;
+
+        return match (true) {
+            $hours === 0 => "{$rest} min",
+            $rest === 0 => "{$hours}h",
+            default => "{$hours}h {$rest}m",
+        };
+    }
+
     private function within(int $days): string
     {
         return $days === 1 ? 'today' : "in the last {$days} days";

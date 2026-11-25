@@ -31,4 +31,17 @@ class ReadingMetricsTest extends TestCase
             ->assertJsonPath('data.listening.shows.0.id', $show->id)
             ->assertJsonPath('data.habits.planned', 0);
     }
+
+    public function test_reading_logged_by_time_counts_as_reading(): void
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->for($user)->create(['kind' => BookKind::Book, 'title' => 'The Almanack']);
+        $book->forceFill(['status' => 'reading'])->save();
+        $this->actingAs($user);
+        $this->postJson("/api/v1/books/{$book->id}/readings", ['read_on' => today()->toDateString(), 'minutes' => 40, 'note' => 'To page 31'])->assertCreated();
+
+        $insight = collect($this->getJson('/api/v1/metrics?days=1')->assertOk()->json('data.insights'))->firstWhere('key', 'reading');
+
+        $this->assertSame('You read for 40 min today.', $insight['text'] ?? null);
+    }
 }
