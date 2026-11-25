@@ -30,6 +30,7 @@ class TimeBlockResource extends JsonResource
                 'fallback' => $this->task->fallback,
                 'fallback_done' => (bool) $this->task->fallback_done,
                 'priority' => $this->task->priority,
+                'habit' => $this->task->habit,
             ] : null,
         ];
     }

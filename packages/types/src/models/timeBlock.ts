@@ -15,6 +15,7 @@ export interface TimeBlock {
         fallback: string | null;
         fallback_done: boolean;
         priority: TaskPriority;
+        habit: string | null;
     } | null;
 }
 

@@ -48,7 +48,11 @@ describe('timeline helpers', () => {
     });
 
     it('finds blocks for tasks left unfinished', () => {
-        const withTask = (id: number, status: NonNullable<TimeBlock['task']>['status']): TimeBlock => ({
+        const withTask = (
+            id: number,
+            status: NonNullable<TimeBlock['task']>['status'],
+            habit: string | null = null,
+        ): TimeBlock => ({
             ...block(id, 30),
             task: {
                 id,
@@ -58,6 +62,7 @@ describe('timeline helpers', () => {
                 fallback: null,
                 fallback_done: false,
                 priority: 'medium',
+                habit,
             },
         });
         const blocks = [
@@ -65,6 +70,7 @@ describe('timeline helpers', () => {
             withTask(60, 'in_progress'),
             withTask(120, 'completed'),
             withTask(180, 'cancelled'),
+            withTask(240, 'not_started', 'Unwind after the commute'),
         ];
 
         expect(missedBlocks(blocks).map((entry) => entry.id)).toEqual([60]);
@@ -103,6 +109,14 @@ describe('timeline helpers', () => {
 
     it('looks earlier in the day when nothing later is free', () => {
         expect(freeSlot([block(600, 840)], 60, 900)).toBe(0);
+    });
+
+    it('keeps a carried block inside the planner day', () => {
+        const day = { start: 300, end: 1380 };
+        expect(freeSlot([block(300, 1080)], 60, 1065, day)).toBeNull();
+        expect(freeSlot([block(600, 840)], 60, 900, day)).toBe(300);
+        expect(freeSlot([block(300, 1020)], 15, 1065, day)).toBe(1320);
+        expect(freeSlot([], 60, 120, day)).toBe(300);
     });
 
     it('finds no slot when the block fits nowhere today', () => {

@@ -111,7 +111,10 @@ async function moveMissed(auto = false): Promise<void> {
     let skipped = 0;
     const taken = [...blocks.value];
     for (const block of missed.value) {
-        const start = freeSlot(taken, block.minutes, block.start_minute);
+        const start = freeSlot(taken, block.minutes, block.start_minute, {
+            start: Number(settings.values.planner.day_start) * 60,
+            end: Number(settings.values.planner.day_end) * 60,
+        });
         if (start === null) {
             skipped++;
             continue;

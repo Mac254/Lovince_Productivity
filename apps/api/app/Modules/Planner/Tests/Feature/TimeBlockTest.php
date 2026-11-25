@@ -105,4 +105,19 @@ class TimeBlockTest extends TestCase
         $this->deleteJson("/api/v1/tasks/{$task->id}")->assertNoContent();
         $this->getJson('/api/v1/time-blocks')->assertJsonPath('data.0.task', null)->assertJsonPath('data.0.title', 'Gone');
     }
+
+    public function test_a_block_says_whether_its_task_is_a_routine(): void
+    {
+        $user = User::factory()->create();
+        $routine = Task::factory()->for($user)->create(['title' => 'Unwind', 'habit' => 'Unwind after the commute']);
+        $work = Task::factory()->for($user)->create(['title' => 'Write the spec']);
+        $this->actingAs($user);
+        $today = today()->toDateString();
+        $this->postJson('/api/v1/time-blocks', ['task_id' => $routine->id, 'date' => $today, 'start_minute' => 0, 'minutes' => 30])->assertCreated();
+        $this->postJson('/api/v1/time-blocks', ['task_id' => $work->id, 'date' => $today, 'start_minute' => 60, 'minutes' => 30])->assertCreated();
+
+        $this->getJson("/api/v1/time-blocks?date={$today}")
+            ->assertJsonPath('data.0.task.habit', 'Unwind after the commute')
+            ->assertJsonPath('data.1.task.habit', null);
+    }
 }

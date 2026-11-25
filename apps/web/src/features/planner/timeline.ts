@@ -43,7 +43,11 @@ export function plannedMinutes(blocks: TimeBlock[]): number {
 
 export function missedBlocks(blocks: TimeBlock[]): TimeBlock[] {
     return blocks.filter(
-        (block) => block.task && block.task.status !== 'completed' && block.task.status !== 'cancelled',
+        (block) =>
+            block.task &&
+            !block.task.habit &&
+            block.task.status !== 'completed' &&
+            block.task.status !== 'cancelled',
     );
 }
 
@@ -53,13 +57,21 @@ export function previousDay(date: string): string {
     return todayIso(day);
 }
 
-export function freeSlot(blocks: TimeBlock[], minutes: number, preferred: number): number | null {
-    const ends = [...new Set([0, ...blocks.map((block) => block.start_minute + block.minutes)])].sort((a, b) => a - b);
+export function freeSlot(
+    blocks: TimeBlock[],
+    minutes: number,
+    preferred: number,
+    window: { start: number; end: number } = { start: 0, end: DAY_MINUTES },
+): number | null {
+    const ends = [...new Set([window.start, ...blocks.map((block) => block.start_minute + block.minutes)])].sort(
+        (a, b) => a - b,
+    );
     const candidates = [preferred, ...ends.filter((end) => end > preferred), ...ends.filter((end) => end < preferred)];
     return (
         candidates.find(
             (start) =>
-                start + minutes <= DAY_MINUTES &&
+                start >= window.start &&
+                start + minutes <= window.end &&
                 blocks.every(
                     (block) => block.start_minute >= start + minutes || block.start_minute + block.minutes <= start,
                 ),

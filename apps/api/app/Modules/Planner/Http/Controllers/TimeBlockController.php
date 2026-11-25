@@ -22,7 +22,7 @@ class TimeBlockController extends Controller
             TimeBlock::query()
                 ->whereBelongsTo($request->user())
                 ->whereDate('date', $date)
-                ->with('task:id,title,status,cancel_reason,fallback,fallback_done,priority')
+                ->with('task:id,title,status,cancel_reason,fallback,fallback_done,priority,habit')
                 ->orderBy('start_minute')
                 ->get()
         );
@@ -32,14 +32,14 @@ class TimeBlockController extends Controller
     {
         $block = $request->user()->timeBlocks()->create($request->blockData());
 
-        return TimeBlockResource::make($block->load('task:id,title,status,cancel_reason,fallback,fallback_done,priority'))->response()->setStatusCode(201);
+        return TimeBlockResource::make($block->load('task:id,title,status,cancel_reason,fallback,fallback_done,priority,habit'))->response()->setStatusCode(201);
     }
 
     public function update(TimeBlockRequest $request, TimeBlock $block): TimeBlockResource
     {
         $block->update($request->blockData());
 
-        return TimeBlockResource::make($block->load('task:id,title,status,cancel_reason,fallback,fallback_done,priority'));
+        return TimeBlockResource::make($block->load('task:id,title,status,cancel_reason,fallback,fallback_done,priority,habit'));
     }
 
     public function destroy(TimeBlock $block): Response
