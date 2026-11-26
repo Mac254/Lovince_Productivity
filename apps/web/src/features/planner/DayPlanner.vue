@@ -93,7 +93,7 @@ async function loadMissed(): Promise<void> {
         return;
     }
     try {
-        missed.value = missedBlocks(await api.timeBlocks.list(previousDay(props.date))).filter(
+        missed.value = missedBlocks(await api.timeBlocks.list(previousDay(props.date)), blocks.value).filter(
             (block) => !dismissedMissed.has(block.id),
         );
     } catch {

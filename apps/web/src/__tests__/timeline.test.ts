@@ -74,6 +74,7 @@ describe('timeline helpers', () => {
         ];
 
         expect(missedBlocks(blocks).map((entry) => entry.id)).toEqual([60]);
+        expect(missedBlocks(blocks, [withTask(60, 'in_progress')])).toEqual([]);
     });
 
     it('steps back a calendar day and summarises a move', () => {

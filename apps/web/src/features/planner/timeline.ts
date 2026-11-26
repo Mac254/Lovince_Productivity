@@ -41,11 +41,13 @@ export function plannedMinutes(blocks: TimeBlock[]): number {
     return blocks.reduce((total, block) => total + block.minutes, 0);
 }
 
-export function missedBlocks(blocks: TimeBlock[]): TimeBlock[] {
+export function missedBlocks(blocks: TimeBlock[], planned: TimeBlock[] = []): TimeBlock[] {
+    const plannedTasks = new Set(planned.map((block) => block.task?.id).filter((id) => id !== undefined));
     return blocks.filter(
         (block) =>
             block.task &&
             !block.task.habit &&
+            !plannedTasks.has(block.task.id) &&
             block.task.status !== 'completed' &&
             block.task.status !== 'cancelled',
     );
